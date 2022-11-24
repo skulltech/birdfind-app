@@ -1,8 +1,8 @@
 create table if not exists twitter_user (
     id bigint primary key,
-
     created_at timestamp with time zone default now() not null,
-    user_updated_at timestamp with time zone default now() not null,
+    updated_at timestamp with time zone default now() not null,
+    
     followers_updated_at timestamp with time zone default now() not null,
     following_updated_at timestamp with time zone default now() not null,
 

@@ -1,10 +1,15 @@
-import { getFollowers, getUsers } from "./utils";
+import {
+  getFollowers,
+  getFollowersFromCache,
+  getUsers,
+  getUsersFromCache,
+} from "./utils";
 
 const main = async () => {
-  const users = await getUsers(["summitkg", "ghuubear"]);
+  const users = await getUsersFromCache(["summitkg", "ghuubear"]);
   console.log(users);
-  const followers = await getFollowers("706786251660087296");
-  console.log(followers.length);
+  // const followers = await getFollowersFromCache("706786251660087296");
+  // console.log(followers);
 };
 
 main()
