@@ -1,16 +1,13 @@
 import { searchUsers } from "./api";
-import { getFollowersFromCache, updateFollowers } from "./utils/followers";
-import { getUsersFromCache } from "./utils/users";
 
 const main = async () => {
-  // await updateFollowers("706786251660087296");
-  // await updateFollowers("3014351569");
   const result = await searchUsers({
-    followerOf: [["706786251660087296"], ["3014351569"]],
+    followerOf: ["summitkg", "jr_sachdeva", "ghuubear"],
+    // refreshCache: true,
+    followedBy: ["summitkg"],
   });
+  console.log(result.length);
   console.log(result);
-  // const followers = await getFollowersFromCache("706786251660087296");
-  // console.log(followers);
 };
 
 main()
