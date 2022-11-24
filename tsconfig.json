@@ -1,10 +1,20 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "resolveJsonModule": true,
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
     "esModuleInterop": true,
-    "target": "ESNext",
-    "skipLibCheck": true
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true
   },
-  "include": ["src/**/*", "environment.d.ts"]
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "environment.d.ts"],
+  "exclude": ["node_modules"]
 }

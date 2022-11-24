@@ -12,7 +12,6 @@ const main = async () => {
     },
   });
   console.log(result.length);
-  // console.log(result);
 };
 
 main()
