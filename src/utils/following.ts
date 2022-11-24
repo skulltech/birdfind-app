@@ -1,6 +1,6 @@
-import { getSupabaseClient, getTwitterClient } from "./helpers";
+import { dedupeUsers, getSupabaseClient, getTwitterClient } from "./helpers";
 
-export const getFollowings = async (id: BigInt) => {
+export const getFollowing = async (id: BigInt) => {
   const supabase = getSupabaseClient();
 
   const { data: users, error: selectError } = await supabase
@@ -13,11 +13,11 @@ export const getFollowings = async (id: BigInt) => {
   return users.map((x) => BigInt(x.following_id));
 };
 
-export const updateFollowings = async (id: BigInt) => {
+export const updateFollowing = async (id: BigInt) => {
   const twitter = getTwitterClient();
   const supabase = getSupabaseClient();
 
-  const followings = [];
+  const following = [];
   let paginationToken: string;
 
   while (true) {
@@ -34,23 +34,18 @@ export const updateFollowings = async (id: BigInt) => {
       pagination_token: paginationToken,
     });
 
-    followings.push(...response.data);
+    following.push(...response.data);
     if (response.meta.result_count < 1000) break;
     paginationToken = response.meta.next_token;
   }
 
   // Remove duplicates
-  const followingIds = new Set<string>();
-  const dedupedFollowings = followings.filter((x) => {
-    if (followingIds.has(x.id)) return false;
-    followingIds.add(x.id);
-    return true;
-  });
+  const dedupedFollowing = dedupeUsers(following);
 
   const { error: insertUsersError } = await supabase
     .from("twitter_user")
     .upsert(
-      dedupedFollowings.map((x) => {
+      dedupedFollowing.map((x) => {
         return {
           username: x.username,
           id: x.id,
@@ -69,7 +64,7 @@ export const updateFollowings = async (id: BigInt) => {
   const { error: insertFollowsError } = await supabase
     .from("twitter_follow")
     .upsert(
-      dedupedFollowings.map((x) => {
+      dedupedFollowing.map((x) => {
         return {
           follower_id: id.toString(),
           following_id: x.id,
@@ -78,4 +73,12 @@ export const updateFollowings = async (id: BigInt) => {
       })
     );
   if (insertFollowsError) throw insertFollowsError;
+
+  const { error: updateUserError } = await supabase
+    .from("twitter_user")
+    .update({
+      following_updated_at: new Date().toISOString(),
+    })
+    .eq("id", id.toString());
+  if (updateUserError) throw updateUserError;
 };

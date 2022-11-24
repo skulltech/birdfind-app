@@ -2,12 +2,17 @@ import { searchUsers } from "./api";
 
 const main = async () => {
   const result = await searchUsers({
-    followerOf: ["summitkg", "jr_sachdeva", "ghuubear"],
-    // refreshCache: true,
-    followedBy: ["summitkg"],
+    filters: {
+      followerOf: ["summitkg"],
+      followedBy: ["summitkg"],
+    },
+    options: {
+      // useCacheOnly: false,
+      // forceRefreshCache: true,
+    },
   });
   console.log(result.length);
-  console.log(result);
+  // console.log(result);
 };
 
 main()

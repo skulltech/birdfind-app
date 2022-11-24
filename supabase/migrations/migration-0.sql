@@ -3,8 +3,8 @@ create table if not exists twitter_user (
     created_at timestamp with time zone default now() not null,
     updated_at timestamp with time zone default now() not null,
     
-    followers_updated_at timestamp with time zone default now() not null,
-    following_updated_at timestamp with time zone default now() not null,
+    followers_updated_at timestamp with time zone default 'epoch' not null,
+    following_updated_at timestamp with time zone default 'epoch' not null,
 
     username text not null,
     name text not null,

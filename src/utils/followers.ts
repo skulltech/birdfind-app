@@ -1,4 +1,4 @@
-import { getSupabaseClient, getTwitterClient } from "./helpers";
+import { dedupeUsers, getSupabaseClient, getTwitterClient } from "./helpers";
 
 export const getFollowers = async (id: BigInt) => {
   const supabase = getSupabaseClient();
@@ -40,12 +40,7 @@ export const updateFollowers = async (id: BigInt) => {
   }
 
   // Remove duplicates
-  const followerIds = new Set<string>();
-  const dedupedFollowers = followers.filter((x) => {
-    if (followerIds.has(x.id)) return false;
-    followerIds.add(x.id);
-    return true;
-  });
+  const dedupedFollowers = dedupeUsers(followers);
 
   const { error: insertUsersError } = await supabase
     .from("twitter_user")
@@ -78,4 +73,12 @@ export const updateFollowers = async (id: BigInt) => {
       })
     );
   if (insertFollowsError) throw insertFollowsError;
+
+  const { error: updateUserError } = await supabase
+    .from("twitter_user")
+    .update({
+      followers_updated_at: new Date().toISOString(),
+    })
+    .eq("id", id.toString());
+  if (updateUserError) throw updateUserError;
 };

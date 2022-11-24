@@ -3,9 +3,6 @@ import { Client } from "twitter-api-sdk";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-// 1 minutes
-export const defaultCacheTimeout = 1 * 60 * 1000;
-
 // Util functions
 export const getTwitterClient = () =>
   new Client(process.env.TWITTER_BEARER_TOKEN);
@@ -21,4 +18,14 @@ export const getIntersection = <T>(set1: Set<T>, set2?: Set<T>) => {
   } else {
     return set1;
   }
+};
+
+export const dedupeUsers = (arr: any[]) => {
+  const dedupedUsers = new Set<string>();
+
+  return arr.filter((x) => {
+    if (dedupedUsers.has(x.id)) return false;
+    dedupedUsers.add(x.id);
+    return true;
+  });
 };
