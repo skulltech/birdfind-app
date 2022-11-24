@@ -1,4 +1,9 @@
-import { getSupabaseClient, getTwitterClient } from "./helpers";
+import {
+  appendGeneralFilters,
+  GeneralFilters,
+  getSupabaseClient,
+  getTwitterClient,
+} from "./helpers";
 
 const userFields = [
   "id::text",
@@ -64,16 +69,22 @@ export const getUsersByUsernames = async (usernames: string[]) => {
   });
 };
 
-export const getUsersByIds = async (ids: BigInt[]) => {
+export const getUsersByIds = async (
+  ids: BigInt[],
+  filters?: GeneralFilters
+) => {
   const supabase = getSupabaseClient();
 
-  const { data: users, error: selectError } = await supabase
+  let query = supabase
     .from("twitter_user")
     .select(userFields.join(","))
     .in(
       "id",
       ids.map((x) => x.toString())
     );
+  query = appendGeneralFilters(query, filters);
+
+  const { data: users, error: selectError } = await query;
   if (selectError) throw selectError;
 
   return users.map((x) => {

@@ -29,3 +29,50 @@ export const dedupeUsers = (arr: any[]) => {
     return true;
   });
 };
+
+export type GeneralFilters = {
+  followersCountLessThan?: number;
+  followersCountGreaterThan?: number;
+  followingCountLessThan?: number;
+  followingCountGreaterThan?: number;
+  tweetCountLessThan?: number;
+  tweetCountGreaterThan?: number;
+  createdBefore?: Date;
+  createdAfter?: Date;
+};
+
+export interface Filters extends GeneralFilters {
+  followedBy?: string[];
+  followerOf?: string[];
+}
+
+export const appendGeneralFilters = (query, filters?: GeneralFilters) => {
+  const {
+    followersCountLessThan,
+    followersCountGreaterThan,
+    followingCountLessThan,
+    followingCountGreaterThan,
+    tweetCountLessThan,
+    tweetCountGreaterThan,
+    createdBefore,
+    createdAfter,
+  } = filters ?? {};
+
+  if (followersCountLessThan)
+    query = query.lt("followers_count", followersCountLessThan);
+  if (followersCountGreaterThan)
+    query = query.gt("followers_count", followersCountGreaterThan);
+  if (followingCountLessThan)
+    query = query.lt("following_count", followingCountLessThan);
+  if (followingCountGreaterThan)
+    query = query.gt("following_count", followingCountGreaterThan);
+  if (tweetCountLessThan) query = query.lt("tweet_count", tweetCountLessThan);
+  if (tweetCountGreaterThan)
+    query = query.gt("following_count", tweetCountGreaterThan);
+  if (createdBefore)
+    query = query.lt("user_created_at", createdBefore.toISOString());
+  if (createdAfter)
+    query = query.gt("user_created_at", createdAfter.toISOString());
+
+  return query;
+};

@@ -5,6 +5,9 @@ const main = async () => {
     filters: {
       followerOf: ["summitkg"],
       followedBy: ["summitkg"],
+      tweetCountGreaterThan: 1000,
+      followersCountGreaterThan: 100,
+      createdBefore: new Date(2016, 1, 1),
     },
     options: {
       // useCacheOnly: false,

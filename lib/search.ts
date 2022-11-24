@@ -1,6 +1,6 @@
 import { getFollowers, updateFollowers } from "./utils/followers";
 import { getFollowing, updateFollowing } from "./utils/following";
-import { dedupeUsers, getIntersection } from "./utils/helpers";
+import { dedupeUsers, Filters, getIntersection } from "./utils/helpers";
 import {
   getUserIds,
   getUsersByIds,
@@ -12,10 +12,7 @@ import {
 export const defaultCacheTimeout = 10 * 60 * 1000;
 
 export type SearchUsersArgs = {
-  filters: {
-    followedBy?: string[];
-    followerOf?: string[];
-  };
+  filters: Filters;
   options?: {
     useCacheOnly?: boolean;
     forceRefreshCache?: boolean;
@@ -25,7 +22,7 @@ export type SearchUsersArgs = {
 
 // Top level API which searches users based on filters
 export const searchUsers = async ({
-  filters: { followedBy, followerOf },
+  filters: { followedBy, followerOf, ...generalFilters },
   options,
 }: SearchUsersArgs) => {
   const {
@@ -103,6 +100,5 @@ export const searchUsers = async ({
     }
   }
 
-  const resultUsers = await getUsersByIds([...resultUserIds]);
-  return resultUsers;
+  return await getUsersByIds([...resultUserIds], generalFilters);
 };
