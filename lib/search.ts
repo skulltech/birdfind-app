@@ -26,12 +26,14 @@ export type SearchUsersArgs = {
 // Top level API which searches users based on filters
 export const searchUsers = async ({
   filters: { followedBy, followerOf },
-  options: {
+  options,
+}: SearchUsersArgs) => {
+  const {
     useCacheOnly = false,
     forceRefreshCache = false,
     cacheTimeout = defaultCacheTimeout,
-  },
-}: SearchUsersArgs) => {
+  } = options ?? {};
+
   // Make sure all input users are cached in DB
   const inputUsernames = dedupeUsers([
     ...(followedBy ?? []),

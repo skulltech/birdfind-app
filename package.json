@@ -2,7 +2,7 @@
   "name": "twitter-user-search",
   "version": "1.0.0",
   "scripts": {
-    "script": "ts-node src/main.ts",
+    "script": "ts-node lib/main.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

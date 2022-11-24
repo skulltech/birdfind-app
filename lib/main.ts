@@ -1,4 +1,4 @@
-import { searchUsers } from "./api";
+import { searchUsers } from "./search";
 
 const main = async () => {
   const result = await searchUsers({
