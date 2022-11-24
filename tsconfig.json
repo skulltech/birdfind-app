@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "target": "ESNext",
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*", "environment.d.ts"]
+}
