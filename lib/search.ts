@@ -8,8 +8,8 @@ import {
   updateUsers,
 } from "./utils/users";
 
-// 10 minutes
-export const defaultCacheTimeout = 10 * 60 * 1000;
+// 10 hours
+export const defaultCacheTimeout = 10 * 60 * 60 * 1000;
 
 export type SearchUsersArgs = {
   filters: Filters;
