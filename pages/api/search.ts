@@ -5,16 +5,65 @@ type Data = {
   users: any[];
 };
 
+type QueryParams = Partial<{
+  [key: string]: string | string[];
+}>;
+
+const parseInts = (params: QueryParams) => {
+  const result = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value == "string") {
+      const num = Number.parseInt(value);
+      if (num != NaN) {
+        result[key] = num;
+      }
+    }
+  }
+  return result;
+};
+
+const parseDates = (params: QueryParams) => {
+  const result = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value == "string") {
+      if (Date.parse(value) != NaN) {
+        result[key] = new Date(value);
+      }
+    }
+  }
+  return result;
+};
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const { followedBy, followerOf } = req.query;
+  const {
+    followedBy,
+    followerOf,
+    tweetCountLessThan,
+    tweetCountGreaterThan,
+    followersCountLessThan,
+    followersCountGreaterThan,
+    followingCountLessThan,
+    followingCountGreaterThan,
+    createdBefore,
+    createdAfter,
+  } = req.query;
 
   const users = await searchUsers({
     filters: {
       followedBy: typeof followedBy == "string" ? [followedBy] : followedBy,
       followerOf: typeof followerOf == "string" ? [followerOf] : followerOf,
+      ...parseInts({
+        tweetCountLessThan,
+        tweetCountGreaterThan,
+        followersCountLessThan,
+        followersCountGreaterThan,
+        followingCountLessThan,
+        followingCountGreaterThan,
+      }),
+      ...parseDates({ createdBefore, createdAfter }),
     },
   });
 
