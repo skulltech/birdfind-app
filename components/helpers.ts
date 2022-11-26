@@ -1,5 +1,7 @@
 import { Filters } from "../lib/utils/helpers";
 import dayjs from "dayjs";
+import axios from "axios";
+import qs from "qs";
 
 export type FlattenedFilter = [string, number | string | Date];
 
@@ -12,7 +14,6 @@ export const flattenFilters = (filters: Filters) => {
   if (followerOf)
     // @ts-ignore
     flattenedFilters.push(...followerOf.map((x) => ["followerOf", x]));
-  console.log(flattenedFilters);
   return flattenedFilters;
 };
 
@@ -34,4 +35,16 @@ export const renderFilter = (filter: FlattenedFilter): string => {
   };
 
   return renderFunctions[filter[0]](filter[1]);
+};
+
+export const callSearchApi = async (filters: Filters) => {
+  const response = await axios.get("/api/search", {
+    params: filters,
+    paramsSerializer: {
+      serialize: (params) => {
+        return qs.stringify(params, { arrayFormat: "repeat" });
+      },
+    },
+  });
+  return response.data.users;
 };

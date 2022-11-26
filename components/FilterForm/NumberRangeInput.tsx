@@ -1,12 +1,11 @@
-import { Button, Group, NumberInput, Stack, Text } from "@mantine/core";
+import { Button, Group, NumberInput, Stack } from "@mantine/core";
 import { useState } from "react";
 
 export type NumberRangeInputProps = {
-  title: string;
   maxValue: number;
   initialMinValue: number;
   initialMaxValue: number;
-  onSubmit: (arg: [number | undefined | number | undefined]) => void;
+  onSubmit: (arg: [number | number]) => void;
 };
 
 const numberFormatter = (arg: string | number | undefined) => {
@@ -16,7 +15,6 @@ const numberFormatter = (arg: string | number | undefined) => {
 };
 
 export const NumberRangeInput = ({
-  title,
   maxValue,
   initialMinValue,
   initialMaxValue,
@@ -29,8 +27,7 @@ export const NumberRangeInput = ({
 
   return (
     <Stack spacing="xs">
-      <Text>{title}</Text>
-      <Group>
+      <Group grow spacing="xs">
         <NumberInput
           label="Greater than"
           value={range[0]}

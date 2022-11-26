@@ -1,4 +1,4 @@
-import { Group } from "@mantine/core";
+import { Divider, Stack } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
 import { Filters } from "../../lib/utils/helpers";
 import { NumberRangeInput } from "./NumberRangeInput";
@@ -28,7 +28,12 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
   };
 
   return (
-    <Group>
+    <Stack>
+      <Divider
+        label="Follow network"
+        labelProps={{ size: "md" }}
+        labelPosition="left"
+      />
       <UsernameInput
         label="Followed by"
         onSubmit={(value) => handleAppend("followedBy", value)}
@@ -37,8 +42,12 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
         label="Follower of"
         onSubmit={(value) => handleAppend("followerOf", value)}
       />
+      <Divider
+        label="Followers count"
+        labelProps={{ size: "md" }}
+        labelPosition="left"
+      />
       <NumberRangeInput
-        title="Followers count"
         maxValue={1000}
         initialMinValue={10}
         initialMaxValue={100}
@@ -49,8 +58,12 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
           });
         }}
       />
+      <Divider
+        label="Following count"
+        labelProps={{ size: "md" }}
+        labelPosition="left"
+      />
       <NumberRangeInput
-        title="Following count"
         maxValue={1000}
         initialMinValue={10}
         initialMaxValue={100}
@@ -61,8 +74,12 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
           });
         }}
       />
+      <Divider
+        label="Tweet count"
+        labelProps={{ size: "md" }}
+        labelPosition="left"
+      />
       <NumberRangeInput
-        title="Tweet count"
         maxValue={1000}
         initialMinValue={10}
         initialMaxValue={100}
@@ -72,6 +89,11 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
             tweetCountLessThan: rangeEnd,
           });
         }}
+      />
+      <Divider
+        label="Account creation date"
+        labelProps={{ size: "md" }}
+        labelPosition="left"
       />
       <DateInput
         label="Created before"
@@ -85,6 +107,6 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
           handleSet({ createdAfter: date });
         }}
       />
-    </Group>
+    </Stack>
   );
 };

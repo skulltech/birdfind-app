@@ -11,7 +11,7 @@ export const DateInput = ({ label, onSubmit }: DateInputProps) => {
   const [date, setDate] = useState<Date>(new Date());
 
   return (
-    <Stack>
+    <Stack spacing="xs">
       <DatePicker
         maxDate={new Date()}
         label={label}
