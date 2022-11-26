@@ -1,8 +1,8 @@
 import { Group } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
-import { Filters } from "../lib/utils/helpers";
+import { Filters } from "../../lib/utils/helpers";
 import { FilterChip } from "./FilterChip";
-import { FlattenedFilter, flattenFilters } from "./helpers";
+import { FlattenedFilter, flattenFilters } from "../helpers";
 
 export type FilterChipGroupProps = {
   filters: Filters;
@@ -15,16 +15,16 @@ export const FilterChipGroup = ({
 }: FilterChipGroupProps) => {
   const handleRemoveFilter = (filter: FlattenedFilter) => {
     const [name, value] = filter;
-    if (name == "followedBy")
+    if (name == "followedBy" || name == "followerOf")
       setFilters({
         ...filters,
-        followedBy: filters.followedBy.filter((x) => x != value),
+        [name]: filters[name].filter((x) => x != value),
       });
-    if (name == "followerOf")
-      setFilters({
-        ...filters,
-        followerOf: filters.followerOf.filter((x) => x != value),
-      });
+    else {
+      const updatedFilters = { ...filters };
+      delete updatedFilters[name];
+      setFilters(updatedFilters);
+    }
   };
 
   return (

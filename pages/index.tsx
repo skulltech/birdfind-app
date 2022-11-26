@@ -1,12 +1,16 @@
 import { Group, List, Stack, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { useEffect, useState } from "react";
-import { FilterChipGroup } from "../components/FilterChipGroup";
-import { FilterForm } from "../components/FilterForm";
+import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
+import { FilterForm } from "../components/FilterForm/FilterForm";
 import { Filters } from "../lib/utils/helpers";
 
 const Home = () => {
   const [filters, setFilters] = useState<Filters>({});
+
+  useEffect(() => {
+    console.log(filters);
+  }, [filters]);
 
   return (
     <Stack>
