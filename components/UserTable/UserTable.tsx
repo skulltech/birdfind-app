@@ -1,11 +1,4 @@
-import {
-  Group,
-  Stack,
-  Table,
-  Text,
-  Pagination,
-  ActionIcon,
-} from "@mantine/core";
+import { Group, Stack, Text, Pagination, ActionIcon } from "@mantine/core";
 import { TwitterUser } from "../helpers";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
@@ -24,6 +17,7 @@ import {
   IconSortDescending,
 } from "@tabler/icons";
 import { UserProfileCard } from "./UserProfileCard";
+import { TableScrollArea } from "./TableScrollArea";
 
 export type UserTableProps = {
   users: TwitterUser[];
@@ -50,25 +44,25 @@ export const UserTable = ({ users }: UserTableProps) => {
       },
       {
         accessorKey: "followersCount",
-        header: "Followers Count",
+        header: "Followers",
         cell: (info) => info.getValue<number>().toString(),
         maxSize: 10,
       },
       {
         accessorKey: "followingCount",
-        header: "Following Count",
+        header: "Following",
         cell: (info) => info.getValue<number>().toString(),
         maxSize: 10,
       },
       {
         accessorKey: "tweetCount",
-        header: "Tweets Count",
+        header: "Tweets",
         cell: (info) => info.getValue<number>().toString(),
         maxSize: 10,
       },
       {
         accessorKey: "userCreatedAt",
-        header: "Account Creation Date",
+        header: "Account Created On",
         cell: (info) => dayjs(info.getValue<Date>()).format("DD MMM YYYY"),
         maxSize: 30,
       },
@@ -89,6 +83,47 @@ export const UserTable = ({ users }: UserTableProps) => {
     debugTable: true,
   });
 
+  const headers = table.getHeaderGroups().map((headerGroup) => (
+    <tr key={headerGroup.id}>
+      {headerGroup.headers.map((header) => {
+        return (
+          <th
+            key={header.id}
+            colSpan={header.colSpan}
+            style={{ width: header.getSize() }}
+          >
+            <Group grow spacing="xs" position="apart">
+              {flexRender(header.column.columnDef.header, header.getContext())}
+              {header.column.getCanSort() ? (
+                <ActionIcon onClick={header.column.getToggleSortingHandler()}>
+                  {{
+                    asc: <IconSortAscending />,
+                    desc: <IconSortDescending />,
+                    false: <IconArrowsSort />,
+                  }[header.column.getIsSorted() as string] ?? null}
+                </ActionIcon>
+              ) : null}
+            </Group>
+          </th>
+        );
+      })}
+    </tr>
+  ));
+
+  const rows = table.getRowModel().rows.map((row) => {
+    return (
+      <tr key={row.id}>
+        {row.getAllCells().map((cell) => {
+          return (
+            <td key={cell.id}>
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </td>
+          );
+        })}
+      </tr>
+    );
+  });
+
   return (
     <Stack>
       <Group position="apart">
@@ -99,59 +134,11 @@ export const UserTable = ({ users }: UserTableProps) => {
           total={table.getPageCount()}
         />
       </Group>
-      <Table striped highlightOnHover>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
-                return (
-                  <th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    style={{ width: header.getSize() }}
-                  >
-                    <Group>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {header.column.getCanSort() ? (
-                        <ActionIcon
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          {{
-                            asc: <IconSortAscending />,
-                            desc: <IconSortDescending />,
-                            false: <IconArrowsSort />,
-                          }[header.column.getIsSorted() as string] ?? null}
-                        </ActionIcon>
-                      ) : null}
-                    </Group>
-                  </th>
-                );
-              })}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => {
-            return (
-              <tr key={row.id}>
-                {row.getAllCells().map((cell) => {
-                  return (
-                    <td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </Table>
+      <TableScrollArea
+        headers={headers}
+        rows={rows}
+        tableProps={{ striped: true, highlightOnHover: true }}
+      />
     </Stack>
   );
 };

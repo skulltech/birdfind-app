@@ -23,6 +23,7 @@ export const UserProfileCard = ({
             target="_blank"
             radius="xl"
             src={profileImageUrl}
+            style={{ position: "unset" }}
           />
           <Stack spacing={0}>
             <Text weight="bold">{name}</Text>
