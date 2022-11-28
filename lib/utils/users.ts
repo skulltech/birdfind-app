@@ -17,6 +17,7 @@ const userFields = [
   "tweet_count",
   "description",
   "user_created_at",
+  "profile_image_url",
 ];
 
 // Fetch users from Twitter API and update DB cache
@@ -48,6 +49,7 @@ export const updateUsers = async (usernames: string[]) => {
         description: x.description,
         user_created_at: x.created_at,
         updated_at: new Date().toISOString(),
+        profile_image_url: x.profile_image_url,
       };
     })
   );

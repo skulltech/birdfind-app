@@ -13,7 +13,6 @@ import { useState } from "react";
 import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
 import { FilterForm } from "../components/FilterForm/FilterForm";
 import { callSearchApi, TwitterUser } from "../components/helpers";
-import { TwitterUserProfile } from "../components/UserTable/TwitterUserProfile";
 import { UserTable } from "../components/UserTable/UserTable";
 import { Filters } from "../lib/utils/helpers";
 
@@ -65,12 +64,6 @@ const Home = () => {
       })}
     >
       <Stack>
-        <TwitterUserProfile
-          name="Sumit Ghosh"
-          username="summitkg"
-          description="billionaire media tycoon and exiled mayor of san francisco. vp @foundersfund. ringleader @hereticon. editor-in-chief @piratewires 🏴‍☠️"
-          profileImageUrl="https://pbs.twimg.com/profile_images/1575113474090635264/byE4nvpC_400x400.jpg"
-        />
         {Object.keys(filters).length ? (
           <Stack>
             <FilterChipGroup filters={filters} setFilters={setFilters} />
@@ -89,11 +82,7 @@ const Home = () => {
           </Stack>
         ) : null}
 
-        {users.length ? (
-          // <ScrollArea style={{ height: "75vh" }}>
-          <UserTable users={users} />
-        ) : // </ScrollArea>
-        null}
+        {users.length ? <UserTable users={users} /> : null}
       </Stack>
     </AppShell>
   );

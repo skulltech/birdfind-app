@@ -1,11 +1,10 @@
 import {
-  Anchor,
   Group,
   Stack,
   Table,
   Text,
   Pagination,
-  UnstyledButton,
+  ActionIcon,
 } from "@mantine/core";
 import { TwitterUser } from "../helpers";
 import dayjs from "dayjs";
@@ -22,10 +21,9 @@ import {
 import {
   IconArrowsSort,
   IconSortAscending,
-  IconSortAscendingNumbers,
   IconSortDescending,
-  IconSortDescendingNumbers,
 } from "@tabler/icons";
+import { UserProfileCard } from "./UserProfileCard";
 
 export type UserTableProps = {
   users: TwitterUser[];
@@ -37,47 +35,42 @@ export const UserTable = ({ users }: UserTableProps) => {
   const columns = useMemo<ColumnDef<TwitterUser>[]>(
     () => [
       {
-        accessorKey: "username",
-        header: "Username",
+        accessorFn: (row) => row,
+        header: "Profile",
         cell: (info) => (
-          <Anchor
-            href={"https://twitter.com/" + info.getValue<string>()}
-            target="_blank"
-          >
-            @{info.getValue<string>()}
-          </Anchor>
+          <UserProfileCard
+            username={info.getValue<TwitterUser>().username}
+            name={info.getValue<TwitterUser>().name}
+            description={info.getValue<TwitterUser>().description}
+            profileImageUrl={info.getValue<TwitterUser>().profileImageUrl}
+          />
         ),
         enableSorting: false,
-      },
-      {
-        accessorKey: "name",
-        header: "Name",
-        enableSorting: false,
-      },
-      {
-        accessorKey: "description",
-        header: "Bio",
-        enableSorting: false,
+        // maxSize: 60,
       },
       {
         accessorKey: "followersCount",
         header: "Followers Count",
         cell: (info) => info.getValue<number>().toString(),
+        maxSize: 10,
       },
       {
         accessorKey: "followingCount",
         header: "Following Count",
         cell: (info) => info.getValue<number>().toString(),
+        maxSize: 10,
       },
       {
         accessorKey: "tweetCount",
         header: "Tweets Count",
         cell: (info) => info.getValue<number>().toString(),
+        maxSize: 10,
       },
       {
         accessorKey: "userCreatedAt",
         header: "Account Creation Date",
         cell: (info) => dayjs(info.getValue<Date>()).format("DD MMM YYYY"),
+        maxSize: 30,
       },
     ],
     []
@@ -117,24 +110,23 @@ export const UserTable = ({ users }: UserTableProps) => {
                     colSpan={header.colSpan}
                     style={{ width: header.getSize() }}
                   >
-                    <UnstyledButton
-                      onClick={header.column.getToggleSortingHandler()}
-                      disabled={!header.column.getCanSort()}
-                    >
-                      <Group position="apart">
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {header.column.getCanSort()
-                          ? {
-                              asc: <IconSortAscending />,
-                              desc: <IconSortDescending />,
-                              false: <IconArrowsSort />,
-                            }[header.column.getIsSorted() as string] ?? null
-                          : null}
-                      </Group>
-                    </UnstyledButton>
+                    <Group>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {header.column.getCanSort() ? (
+                        <ActionIcon
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {{
+                            asc: <IconSortAscending />,
+                            desc: <IconSortDescending />,
+                            false: <IconArrowsSort />,
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </ActionIcon>
+                      ) : null}
+                    </Group>
                   </th>
                 );
               })}

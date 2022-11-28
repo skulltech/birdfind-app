@@ -51,6 +51,7 @@ export type TwitterUser = {
   tweetCount: number;
   description: string;
   userCreatedAt: Date;
+  profileImageUrl: string;
 };
 
 export const callSearchApi = async (filters: Filters) => {

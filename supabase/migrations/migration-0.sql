@@ -12,7 +12,8 @@ create table if not exists twitter_user (
     following_count integer not null,
     tweet_count integer not null,
     description text not null,
-    user_created_at timestamp with time zone not null
+    user_created_at timestamp with time zone not null,
+    profile_image_url text not null
 );
 
 create table if not exists twitter_follow (

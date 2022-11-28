@@ -56,6 +56,7 @@ export const updateFollowers = async (id: BigInt) => {
           description: x.description,
           user_created_at: x.created_at,
           updated_at: new Date().toISOString(),
+          profile_image_url: x.profile_image_url,
         };
       })
     );
