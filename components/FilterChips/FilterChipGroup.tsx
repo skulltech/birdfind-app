@@ -1,4 +1,4 @@
-import { Group } from "@mantine/core";
+import { Group, GroupProps } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
 import { Filters } from "../../lib/utils/helpers";
 import { FilterChip } from "./FilterChip";
@@ -7,11 +7,13 @@ import { FlattenedFilter, flattenFilters } from "../helpers";
 export type FilterChipGroupProps = {
   filters: Filters;
   setFilters: Dispatch<SetStateAction<Filters>>;
+  groupProps?: GroupProps;
 };
 
 export const FilterChipGroup = ({
   filters,
   setFilters,
+  groupProps = {},
 }: FilterChipGroupProps) => {
   const handleRemoveFilter = (filter: FlattenedFilter) => {
     const [name, value] = filter;
@@ -28,7 +30,7 @@ export const FilterChipGroup = ({
   };
 
   return (
-    <Group>
+    <Group {...groupProps}>
       {flattenFilters(filters).map((filter, index) => (
         <FilterChip key={index} filter={filter} onClose={handleRemoveFilter} />
       ))}

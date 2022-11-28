@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { searchUsers } from "../../lib/search";
+import { camelCase } from "lodash";
 
 type Data = {
   users: any[];
@@ -38,6 +39,15 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  // Convert snake_case keys to camelCase
+  const camelCaseQuery: typeof req.query = Object.entries(req.query).reduce(
+    (prev, [key, value]) => {
+      prev[camelCase(key)] = value;
+      return prev;
+    },
+    {}
+  );
+  // Get args out of camelCase req params
   const {
     followedBy,
     followerOf,
@@ -49,7 +59,7 @@ export default async function handler(
     followingCountGreaterThan,
     createdBefore,
     createdAfter,
-  } = req.query;
+  } = camelCaseQuery;
 
   const users = await searchUsers({
     filters: {
