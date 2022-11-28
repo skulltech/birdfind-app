@@ -1,13 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { Client } from "twitter-api-sdk";
 import * as dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
-
-// Util functions
-export const getTwitterClient = () =>
-  new Client(process.env.TWITTER_BEARER_TOKEN);
-export const getSupabaseClient = () =>
-  createClient(process.env.SUPABASE_API_URL, process.env.SUPABASE_KEY);
+import { PostgrestFilterBuilder } from "@supabase/postgrest-js";
+import { findUsersById, TwitterParams } from "twitter-api-sdk/dist/types";
+import { ApiTwitterUser, GeneralFilters } from "./types";
 
 // Take the intersection of set1 and set2
 export const getIntersection = <T>(set1: Set<T>, set2?: Set<T>) => {
@@ -20,7 +16,15 @@ export const getIntersection = <T>(set1: Set<T>, set2?: Set<T>) => {
   }
 };
 
-export const dedupeUsers = (arr: any[]) => {
+export const userApiFields: TwitterParams<findUsersById>["user.fields"] = [
+  "created_at",
+  "public_metrics",
+  "description",
+  "location",
+  "profile_image_url",
+];
+
+export const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
   const dedupedUsers = new Set<string>();
 
   return arr.filter((x) => {
@@ -30,49 +34,48 @@ export const dedupeUsers = (arr: any[]) => {
   });
 };
 
-export type GeneralFilters = {
-  followersCountLessThan?: number;
-  followersCountGreaterThan?: number;
-  followingCountLessThan?: number;
-  followingCountGreaterThan?: number;
-  tweetCountLessThan?: number;
-  tweetCountGreaterThan?: number;
-  createdBefore?: Date;
-  createdAfter?: Date;
-};
+export const appendGeneralFilters = (
+  query: PostgrestFilterBuilder<any, any, any>,
+  filters?: GeneralFilters
+): PostgrestFilterBuilder<any, any, any> => {
+  const appendFilterFunctions = {
+    followersCountLessThan: (query, value: number) =>
+      query.lt("followers_count", value),
+    followersCountGreaterThan: (query, value: number) =>
+      query.gt("followers_count", value),
+    followingCountLessThan: (query, value: number) =>
+      query.lt("following_count", value),
+    followingCountGreaterThan: (query, value: number) =>
+      query.gt("following_count", value),
+    tweetCountLessThan: (query, value: number) =>
+      query.lt("tweet_count", value),
+    tweetCountGreaterThan: (query, value: number) =>
+      query.gt("following_count", value),
+    createdBefore: (query, value: Date) =>
+      query.lt("user_created_at", value.toISOString()),
+    createdAfter: (query, value: Date) =>
+      query.gt("user_created_at", value.toISOString()),
+  };
 
-export interface Filters extends GeneralFilters {
-  followedBy?: string[];
-  followerOf?: string[];
-}
-
-export const appendGeneralFilters = (query, filters?: GeneralFilters) => {
-  const {
-    followersCountLessThan,
-    followersCountGreaterThan,
-    followingCountLessThan,
-    followingCountGreaterThan,
-    tweetCountLessThan,
-    tweetCountGreaterThan,
-    createdBefore,
-    createdAfter,
-  } = filters ?? {};
-
-  if (followersCountLessThan)
-    query = query.lt("followers_count", followersCountLessThan);
-  if (followersCountGreaterThan)
-    query = query.gt("followers_count", followersCountGreaterThan);
-  if (followingCountLessThan)
-    query = query.lt("following_count", followingCountLessThan);
-  if (followingCountGreaterThan)
-    query = query.gt("following_count", followingCountGreaterThan);
-  if (tweetCountLessThan) query = query.lt("tweet_count", tweetCountLessThan);
-  if (tweetCountGreaterThan)
-    query = query.gt("following_count", tweetCountGreaterThan);
-  if (createdBefore)
-    query = query.lt("user_created_at", createdBefore.toISOString());
-  if (createdAfter)
-    query = query.gt("user_created_at", createdAfter.toISOString());
+  if (filters)
+    for (const [key, value] of Object.entries(filters)) {
+      query = appendFilterFunctions[key](query, value);
+    }
 
   return query;
+};
+
+export const convertApiUserToPostgresRow = (x: ApiTwitterUser) => {
+  return {
+    username: x.username,
+    id: x.id,
+    name: x.name,
+    followers_count: x.public_metrics.followers_count,
+    following_count: x.public_metrics.following_count,
+    tweet_count: x.public_metrics.tweet_count,
+    description: x.description,
+    user_created_at: x.created_at,
+    updated_at: new Date().toISOString(),
+    profile_image_url: x.profile_image_url,
+  };
 };

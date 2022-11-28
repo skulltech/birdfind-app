@@ -1,11 +1,9 @@
-import {
-  appendGeneralFilters,
-  GeneralFilters,
-  getSupabaseClient,
-  getTwitterClient,
-} from "./helpers";
+import { appendGeneralFilters, userApiFields } from "./helpers";
+import { camelCase } from "lodash";
+import { GeneralFilters, TwitterUser } from "./types";
+import { getSupabaseClient, getTwitterClient } from "./clients";
 
-const userFields = [
+const userSelectFields = [
   "id::text",
   "updated_at",
   "followers_updated_at",
@@ -28,13 +26,7 @@ export const updateUsers = async (usernames: string[]) => {
   console.log("Making request to findUsersByUsername.");
   const response = await twitter.users.findUsersByUsername({
     usernames,
-    "user.fields": [
-      "created_at",
-      "public_metrics",
-      "description",
-      "location",
-      "profile_image_url",
-    ],
+    "user.fields": userApiFields,
   });
 
   const { error } = await supabase.from("twitter_user").upsert(
@@ -56,30 +48,49 @@ export const updateUsers = async (usernames: string[]) => {
   if (error) throw error;
 };
 
+export const parseUsers = (users: any[]) => {
+  const camelCaseUsers: any[] = users.map((user) => {
+    return Object.entries(user).reduce((prev, [key, value]) => {
+      prev[camelCase(key)] = value;
+      return prev;
+    }, {});
+  });
+
+  const parsedUsers: TwitterUser[] = camelCaseUsers.map((x) => {
+    return {
+      ...x,
+      id: BigInt(x.id),
+      updatedAt: new Date(x.updatedAt),
+      followersUpdatedAt: new Date(x.followersUpdatedAt),
+      followingUpdatedAt: new Date(x.followingUpdatedAt),
+      userCreatedAt: new Date(x.userCreatedAt),
+    };
+  });
+
+  return parsedUsers;
+};
+
 export const getUsersByUsernames = async (usernames: string[]) => {
   const supabase = getSupabaseClient();
 
   const { data: users, error: selectError } = await supabase
     .from("twitter_user")
-    .select(userFields.join(","))
+    .select(userSelectFields.join(","))
     .in("username", usernames);
   if (selectError) throw selectError;
 
-  return users.map((x) => {
-    // @ts-ignore
-    return { ...x, id: BigInt(x.id) };
-  });
+  return parseUsers(users);
 };
 
 export const getUsersByIds = async (
   ids: BigInt[],
   filters?: GeneralFilters
-) => {
+): Promise<TwitterUser[]> => {
   const supabase = getSupabaseClient();
 
   let query = supabase
     .from("twitter_user")
-    .select(userFields.join(","))
+    .select(userSelectFields.join(","))
     .in(
       "id",
       ids.map((x) => x.toString())
@@ -89,10 +100,7 @@ export const getUsersByIds = async (
   const { data: users, error: selectError } = await query;
   if (selectError) throw selectError;
 
-  return users.map((x) => {
-    // @ts-ignore
-    return { ...x, id: BigInt(x.id) };
-  });
+  return parseUsers(users);
 };
 
 export const getUserIds = async (usernames: string[]) => {

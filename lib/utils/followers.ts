@@ -1,4 +1,9 @@
-import { dedupeUsers, getSupabaseClient, getTwitterClient } from "./helpers";
+import { getSupabaseClient, getTwitterClient } from "./clients";
+import {
+  convertApiUserToPostgresRow,
+  dedupeUsers,
+  userApiFields,
+} from "./helpers";
 
 export const getFollowers = async (id: BigInt) => {
   const supabase = getSupabaseClient();
@@ -24,13 +29,7 @@ export const updateFollowers = async (id: BigInt) => {
     console.log("Making request to usersIdFollowers.");
     const response = await twitter.users.usersIdFollowers(id.toString(), {
       max_results: 1000,
-      "user.fields": [
-        "created_at",
-        "public_metrics",
-        "description",
-        "location",
-        "profile_image_url",
-      ],
+      "user.fields": userApiFields,
       pagination_token: paginationToken,
     });
 
@@ -44,22 +43,7 @@ export const updateFollowers = async (id: BigInt) => {
 
   const { error: insertUsersError } = await supabase
     .from("twitter_user")
-    .upsert(
-      dedupedFollowers.map((x) => {
-        return {
-          username: x.username,
-          id: x.id,
-          name: x.name,
-          followers_count: x.public_metrics.followers_count,
-          following_count: x.public_metrics.following_count,
-          tweet_count: x.public_metrics.tweet_count,
-          description: x.description,
-          user_created_at: x.created_at,
-          updated_at: new Date().toISOString(),
-          profile_image_url: x.profile_image_url,
-        };
-      })
-    );
+    .upsert(dedupedFollowers.map(convertApiUserToPostgresRow));
   if (insertUsersError) throw insertUsersError;
 
   const { error: insertFollowsError } = await supabase

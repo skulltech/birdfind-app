@@ -4,7 +4,7 @@ const main = async () => {
   const result = await searchUsers({
     filters: {
       followerOf: ["summitkg", "philomathamit", "ghuubear"],
-      // followedBy: ["summitkg"],
+      followedBy: ["simranster"],
       tweetCountGreaterThan: 200,
       followersCountGreaterThan: 10,
       // createdBefore: new Date(2016, 1, 1),

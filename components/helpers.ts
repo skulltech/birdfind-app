@@ -1,8 +1,8 @@
-import { Filters } from "../lib/utils/helpers";
 import dayjs from "dayjs";
 import axios from "axios";
 import qs from "qs";
 import { camelCase } from "lodash";
+import { Filters, TwitterUser } from "../lib/utils/types";
 
 export type FlattenedFilter = [string, number | string | Date];
 
@@ -37,21 +37,6 @@ export const renderFilter = (filter: FlattenedFilter): string => {
   };
 
   return renderFunctions[filter[0]](filter[1]);
-};
-
-export type TwitterUser = {
-  id: BigInt;
-  updatedAt: Date;
-  followersUpdatedAt: Date;
-  followingUpdatedAt: Date;
-  username: string;
-  name: string;
-  followersCount: number;
-  followingCount: number;
-  tweetCount: number;
-  description: string;
-  userCreatedAt: Date;
-  profileImageUrl: string;
 };
 
 export const callSearchApi = async (filters: Filters) => {

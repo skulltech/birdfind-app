@@ -1,4 +1,10 @@
-import { dedupeUsers, getSupabaseClient, getTwitterClient } from "./helpers";
+import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
+import { getSupabaseClient, getTwitterClient } from "./clients";
+import {
+  convertApiUserToPostgresRow,
+  dedupeUsers,
+  userApiFields,
+} from "./helpers";
 
 export const getFollowing = async (id: BigInt) => {
   const supabase = getSupabaseClient();
@@ -17,23 +23,16 @@ export const updateFollowing = async (id: BigInt) => {
   const twitter = getTwitterClient();
   const supabase = getSupabaseClient();
 
-  const following = [];
+  const following: TwitterResponse<usersIdFollowing>["data"] = [];
   let paginationToken: string;
 
   while (true) {
     console.log("Making request to usersIdFollowing.");
     const response = await twitter.users.usersIdFollowing(id.toString(), {
       max_results: 1000,
-      "user.fields": [
-        "created_at",
-        "public_metrics",
-        "description",
-        "location",
-        "profile_image_url",
-      ],
+      "user.fields": userApiFields,
       pagination_token: paginationToken,
     });
-
     following.push(...response.data);
     if (response.meta.result_count < 1000) break;
     paginationToken = response.meta.next_token;
@@ -44,22 +43,7 @@ export const updateFollowing = async (id: BigInt) => {
 
   const { error: insertUsersError } = await supabase
     .from("twitter_user")
-    .upsert(
-      dedupedFollowing.map((x) => {
-        return {
-          username: x.username,
-          id: x.id,
-          name: x.name,
-          followers_count: x.public_metrics.followers_count,
-          following_count: x.public_metrics.following_count,
-          tweet_count: x.public_metrics.tweet_count,
-          description: x.description,
-          user_created_at: x.created_at,
-          updated_at: new Date().toISOString(),
-          profile_image_url: x.profile_image_url,
-        };
-      })
-    );
+    .upsert(dedupedFollowing.map(convertApiUserToPostgresRow));
   if (insertUsersError) throw insertUsersError;
 
   const { error: insertFollowsError } = await supabase

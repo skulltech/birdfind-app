@@ -1,6 +1,7 @@
 import { getFollowers, updateFollowers } from "./utils/followers";
 import { getFollowing, updateFollowing } from "./utils/following";
-import { dedupeUsers, Filters, getIntersection } from "./utils/helpers";
+import { getIntersection } from "./utils/helpers";
+import { Filters } from "./utils/types";
 import {
   getUserIds,
   getUsersByIds,
@@ -32,10 +33,9 @@ export const searchUsers = async ({
   } = options ?? {};
 
   // Make sure all input users are cached in DB
-  const inputUsernames = dedupeUsers([
-    ...(followedBy ?? []),
-    ...(followerOf ?? []),
-  ]);
+  const inputUsernames = Array.from(
+    new Set([...(followedBy ?? []), ...(followerOf ?? [])])
+  );
   const cachedUsers = await getUsersByUsernames(inputUsernames);
   const uncachedUsers = inputUsernames.filter(
     (x) => !cachedUsers.map((x) => x.username).includes(x)
@@ -56,8 +56,7 @@ export const searchUsers = async ({
         const users = await getUsersByIds(followersIds);
         toUpdate = users
           .filter(
-            (x) =>
-              Date.now() - Date.parse(x.following_updated_at) >= cacheTimeout
+            (x) => Date.now() - x.followingUpdatedAt.getTime() >= cacheTimeout
           )
           .map((x) => x.id);
       }
@@ -84,8 +83,7 @@ export const searchUsers = async ({
         const users = await getUsersByIds(followingIds);
         toUpdate = users
           .filter(
-            (x) =>
-              Date.now() - Date.parse(x.followers_updated_at) >= cacheTimeout
+            (x) => Date.now() - x.followersUpdatedAt.getTime() >= cacheTimeout
           )
           .map((x) => x.id);
       }
