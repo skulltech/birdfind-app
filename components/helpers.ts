@@ -18,6 +18,17 @@ export const flattenFilters = (filters: Filters) => {
   return flattenedFilters;
 };
 
+export const usernameFilters = ["followerOf", "followedBy"];
+export const numberFilters = [
+  "followersCountLessThan",
+  "followersCountGreaterThan",
+  "followingCountLessThan",
+  "followingCountGreaterThan",
+  "tweetCountLessThan",
+  "tweetCountGreaterThan",
+];
+export const dateFilters = ["createdBefore", "createdAfter"];
+
 export const renderFilter = (filter: FlattenedFilter): string => {
   const renderFunctions = {
     followedBy: (x: string) => "Followed by @" + x,

@@ -3,7 +3,7 @@ import { IconBrandTwitter, IconSearch } from "@tabler/icons";
 import { useState } from "react";
 import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
 import { FilterForm } from "../components/FilterForm";
-import { callSearchApi } from "../components/helpers";
+import { callSearchApi, usernameFilters } from "../components/helpers";
 import { UserTable } from "../components/UserTable/UserTable";
 import { Filters, TwitterUser } from "../lib/utils/types";
 
@@ -27,11 +27,12 @@ const Home = () => {
     filterName: string,
     filterValue: Date | number | string
   ) => {
-    console.log(filterName, filterValue);
-    if (["followerOf", "followedBy"].includes(filterName)) {
+    if (usernameFilters.includes(filterName)) {
       setFilters({
         ...filters,
-        [filterName]: [...(filters[filterName] ?? []), filterValue],
+        [filterName]: Array.from(
+          new Set([...(filters[filterName] ?? []), filterValue])
+        ),
       });
     } else {
       setFilters({ ...filters, [filterName]: filterValue });

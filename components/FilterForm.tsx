@@ -2,6 +2,7 @@ import { Button, Group, Select, TextInput, NumberInput } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { IconAt } from "@tabler/icons";
 import { useEffect, useState } from "react";
+import { dateFilters, numberFilters, usernameFilters } from "./helpers";
 
 export type FilterFormProps = {
   onSubmit: (arg0: string, arg1: Date | number | string) => void;
@@ -15,10 +16,26 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
   const [filterValue, setFilterValue] = useState<Date | number | string | null>(
     null
   );
+  const [isFilterValid, setIsFilterValid] = useState(false);
 
   useEffect(() => {
-    setFilterValue(null);
+    setFilterValue(undefined);
   }, [filterName]);
+
+  useEffect(() => {
+    if (filterValue === null || filterValue === undefined) {
+      setIsFilterValid(false);
+      return;
+    }
+
+    if (usernameFilters.includes(filterName)) {
+      if (filterValue) {
+        setIsFilterValid(true);
+      }
+    } else {
+      setIsFilterValid(true);
+    }
+  }, [filterValue, filterName]);
 
   return (
     <Group position="center">
@@ -53,21 +70,15 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
           { value: "createdAfter", label: "Account created after" },
         ]}
       />
-      {["followerOf", "followedBy"].includes(filterName) ? (
+      {usernameFilters.includes(filterName) ? (
         <TextInput
           placeholder="Enter username"
           value={(filterValue as string) ?? ""}
           icon={<IconAt size={14} />}
           onChange={(event) => setFilterValue(event.currentTarget.value)}
+          error={!isFilterValid}
         />
-      ) : [
-          "followersCountLessThan",
-          "followersCountGreaterThan",
-          "followingCountLessThan",
-          "followingCountGreaterThan",
-          "tweetCountLessThan",
-          "tweetCountGreaterThan",
-        ].includes(filterName) ? (
+      ) : numberFilters.includes(filterName) ? (
         <NumberInput
           placeholder="Enter number"
           value={filterValue as number}
@@ -77,16 +88,21 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
           stepHoldDelay={500}
           stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
           formatter={numberFormatter}
+          error={!isFilterValid}
         />
-      ) : ["createdBefore", "createdAfter"].includes(filterName) ? (
+      ) : dateFilters.includes(filterName) ? (
         <DatePicker
           placeholder="Select date"
           maxDate={new Date()}
           value={filterValue as Date}
           onChange={setFilterValue}
+          error={!isFilterValid}
         />
       ) : null}
-      <Button onClick={() => onSubmit(filterName, filterValue)}>
+      <Button
+        onClick={() => onSubmit(filterName, filterValue)}
+        disabled={!isFilterValid}
+      >
         Add filter
       </Button>
     </Group>
