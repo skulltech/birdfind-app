@@ -1,17 +1,8 @@
-import {
-  AppShell,
-  Button,
-  Group,
-  Header,
-  Navbar,
-  ScrollArea,
-  Stack,
-  Title,
-} from "@mantine/core";
+import { AppShell, Button, Group, Header, Stack, Title } from "@mantine/core";
 import { IconBrandTwitter, IconSearch } from "@tabler/icons";
 import { useState } from "react";
 import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
-import { FilterForm } from "../components/FilterForm/FilterForm";
+import { FilterForm } from "../components/FilterForm";
 import { callSearchApi } from "../components/helpers";
 import { UserTable } from "../components/UserTable/UserTable";
 import { Filters, TwitterUser } from "../lib/utils/types";
@@ -32,21 +23,24 @@ const Home = () => {
     setSearchLoading(false);
   };
 
+  const handleAddFilter = (
+    filterName: string,
+    filterValue: Date | number | string
+  ) => {
+    console.log(filterName, filterValue);
+    if (["followerOf", "followedBy"].includes(filterName)) {
+      setFilters({
+        ...filters,
+        [filterName]: [...(filters[filterName] ?? []), filterValue],
+      });
+    } else {
+      setFilters({ ...filters, [filterName]: filterValue });
+    }
+  };
+
   return (
     <AppShell
       padding="md"
-      navbar={
-        <Navbar width={{ base: 300 }} p="xs">
-          <Navbar.Section>
-            <Title align="center" order={3} p="lg">
-              Filters
-            </Title>
-          </Navbar.Section>
-          <Navbar.Section grow component={ScrollArea} mx="-xs" px="xs">
-            <FilterForm filters={filters} setFilters={setFilters} />
-          </Navbar.Section>
-        </Navbar>
-      }
       header={
         <Header height={60} p="xs">
           <Title order={2}>
@@ -67,6 +61,7 @@ const Home = () => {
       })}
     >
       <Stack>
+        <FilterForm onSubmit={handleAddFilter} />
         {Object.keys(filters).length ? (
           <Stack>
             <FilterChipGroup filters={filters} setFilters={setFilters} />
@@ -84,7 +79,6 @@ const Home = () => {
             </Group>
           </Stack>
         ) : null}
-
         {users.length ? <UserTable users={users} /> : null}
       </Stack>
     </AppShell>

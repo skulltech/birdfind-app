@@ -8,9 +8,9 @@ export type FilterChipProps = {
 
 export const FilterChip = ({ filter, onClose }: FilterChipProps) => {
   return (
-    <Paper shadow="md" radius="lg" withBorder p="sm">
+    <Paper shadow="md" radius="lg" withBorder p="xs">
       <Group position="apart" grow={false}>
-        <Text>{renderFilter(filter)}</Text>
+        <Text size="sm">{renderFilter(filter)}</Text>
         <CloseButton
           title="Remove filter"
           size="sm"
