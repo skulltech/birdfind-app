@@ -59,6 +59,11 @@ export const callSearchApi = async (filters: Filters) => {
       },
     },
   });
+
+  if (response.status != 200) {
+    throw Error(response.data.message);
+  }
+
   const users = response.data.users;
   const camelCaseUsers = users.map((user) => {
     return Object.entries(user).reduce((prev, [key, value]) => {

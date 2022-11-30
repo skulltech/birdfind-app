@@ -1,11 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { searchUsers } from "../../lib/search";
 import { camelCase } from "lodash";
-import { createClient } from "@supabase/supabase-js";
 import Client from "twitter-api-sdk";
+import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@supabase/supabase-js";
 
 type Data = {
-  users: any[];
+  error?: string;
+  users?: any[];
 };
 
 type QueryParams = Partial<{
@@ -41,11 +43,20 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const supabase = createClient(
-    process.env.SUPABASE_API_URL,
-    process.env.SUPABASE_KEY
-  );
+  const supabase = createServerSupabaseClient({ req, res });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user)
+    return res.status(401).json({
+      error: "The user is not authenticated",
+    });
+
   const twitter = new Client(process.env.TWITTER_BEARER_TOKEN);
+  const serviceRoleSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
 
   // Convert snake_case keys to camelCase
   const camelCaseQuery: typeof req.query = Object.entries(req.query).reduce(
@@ -83,7 +94,7 @@ export default async function handler(
       }),
       ...parseDates({ createdBefore, createdAfter }),
     },
-    supabase,
+    supabase: serviceRoleSupabase,
     twitter,
   });
 
