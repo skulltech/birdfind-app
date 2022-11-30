@@ -1,5 +1,4 @@
 import { Group, Stack, Text, Pagination, ActionIcon } from "@mantine/core";
-import { TwitterUser } from "../helpers";
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import {
@@ -11,13 +10,9 @@ import {
   useReactTable,
   getPaginationRowModel,
 } from "@tanstack/react-table";
-import {
-  IconArrowsSort,
-  IconSortAscending,
-  IconSortDescending,
-} from "@tabler/icons";
 import { UserProfileCard } from "./UserProfileCard";
-import { TableScrollArea } from "./TableScrollArea";
+import { TwitterUser } from "../../lib/utils/types";
+import { CustomTable, Th } from "./CustomTable";
 
 export type UserTableProps = {
   users: TwitterUser[];
@@ -40,31 +35,27 @@ export const UserTable = ({ users }: UserTableProps) => {
           />
         ),
         enableSorting: false,
-        // maxSize: 60,
+        size: 200,
       },
       {
         accessorKey: "followersCount",
         header: "Followers",
         cell: (info) => info.getValue<number>().toString(),
-        maxSize: 10,
       },
       {
         accessorKey: "followingCount",
         header: "Following",
         cell: (info) => info.getValue<number>().toString(),
-        maxSize: 10,
       },
       {
         accessorKey: "tweetCount",
         header: "Tweets",
         cell: (info) => info.getValue<number>().toString(),
-        maxSize: 10,
       },
       {
         accessorKey: "userCreatedAt",
         header: "Account Created On",
         cell: (info) => dayjs(info.getValue<Date>()).format("DD MMM YYYY"),
-        maxSize: 30,
       },
     ],
     []
@@ -87,24 +78,14 @@ export const UserTable = ({ users }: UserTableProps) => {
     <tr key={headerGroup.id}>
       {headerGroup.headers.map((header) => {
         return (
-          <th
+          <Th
             key={header.id}
-            colSpan={header.colSpan}
-            style={{ width: header.getSize() }}
+            sorted={header.column.getIsSorted()}
+            isSortable={header.column.getCanSort()}
+            onSort={header.column.getToggleSortingHandler()}
           >
-            <Group grow spacing="xs" position="apart">
-              {flexRender(header.column.columnDef.header, header.getContext())}
-              {header.column.getCanSort() ? (
-                <ActionIcon onClick={header.column.getToggleSortingHandler()}>
-                  {{
-                    asc: <IconSortAscending />,
-                    desc: <IconSortDescending />,
-                    false: <IconArrowsSort />,
-                  }[header.column.getIsSorted() as string] ?? null}
-                </ActionIcon>
-              ) : null}
-            </Group>
-          </th>
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </Th>
         );
       })}
     </tr>
@@ -134,10 +115,11 @@ export const UserTable = ({ users }: UserTableProps) => {
           total={table.getPageCount()}
         />
       </Group>
-      <TableScrollArea
+      <CustomTable
         headers={headers}
         rows={rows}
         tableProps={{ striped: true, highlightOnHover: true }}
+        numCols={6}
       />
     </Stack>
   );
