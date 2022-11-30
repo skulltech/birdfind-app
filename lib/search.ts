@@ -1,3 +1,5 @@
+import { SupabaseClient } from "@supabase/supabase-js";
+import Client from "twitter-api-sdk";
 import { getFollowers, updateFollowers } from "./utils/followers";
 import { getFollowing, updateFollowing } from "./utils/following";
 import { getIntersection } from "./utils/helpers";
@@ -14,6 +16,8 @@ export const defaultCacheTimeout = 10 * 60 * 60 * 1000;
 
 export type SearchUsersArgs = {
   filters: Filters;
+  supabase: SupabaseClient;
+  twitter: Client;
   options?: {
     useCacheOnly?: boolean;
     forceRefreshCache?: boolean;
@@ -24,6 +28,8 @@ export type SearchUsersArgs = {
 // Top level API which searches users based on filters
 export const searchUsers = async ({
   filters: { followedBy, followerOf, ...generalFilters },
+  supabase,
+  twitter,
   options,
 }: SearchUsersArgs) => {
   const {
@@ -36,24 +42,24 @@ export const searchUsers = async ({
   const inputUsernames = Array.from(
     new Set([...(followedBy ?? []), ...(followerOf ?? [])])
   );
-  const cachedUsers = await getUsersByUsernames(inputUsernames);
+  const cachedUsers = await getUsersByUsernames(inputUsernames, supabase);
   const uncachedUsers = inputUsernames.filter(
     (x) => !cachedUsers.map((x) => x.username).includes(x)
   );
-  if (uncachedUsers.length) await updateUsers(uncachedUsers);
+  if (uncachedUsers.length) await updateUsers(uncachedUsers, supabase, twitter);
 
   let resultUserIds: Set<BigInt>;
 
   // Process the "followed-by" filters
   if (followedBy) {
-    const followersIds = await getUserIds(followedBy);
+    const followersIds = await getUserIds(followedBy, supabase);
 
     // Update cache if needed
     let toUpdate: BigInt[] = [];
     if (!useCacheOnly) {
       if (forceRefreshCache) toUpdate = followersIds;
       else {
-        const users = await getUsersByIds(followersIds);
+        const users = await getUsersByIds(followersIds, supabase);
         toUpdate = users
           .filter(
             (x) => Date.now() - x.followingUpdatedAt.getTime() >= cacheTimeout
@@ -62,25 +68,26 @@ export const searchUsers = async ({
       }
     }
     if (toUpdate.length)
-      for (const followingId of toUpdate) await updateFollowing(followingId);
+      for (const followingId of toUpdate)
+        await updateFollowing(followingId, supabase, twitter);
 
     // Get data from cache and take intersection
     for (const followerId of followersIds) {
-      const following = await getFollowing(followerId);
+      const following = await getFollowing(followerId, supabase);
       resultUserIds = getIntersection(new Set(following), resultUserIds);
     }
   }
 
   // Process the "follower-of" filters
   if (followerOf) {
-    const followingIds = await getUserIds(followerOf);
+    const followingIds = await getUserIds(followerOf, supabase);
 
     // Update cache if needed
     let toUpdate: BigInt[] = [];
     if (!useCacheOnly) {
       if (forceRefreshCache) toUpdate = followingIds;
       else {
-        const users = await getUsersByIds(followingIds);
+        const users = await getUsersByIds(followingIds, supabase);
         toUpdate = users
           .filter(
             (x) => Date.now() - x.followersUpdatedAt.getTime() >= cacheTimeout
@@ -89,14 +96,15 @@ export const searchUsers = async ({
       }
     }
     if (toUpdate.length)
-      for (const followingId of toUpdate) await updateFollowers(followingId);
+      for (const followingId of toUpdate)
+        await updateFollowers(followingId, supabase, twitter);
 
     // Get data from cache and take intersection
     for (const followingId of followingIds) {
-      const followers = await getFollowers(followingId);
+      const followers = await getFollowers(followingId, supabase);
       resultUserIds = getIntersection(new Set(followers), resultUserIds);
     }
   }
 
-  return await getUsersByIds([...resultUserIds], generalFilters);
+  return await getUsersByIds([...resultUserIds], supabase, generalFilters);
 };

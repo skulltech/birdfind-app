@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { searchUsers } from "../../lib/search";
 import { camelCase } from "lodash";
+import { createClient } from "@supabase/supabase-js";
+import Client from "twitter-api-sdk";
 
 type Data = {
   users: any[];
@@ -39,6 +41,12 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
+  const supabase = createClient(
+    process.env.SUPABASE_API_URL,
+    process.env.SUPABASE_KEY
+  );
+  const twitter = new Client(process.env.TWITTER_BEARER_TOKEN);
+
   // Convert snake_case keys to camelCase
   const camelCaseQuery: typeof req.query = Object.entries(req.query).reduce(
     (prev, [key, value]) => {
@@ -75,6 +83,8 @@ export default async function handler(
       }),
       ...parseDates({ createdBefore, createdAfter }),
     },
+    supabase,
+    twitter,
   });
 
   res.status(200).json({

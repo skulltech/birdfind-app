@@ -12,9 +12,9 @@ import { IconBrandTwitter, IconSearch } from "@tabler/icons";
 import { useState } from "react";
 import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
 import { FilterForm } from "../components/FilterForm/FilterForm";
-import { callSearchApi, TwitterUser } from "../components/helpers";
+import { callSearchApi } from "../components/helpers";
 import { UserTable } from "../components/UserTable/UserTable";
-import { Filters } from "../lib/utils/helpers";
+import { Filters, TwitterUser } from "../lib/utils/types";
 
 const Home = () => {
   const [filters, setFilters] = useState<Filters>({});
@@ -49,8 +49,11 @@ const Home = () => {
       }
       header={
         <Header height={60} p="xs">
-          <Title>
-            <IconBrandTwitter />
+          <Title order={2}>
+            <Group>
+              <IconBrandTwitter />
+              Twips
+            </Group>
           </Title>
         </Header>
       }

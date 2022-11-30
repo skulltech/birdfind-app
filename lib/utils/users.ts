@@ -1,7 +1,8 @@
 import { appendGeneralFilters, userApiFields } from "./helpers";
 import { camelCase } from "lodash";
 import { GeneralFilters, TwitterUser } from "./types";
-import { getSupabaseClient, getTwitterClient } from "./clients";
+import { SupabaseClient } from "@supabase/supabase-js";
+import Client from "twitter-api-sdk";
 
 const userSelectFields = [
   "id::text",
@@ -19,10 +20,11 @@ const userSelectFields = [
 ];
 
 // Fetch users from Twitter API and update DB cache
-export const updateUsers = async (usernames: string[]) => {
-  const twitter = getTwitterClient();
-  const supabase = getSupabaseClient();
-
+export const updateUsers = async (
+  usernames: string[],
+  supabase: SupabaseClient,
+  twitter: Client
+) => {
   console.log("Making request to findUsersByUsername.");
   const response = await twitter.users.findUsersByUsername({
     usernames,
@@ -70,9 +72,10 @@ export const parseUsers = (users: any[]) => {
   return parsedUsers;
 };
 
-export const getUsersByUsernames = async (usernames: string[]) => {
-  const supabase = getSupabaseClient();
-
+export const getUsersByUsernames = async (
+  usernames: string[],
+  supabase: SupabaseClient
+) => {
   const { data: users, error: selectError } = await supabase
     .from("twitter_user")
     .select(userSelectFields.join(","))
@@ -84,10 +87,9 @@ export const getUsersByUsernames = async (usernames: string[]) => {
 
 export const getUsersByIds = async (
   ids: BigInt[],
+  supabase: SupabaseClient,
   filters?: GeneralFilters
 ): Promise<TwitterUser[]> => {
-  const supabase = getSupabaseClient();
-
   let query = supabase
     .from("twitter_user")
     .select(userSelectFields.join(","))
@@ -103,9 +105,10 @@ export const getUsersByIds = async (
   return parseUsers(users);
 };
 
-export const getUserIds = async (usernames: string[]) => {
-  const supabase = getSupabaseClient();
-
+export const getUserIds = async (
+  usernames: string[],
+  supabase: SupabaseClient
+) => {
   const { data: users, error: selectError } = await supabase
     .from("twitter_user")
     .select("id::text")

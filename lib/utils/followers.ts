@@ -1,13 +1,12 @@
-import { getSupabaseClient, getTwitterClient } from "./clients";
+import { SupabaseClient } from "@supabase/supabase-js";
+import Client from "twitter-api-sdk";
 import {
   convertApiUserToPostgresRow,
   dedupeUsers,
   userApiFields,
 } from "./helpers";
 
-export const getFollowers = async (id: BigInt) => {
-  const supabase = getSupabaseClient();
-
+export const getFollowers = async (id: BigInt, supabase: SupabaseClient) => {
   const { data: users, error: selectError } = await supabase
     .from("twitter_follow")
     .select("follower_id::text")
@@ -18,10 +17,11 @@ export const getFollowers = async (id: BigInt) => {
   return users.map((x) => BigInt(x.follower_id));
 };
 
-export const updateFollowers = async (id: BigInt) => {
-  const twitter = getTwitterClient();
-  const supabase = getSupabaseClient();
-
+export const updateFollowers = async (
+  id: BigInt,
+  supabase: SupabaseClient,
+  twitter: Client
+) => {
   const followers = [];
   let paginationToken: string;
 

@@ -1,6 +1,3 @@
-import { createClient } from "@supabase/supabase-js";
-import { Client } from "twitter-api-sdk";
-import * as dotenv from "dotenv";
 import { PostgrestFilterBuilder } from "@supabase/postgrest-js";
 import { findUsersById, TwitterParams } from "twitter-api-sdk/dist/types";
 import { ApiTwitterUser, GeneralFilters } from "./types";
