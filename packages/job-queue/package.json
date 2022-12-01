@@ -1,0 +1,12 @@
+{
+  "name": "@twips/job-queue",
+  "version": "1.0.0",
+  "scripts": {
+    "api": "ts-node src/api.ts"
+  },
+  "dependencies": {
+    "@twips/lib": "^1.0.0",
+    "bullmq": "^3.2.4",
+    "fastify": "^4.10.2"
+  }
+}
