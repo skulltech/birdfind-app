@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "api": "ts-node src/api.ts",
-    "worker": "ts-node src/worker.ts"
+    "worker:update-following": "ts-node src/workers/updateFollowing.ts",
+    "worker:update-followers": "ts-node src/workers/updateFollowers.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",
@@ -12,5 +13,8 @@
     "dotenv": "^16.0.3",
     "fastify": "^4.10.2",
     "twitter-api-sdk": "^1.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.10"
   }
 }

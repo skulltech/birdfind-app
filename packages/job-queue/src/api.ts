@@ -1,20 +1,18 @@
 import Fastify, { FastifyInstance, RouteShorthandOptions } from "fastify";
 import * as dotenv from "dotenv";
 import { Queue } from "bullmq";
-import { UpdateFollowersInput } from "./worker";
+import { JobInput } from "./workers/types";
+import { AddressInfo } from "net";
 dotenv.config();
 
 const server: FastifyInstance = Fastify({});
 
-interface CommonQueryString {
+interface QueryString {
   key: string;
-}
-
-interface UpdateFollowersQueryString extends CommonQueryString {
   userId: BigInt;
 }
 
-const updateFollowersOpts: RouteShorthandOptions = {
+const opts: RouteShorthandOptions = {
   schema: {
     params: {
       type: "object",
@@ -28,6 +26,8 @@ const updateFollowersOpts: RouteShorthandOptions = {
         type: "object",
         properties: {
           message: { type: "string" },
+          queue: { type: "string" },
+          jobId: { type: "integer" },
         },
       },
       401: {
@@ -40,32 +40,65 @@ const updateFollowersOpts: RouteShorthandOptions = {
   },
 };
 
-server.get<{ Querystring: UpdateFollowersQueryString }>(
+server.get<{ Querystring: QueryString }>(
   "/updateFollowers",
-  updateFollowersOpts,
+  opts,
   async (request, reply) => {
     if (request.query.key != process.env.API_KEY) {
       reply.code(401);
       return { message: "Not authenticated" };
     }
 
-    const updateFollowersQueue = new Queue<UpdateFollowersInput>(
-      "updateFollowers"
+    const updateFollowersQueue = new Queue<JobInput>("update-followers");
+    await updateFollowersQueue.add(
+      request.query.userId.toString(),
+      {
+        userId: request.query.userId,
+      },
+      { jobId: request.query.userId.toString() }
     );
-    await updateFollowersQueue.add(request.query.userId.toString(), {
-      userId: request.query.userId,
-    });
-    return { message: "Successfully added job to queue" };
+
+    return {
+      message: "Successfully added job to queue",
+      queue: "update-followers",
+      jobId: request.query.userId,
+    };
+  }
+);
+
+server.get<{ Querystring: QueryString }>(
+  "/updateFollowing",
+  opts,
+  async (request, reply) => {
+    if (request.query.key != process.env.API_KEY) {
+      reply.code(401);
+      return { message: "Not authenticated" };
+    }
+
+    const updateFollowingQueue = new Queue<JobInput>("update-following");
+    await updateFollowingQueue.add(
+      request.query.userId.toString(),
+      {
+        userId: request.query.userId,
+      },
+      { jobId: request.query.userId.toString() }
+    );
+
+    return {
+      message: "Successfully added job to queue",
+      queue: "update-following",
+      jobId: request.query.userId,
+    };
   }
 );
 
 const start = async () => {
   try {
     await server.listen({ port: 3000 });
-    const address = server.server.address();
-    console.log(`Server listening at ${address}`);
-
-    const port = typeof address === "string" ? address : address?.port;
+    const address = server.server.address() as AddressInfo;
+    console.log(
+      `Job queue's API server listening at ${address.address}:${address.port}`
+    );
   } catch (err) {
     server.log.error(err);
     process.exit(1);
