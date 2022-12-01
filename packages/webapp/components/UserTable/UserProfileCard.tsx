@@ -1,4 +1,4 @@
-import { Avatar, Card, Group, Paper, Stack, Text } from "@mantine/core";
+import { Avatar, Group, Paper, Stack, Text } from "@mantine/core";
 
 export type UserProfileCardProps = {
   username: string;

@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import axios from "axios";
 import qs from "qs";
 import { camelCase } from "lodash";
-import { Filters, TwitterUser } from "../lib/utils/types";
+import { Filters, TwitterUser } from "@twips/lib";
 
 export type FlattenedFilter = [string, number | string | Date];
 

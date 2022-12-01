@@ -10,11 +10,11 @@ import {
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter, IconSearch } from "@tabler/icons";
 import { useState } from "react";
-import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
-import { FilterForm } from "../components/FilterForm";
-import { callSearchApi, usernameFilters } from "../components/helpers";
-import { UserTable } from "../components/UserTable/UserTable";
-import { Filters, TwitterUser } from "../lib/utils/types";
+import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
+import { FilterForm } from "./FilterForm";
+import { callSearchApi, usernameFilters } from "./helpers";
+import { UserTable } from "./UserTable/UserTable";
+import { Filters, TwitterUser } from "@twips/lib";
 
 export const SearchPage = () => {
   const [filters, setFilters] = useState<Filters>({});

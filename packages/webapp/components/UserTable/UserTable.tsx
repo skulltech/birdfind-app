@@ -11,8 +11,8 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
-import { TwitterUser } from "../../lib/utils/types";
 import { CustomTable, Th } from "./CustomTable";
+import { TwitterUser } from "@twips/lib";
 
 export type UserTableProps = {
   users: TwitterUser[];

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { searchUsers } from "../../lib/search";
+import { searchUsers } from "@twips/lib";
 import { camelCase } from "lodash";
 import Client from "twitter-api-sdk";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
@@ -19,7 +19,7 @@ const parseInts = (params: QueryParams) => {
   for (const [key, value] of Object.entries(params)) {
     if (typeof value == "string") {
       const num = Number.parseInt(value);
-      if (num != NaN) {
+      if (!Number.isNaN(num)) {
         result[key] = num;
       }
     }
@@ -31,7 +31,7 @@ const parseDates = (params: QueryParams) => {
   const result = {};
   for (const [key, value] of Object.entries(params)) {
     if (typeof value == "string") {
-      if (Date.parse(value) != NaN) {
+      if (!Number.isNaN(Date.parse(value))) {
         result[key] = new Date(value);
       }
     }

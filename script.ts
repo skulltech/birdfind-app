@@ -1,14 +1,13 @@
-import { searchUsers } from "./lib/search";
-import * as dotenv from "dotenv";
+import { searchUsers } from "./packages/lib/src";
 import Client from "twitter-api-sdk";
 import { createClient } from "@supabase/supabase-js";
-
-dotenv.config({ path: ".env.local" });
+import * as dotenv from "dotenv";
+dotenv.config();
 
 const main = async () => {
   const supabase = createClient(
     process.env.SUPABASE_API_URL,
-    process.env.SUPABASE_KEY
+    process.env.SUPABASE_SERVICE_ROLE_KEY
   );
   const twitter = new Client(process.env.TWITTER_BEARER_TOKEN);
 

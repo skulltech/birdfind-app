@@ -2,19 +2,12 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
+    "lib": ["ESNext"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
     "strict": false
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "environment.d.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "packages/**/dist/**"]
 }

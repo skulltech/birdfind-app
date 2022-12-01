@@ -2,7 +2,7 @@ import { Group, GroupProps } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
 import { FilterChip } from "./FilterChip";
 import { FlattenedFilter, flattenFilters } from "../helpers";
-import { Filters } from "../../lib/utils/types";
+import { Filters } from "@twips/lib";
 
 export type FilterChipGroupProps = {
   filters: Filters;
