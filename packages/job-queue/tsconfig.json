@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "composite": true,
-    "declaration": true,
-    "outDir": "dist",
-    "rootDir": "src"
+    "paths": {
+      "@twips/lib": ["../lib/src"]
+    }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "environment.d.ts"],
+  "references": [{ "path": "../lib" }]
 }

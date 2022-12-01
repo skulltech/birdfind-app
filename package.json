@@ -5,6 +5,9 @@
     "packages/*"
   ],
   "scripts": {
+    "lib": "yarn workspace @twips/lib",
+    "job-queue": "yarn workspace @twips/job-queue",
+    "webapp": "yarn workspace @twips/webapp",
     "script": "ts-node script.ts"
   },
   "devDependencies": {

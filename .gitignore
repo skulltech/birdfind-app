@@ -6,3 +6,4 @@ supabase/.branches
 packages/**/node_modules
 packages/**/dist
 .env
+packages/**/tsconfig.tsbuildinfo

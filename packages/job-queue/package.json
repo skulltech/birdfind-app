@@ -2,11 +2,15 @@
   "name": "@twips/job-queue",
   "version": "1.0.0",
   "scripts": {
-    "api": "ts-node src/api.ts"
+    "api": "ts-node src/api.ts",
+    "worker": "ts-node src/worker.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.1.1",
     "@twips/lib": "^1.0.0",
     "bullmq": "^3.2.4",
-    "fastify": "^4.10.2"
+    "dotenv": "^16.0.3",
+    "fastify": "^4.10.2",
+    "twitter-api-sdk": "^1.2.1"
   }
 }
