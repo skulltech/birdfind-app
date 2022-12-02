@@ -85,10 +85,17 @@ export const addUpdateNetworkJob = async ({
   const queue = new Queue<UpdateNetworkJobInput, UpdateNetworkResult>(
     queueName
   );
+
   const job = await queue.add(
     `Update ${direction} of user ${userId}`,
     { userId, paginationToken },
-    { delay }
+    {
+      delay,
+      jobId: `${userId}::${paginationToken ?? null}`,
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
   );
+
   return job.id;
 };

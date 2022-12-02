@@ -62,7 +62,7 @@ server.get<{ Querystring: QueryString }>(
 
 const start = async () => {
   try {
-    await server.listen({ port: 3000 });
+    await server.listen({ port: 4000 });
     const address = server.server.address() as AddressInfo;
     console.log(
       `Job queue's API server listening at ${address.address}:${address.port}`
