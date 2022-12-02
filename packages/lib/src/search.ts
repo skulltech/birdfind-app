@@ -1,8 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import Client from "twitter-api-sdk";
-import { getFollowers, updateFollowers } from "./utils/followers";
-import { getFollowing, updateFollowing } from "./utils/following";
 import { getIntersection } from "./utils/helpers";
+import { getNetwork, updateNetwork } from "./utils/network";
 import { Filters } from "./utils/types";
 import {
   getUserIds,
@@ -69,11 +68,20 @@ export const searchUsers = async ({
     }
     if (toUpdate.length)
       for (const followingId of toUpdate)
-        await updateFollowing(followingId, supabase, twitter);
+        await updateNetwork({
+          direction: "following",
+          userId: followingId,
+          supabase,
+          twitter,
+        });
 
     // Get data from cache and take intersection
     for (const followerId of followersIds) {
-      const following = await getFollowing(followerId, supabase);
+      const following = await getNetwork({
+        direction: "following",
+        userId: followerId,
+        supabase,
+      });
       resultUserIds = getIntersection(new Set(following), resultUserIds);
     }
   }
@@ -97,11 +105,20 @@ export const searchUsers = async ({
     }
     if (toUpdate.length)
       for (const followingId of toUpdate)
-        await updateFollowers(followingId, supabase, twitter);
+        await updateNetwork({
+          userId: followingId,
+          direction: "followers",
+          supabase,
+          twitter,
+        });
 
     // Get data from cache and take intersection
     for (const followingId of followingIds) {
-      const followers = await getFollowers(followingId, supabase);
+      const followers = await getNetwork({
+        direction: "followers",
+        userId: followingId,
+        supabase,
+      });
       resultUserIds = getIntersection(new Set(followers), resultUserIds);
     }
   }

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "api": "ts-node src/api.ts",
-    "worker:update-following": "ts-node src/workers/updateFollowing.ts",
-    "worker:update-followers": "ts-node src/workers/updateFollowers.ts"
+    "workers:update-following": "ts-node src/workers/update-network/following.ts",
+    "workers:update-followers": "ts-node src/workers/update-network/followers.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",

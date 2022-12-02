@@ -1,5 +1,3 @@
-import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
-
 export type GeneralFilters = {
   followersCountLessThan?: number;
   followersCountGreaterThan?: number;
@@ -30,5 +28,3 @@ export type TwitterUser = {
   userCreatedAt: Date;
   profileImageUrl: string;
 };
-
-export type ApiTwitterUser = TwitterResponse<usersIdFollowing>["data"][number];
