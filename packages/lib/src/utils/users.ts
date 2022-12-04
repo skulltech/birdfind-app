@@ -1,6 +1,6 @@
 import { appendGeneralFilters, userApiFields } from "./helpers";
 import { camelCase } from "lodash";
-import { GeneralFilters, TwitterUser } from "./types";
+import { Filters, GeneralFilters, TwitterUser } from "./types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import Client from "twitter-api-sdk";
 
@@ -19,35 +19,45 @@ const userSelectFields = [
   "profile_image_url",
 ];
 
+export type UpdateUsersArgs = {
+  usernames: string[];
+  supabase: SupabaseClient;
+  twitter: Client;
+};
+
 // Fetch users from Twitter API and update DB cache
-export const updateUsers = async (
-  usernames: string[],
-  supabase: SupabaseClient,
-  twitter: Client
-) => {
+export const updateUsers = async ({
+  usernames,
+  supabase,
+  twitter,
+}: UpdateUsersArgs) => {
   console.log("Making request to findUsersByUsername.");
   const response = await twitter.users.findUsersByUsername({
     usernames,
     "user.fields": userApiFields,
   });
 
-  const { error } = await supabase.from("twitter_user").upsert(
-    response.data.map((x) => {
-      return {
-        username: x.username,
-        id: x.id,
-        name: x.name,
-        followers_count: x.public_metrics.followers_count,
-        following_count: x.public_metrics.following_count,
-        tweet_count: x.public_metrics.tweet_count,
-        description: x.description,
-        user_created_at: x.created_at,
-        updated_at: new Date().toISOString(),
-        profile_image_url: x.profile_image_url,
-      };
-    })
-  );
-  if (error) throw error;
+  if (response.data) {
+    const { error } = await supabase.from("twitter_user").upsert(
+      response.data.map((x) => {
+        return {
+          username: x.username,
+          id: x.id,
+          name: x.name,
+          followers_count: x.public_metrics.followers_count,
+          following_count: x.public_metrics.following_count,
+          tweet_count: x.public_metrics.tweet_count,
+          description: x.description,
+          user_created_at: x.created_at,
+          updated_at: new Date().toISOString(),
+          profile_image_url: x.profile_image_url,
+        };
+      })
+    );
+    if (error) throw error;
+  }
+
+  return response;
 };
 
 export const parseUsers = (users: any[]) => {
@@ -72,10 +82,12 @@ export const parseUsers = (users: any[]) => {
   return parsedUsers;
 };
 
-export const getUsersByUsernames = async (
-  usernames: string[],
-  supabase: SupabaseClient
-) => {
+export type GetUsersArgs = {
+  usernames: string[];
+  supabase: SupabaseClient;
+};
+
+export const getUsers = async ({ usernames, supabase }: GetUsersArgs) => {
   const { data: users, error: selectError } = await supabase
     .from("twitter_user")
     .select(userSelectFields.join(","))
@@ -85,36 +97,23 @@ export const getUsersByUsernames = async (
   return parseUsers(users);
 };
 
-export const getUsersByIds = async (
-  ids: BigInt[],
+export const getUsersByFilters = async (
   supabase: SupabaseClient,
-  filters?: GeneralFilters
+  filters
 ): Promise<TwitterUser[]> => {
+  const { followerOf, followedBy, ...generalFilters } = filters;
   let query = supabase
-    .from("twitter_user")
-    .select(userSelectFields.join(","))
-    .in(
-      "id",
-      ids.map((x) => x.toString())
-    );
-  query = appendGeneralFilters(query, filters);
+    .rpc("search_follow_network", {
+      follower_of: filters.followerOf?.map((x: BigInt) => x.toString()) ?? [],
+      followed_by: filters.followedBy.map((x: BigInt) => x.toString()) ?? [],
+    })
+    .select(userSelectFields.join(","));
+  // @ts-ignore
+  query = appendGeneralFilters(query, generalFilters);
+  console.log(query);
 
   const { data: users, error: selectError } = await query;
   if (selectError) throw selectError;
 
   return parseUsers(users);
-};
-
-export const getUserIds = async (
-  usernames: string[],
-  supabase: SupabaseClient
-) => {
-  const { data: users, error: selectError } = await supabase
-    .from("twitter_user")
-    .select("id::text")
-    .in("username", usernames);
-  if (selectError) throw selectError;
-
-  // @ts-ignore
-  return users.map((x) => BigInt(x.id));
 };

@@ -3,6 +3,7 @@ import axios from "axios";
 import qs from "qs";
 import { camelCase } from "lodash";
 import { Filters, TwitterUser } from "@twips/lib";
+import { resolve } from "path";
 
 export type FlattenedFilter = [string, number | string | Date];
 
@@ -50,8 +51,19 @@ export const renderFilter = (filter: FlattenedFilter): string => {
   return renderFunctions[filter[0]](filter[1]);
 };
 
-export const callSearchApi = async (filters: Filters) => {
-  const response = await axios.get("/api/search", {
+const parseUser = (user): TwitterUser => {
+  return {
+    ...user,
+    id: BigInt(user.id),
+    updatedAt: new Date(user.updatedAt),
+    followersUpdatedAt: new Date(user.followersUpdatedAt),
+    followingUpdatedAt: new Date(user.followingUpdatedAt),
+    userCreatedAt: new Date(user.userCreatedAt),
+  };
+};
+
+export const apiUserSearch = async (filters: Filters) => {
+  const response = await axios.get("/api/user/search", {
     params: filters,
     paramsSerializer: {
       serialize: (params) => {
@@ -64,22 +76,33 @@ export const callSearchApi = async (filters: Filters) => {
     throw Error(response.data.message);
   }
 
-  const users = response.data.users;
-  const camelCaseUsers = users.map((user) => {
-    return Object.entries(user).reduce((prev, [key, value]) => {
-      prev[camelCase(key)] = value;
-      return prev;
-    }, {});
+  const users: TwitterUser[] = response.data.users.map(parseUser);
+  return users;
+};
+
+export const apiUserLookup = async (username: string) => {
+  const response = await axios.get("/api/user/lookup", {
+    params: { username: username },
   });
-  const parsedUsers: TwitterUser[] = camelCaseUsers.map((x) => {
-    return {
-      ...x,
-      id: BigInt(x.id),
-      updatedAt: new Date(x.updatedAt),
-      followersUpdatedAt: new Date(x.followersUpdatedAt),
-      followingUpdatedAt: new Date(x.followingUpdatedAt),
-      userCreatedAt: new Date(x.userCreatedAt),
-    };
+
+  if (response.status != 200) {
+    throw Error(response.data.message);
+  }
+
+  // Check if user doesn't exist
+  if (!response.data.user) {
+    return null;
+  }
+
+  return parseUser(response.data.user);
+};
+
+export const apiUserUpdate = async (
+  userId: BigInt,
+  direction: "followers" | "following"
+) => {
+  const response = await axios.get("/api/user/update", {
+    params: { userId: userId.toString(), direction },
   });
-  return parsedUsers;
+  return response.status;
 };

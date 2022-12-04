@@ -27,3 +27,32 @@ create table if not exists twitter_follow (
 
 alter table twitter_user enable row level security;
 alter table twitter_follow enable row level security;
+
+create or replace function search_follow_network
+    (follower_of bigint[], followed_by bigint[])
+    returns setof twitter_user as $$
+begin
+    if array_length(follower_of, 1) > 0 and array_length(followed_by, 1) > 0 then
+        return query
+          select * from twitter_user where id in (
+            select follower_id from twitter_follow group by follower_id
+                having array_agg(following_id) @> follower_of
+            intersect
+            select following_id from twitter_follow group by following_id
+                having array_agg(follower_id) @> followed_by
+          );
+    elseif array_length(follower_of, 1) > 0 then
+        return query
+          select * from twitter_user where id in (
+            select follower_id from twitter_follow group by follower_id
+                having array_agg(following_id) @> follower_of
+          );
+    elseif array_length(followed_by, 1) > 0 then
+        return query
+          select * from twitter_user where id in (
+            select following_id from twitter_follow group by following_id
+                having array_agg(follower_id) @> followed_by
+          );
+    end if;
+end
+$$ language plpgsql;

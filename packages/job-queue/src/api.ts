@@ -17,7 +17,7 @@ const opts: RouteShorthandOptions = {
     querystring: {
       type: "object",
       properties: {
-        userId: { type: "integer" },
+        userId: { type: "string" },
         key: { type: "string" },
         direction: { type: "string", enum: ["followers", "following"] },
       },
@@ -42,7 +42,7 @@ const opts: RouteShorthandOptions = {
 };
 
 server.get<{ Querystring: QueryString }>(
-  "/update-network",
+  "/network/update",
   opts,
   async (request, reply) => {
     if (request.query.key != process.env.API_KEY) {

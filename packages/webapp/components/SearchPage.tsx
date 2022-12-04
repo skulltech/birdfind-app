@@ -9,12 +9,13 @@ import {
 } from "@mantine/core";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter, IconSearch } from "@tabler/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
 import { FilterForm } from "./FilterForm";
-import { callSearchApi, usernameFilters } from "./helpers";
+import { apiUserSearch, usernameFilters } from "./helpers";
 import { UserTable } from "./UserTable/UserTable";
 import { Filters, TwitterUser } from "@twips/lib";
+import axios from "axios";
 
 export const SearchPage = () => {
   const [filters, setFilters] = useState<Filters>({});
@@ -26,7 +27,7 @@ export const SearchPage = () => {
   const handleSearch = async () => {
     setSearchLoading(true);
     try {
-      const users = await callSearchApi(filters);
+      const users = await apiUserSearch(filters);
       setUsers(users);
     } catch (error) {
       console.log(error);

@@ -10,6 +10,11 @@ export interface UpdateNetworkJobInput {
   paginationToken?: string;
 }
 
+const redisConnection = {
+  host: "localhost",
+  port: 6379,
+};
+
 // 2 seconds
 const bufferMs = 2 * 1000;
 
@@ -44,19 +49,30 @@ export const getUpdateNetworkWorker = (
         });
       }
       return updateNetworkResult;
-    }
+    },
+    { connection: redisConnection }
   );
 
   worker.on("completed", (job) => {
-    const delayMinutes =
-      (job.returnvalue.rateLimitResetsAt.getTime() - Date.now()) / (1000 * 60);
-    console.log(
-      `${job.id} has completed! Updated ${job.returnvalue.updatedCount} users.${
-        job.returnvalue.rateLimitResetsAt
-          ? ` Scheduled another job after ${delayMinutes} minutes to get around rate limit.`
-          : ""
-      }`
-    );
+    const { rateLimitResetsAt, updatedCount } = job.returnvalue;
+    if (rateLimitResetsAt) {
+      const delayMinutes =
+        (job.returnvalue.rateLimitResetsAt.getTime() - Date.now()) /
+        (1000 * 60);
+      console.log(
+        `${job.id} has completed! Updated ${
+          job.returnvalue.updatedCount
+        } users.${
+          job.returnvalue.rateLimitResetsAt
+            ? ` Scheduled another job after ${delayMinutes} minutes to get around rate limit.`
+            : ""
+        }`
+      );
+    } else {
+      console.log(
+        `${job.id} has completed! Updated ${job.returnvalue.updatedCount} users.`
+      );
+    }
   });
 
   worker.on("failed", (job, err) => {
@@ -83,7 +99,8 @@ export const addUpdateNetworkJob = async ({
   const queueName =
     direction == "followers" ? "update-followers" : "update-following";
   const queue = new Queue<UpdateNetworkJobInput, UpdateNetworkResult>(
-    queueName
+    queueName,
+    { connection: redisConnection }
   );
 
   const job = await queue.add(

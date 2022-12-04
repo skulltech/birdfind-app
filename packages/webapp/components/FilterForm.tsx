@@ -1,12 +1,24 @@
 import { Button, Group, Select, TextInput, NumberInput } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
+import { showNotification } from "@mantine/notifications";
 import { IconAt } from "@tabler/icons";
+import { TwitterUser } from "@twips/lib";
+import { Dirent } from "fs";
 import { useEffect, useState } from "react";
-import { dateFilters, numberFilters, usernameFilters } from "./helpers";
+import {
+  apiUserLookup,
+  apiUserUpdate,
+  dateFilters,
+  numberFilters,
+  usernameFilters,
+} from "./helpers";
 
 export type FilterFormProps = {
   onSubmit: (arg0: string, arg1: Date | number | string) => void;
 };
+
+// 24 hours
+const staleCacheTimeout = 24 * 60 * 60 * 1000;
 
 const numberFormatter = (arg: string | undefined) =>
   arg == undefined ? "" : arg.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -17,25 +29,103 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
     null
   );
   const [isFilterValid, setIsFilterValid] = useState(false);
+  const [addFilterLoading, setAddFilterLoading] = useState(false);
 
   useEffect(() => {
     setFilterValue(undefined);
   }, [filterName]);
 
   useEffect(() => {
+    // For all fields
     if (filterValue === null || filterValue === undefined) {
       setIsFilterValid(false);
       return;
     }
 
+    // For username fields
     if (usernameFilters.includes(filterName)) {
-      if (filterValue) {
+      const username = filterValue as string;
+      const lowercaseUsername = username.toLowerCase();
+      if (
+        /^([a-zA-Z0-9_]){4,15}$/.test(username) &&
+        !lowercaseUsername.includes("admin") &&
+        !lowercaseUsername.includes("twitter")
+      )
         setIsFilterValid(true);
-      }
-    } else {
-      setIsFilterValid(true);
+      else setIsFilterValid(false);
+      return;
     }
+
+    setIsFilterValid(true);
   }, [filterValue, filterName]);
+
+  const handleSubmit = async () => {
+    // For username fields we need to lookup user before adding
+    if (usernameFilters.includes(filterName)) {
+      setAddFilterLoading(true);
+
+      // Lookup user
+      let user: TwitterUser | null;
+      try {
+        const username = filterValue as string;
+        user = await apiUserLookup(username);
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+
+      setAddFilterLoading(false);
+
+      if (!user) {
+        showNotification({
+          title: "Error",
+          message: "User doesn't exist",
+          color: "red",
+        });
+        return;
+      }
+
+      const networkUpdatedAt =
+        user[
+          filterName === "followerOf"
+            ? "followersUpdatedAt"
+            : "followingUpdatedAt"
+        ];
+      const networkDirection =
+        filterName === "followerOf" ? "followers" : "following";
+
+      if (networkUpdatedAt.getTime() === 0) {
+        try {
+          await apiUserUpdate(user.id, networkDirection);
+          showNotification({
+            title: "Sorry",
+            message: `We don't have @${filterValue}'s ${networkDirection} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,
+            color: "red",
+          });
+        } catch (error) {
+          console.log(error);
+        }
+        return;
+      }
+
+      if (Date.now() - networkUpdatedAt.getTime() > staleCacheTimeout) {
+        try {
+          showNotification({
+            title: "Warning",
+            message: `@${filterValue}'s ${networkDirection} might be stale. A job has been scheduled to update it.`,
+            color: "yellow",
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+
+      setAddFilterLoading(false);
+    }
+
+    // For all fields
+    onSubmit(filterName, filterValue);
+  };
 
   return (
     <Group position="center">
@@ -100,8 +190,9 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
         />
       ) : null}
       <Button
-        onClick={() => onSubmit(filterName, filterValue)}
+        onClick={handleSubmit}
         disabled={!isFilterValid}
+        loading={addFilterLoading}
       >
         Add filter
       </Button>

@@ -28,6 +28,13 @@ export const LoginPage = () => {
     },
   });
 
+  const handleLoginWithTwitter = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "twitter",
+    });
+    console.log(data, error);
+  };
+
   const handleLogin = async (email: string) => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithOtp({ email });
@@ -72,6 +79,7 @@ export const LoginPage = () => {
             </Group>
           </form>
         </Paper>
+        <Button onClick={handleLoginWithTwitter}>Login with Twitter</Button>
       </Stack>
     </Container>
   );
