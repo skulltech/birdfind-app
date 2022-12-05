@@ -24,7 +24,7 @@ export default function App({
               },
             })}
           >
-            <Component {...pageProps} />;
+            <Component {...pageProps} />
           </AppShell>
         </NotificationsProvider>
       </MantineProvider>

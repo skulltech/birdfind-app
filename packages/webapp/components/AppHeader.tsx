@@ -1,6 +1,6 @@
 import { Avatar, Group, Header, Menu, Text, Title } from "@mantine/core";
 import { IconBrandTwitter, IconLogout } from "@tabler/icons";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 export const AppHeader = () => {
   const { data: session } = useSession();
@@ -34,7 +34,11 @@ export const AppHeader = () => {
             </Menu.Target>
 
             <Menu.Dropdown>
-              <Menu.Item color="red" icon={<IconLogout size={14} />}>
+              <Menu.Item
+                color="red"
+                icon={<IconLogout size={14} />}
+                onClick={() => signOut()}
+              >
                 Sign out
               </Menu.Item>
             </Menu.Dropdown>
