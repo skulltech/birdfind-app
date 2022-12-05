@@ -3,7 +3,6 @@ import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { IconAt } from "@tabler/icons";
 import { TwitterUser } from "@twips/lib";
-import { Dirent } from "fs";
 import { useEffect, useState } from "react";
 import {
   apiUserLookup,
@@ -11,7 +10,7 @@ import {
   dateFilters,
   numberFilters,
   usernameFilters,
-} from "./helpers";
+} from "../utils";
 
 export type FilterFormProps = {
   onSubmit: (arg0: string, arg1: Date | number | string) => void;

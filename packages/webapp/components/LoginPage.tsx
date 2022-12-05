@@ -1,7 +1,5 @@
 import {
-  Box,
   Button,
-  Center,
   Container,
   Group,
   Paper,

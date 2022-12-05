@@ -9,13 +9,13 @@ import {
 } from "@mantine/core";
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter, IconSearch } from "@tabler/icons";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
 import { FilterForm } from "./FilterForm";
-import { apiUserSearch, usernameFilters } from "./helpers";
+import { apiUserSearch, usernameFilters } from "../utils";
 import { UserTable } from "./UserTable/UserTable";
 import { Filters, TwitterUser } from "@twips/lib";
-import axios from "axios";
+import { useRouter } from "next/router";
 
 export const SearchPage = () => {
   const [filters, setFilters] = useState<Filters>({});
@@ -23,6 +23,7 @@ export const SearchPage = () => {
   const [users, setUsers] = useState<TwitterUser[]>([]);
   const session = useSession();
   const supabase = useSupabaseClient();
+  const router = useRouter();
 
   const handleSearch = async () => {
     setSearchLoading(true);
@@ -71,6 +72,9 @@ export const SearchPage = () => {
             <Group>
               <Text>Signed in: {session.user.email}</Text>
               <Button onClick={handleLogout}>Logout</Button>
+              <Button onClick={() => router.push("/api/auth/twitter/login")}>
+                Connect Twitter
+              </Button>
             </Group>
           </Group>
         </Header>
@@ -88,8 +92,12 @@ export const SearchPage = () => {
         <FilterForm onSubmit={handleAddFilter} />
         {Object.keys(filters).length ? (
           <Stack>
-            <FilterChipGroup filters={filters} setFilters={setFilters} />
-            <Group position="right">
+            <FilterChipGroup
+              filters={filters}
+              setFilters={setFilters}
+              groupProps={{ position: "center" }}
+            />
+            <Group position="center">
               <Button
                 leftIcon={<IconSearch />}
                 size="lg"
