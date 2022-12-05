@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import axios from "axios";
 import qs from "qs";
 import { Filters, TwitterUser } from "@twips/lib";
-import { auth } from "twitter-api-sdk";
+import { createClient } from "@supabase/supabase-js";
 
 export type FlattenedFilter = [string, number | string | Date];
 
@@ -106,17 +106,17 @@ export const apiUserUpdate = async (
   return response.status;
 };
 
-export const twitterAuthClient = new auth.OAuth2User({
-  client_id: process.env.TWITTER_CLIENT_ID,
-  client_secret: process.env.TWITTER_CLIENT_SECRET,
-  callback: "http://127.0.0.1:3000/api/auth/twitter/callback",
-  scopes: [
-    "users.read",
-    "follows.read",
-    "follows.write",
-    "mute.read",
-    "mute.write",
-    "block.read",
-    "block.write",
-  ],
-});
+export const oauthAccountExists = async (providerAccountId: string) => {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { db: { schema: "next_auth" } }
+  );
+  const { data, error } = await supabase
+    .from("accounts")
+    .select("*")
+    .eq("providerAccountId", providerAccountId);
+  if (error) throw error;
+
+  return Boolean(data.length);
+};

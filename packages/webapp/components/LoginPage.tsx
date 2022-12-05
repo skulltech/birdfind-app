@@ -12,6 +12,7 @@ import { useForm } from "@mantine/form";
 import { useState } from "react";
 import { showNotification } from "@mantine/notifications";
 import { IconCheck } from "@tabler/icons";
+import { signIn } from "next-auth/react";
 
 export const LoginPage = () => {
   const supabase = useSupabaseClient();
@@ -25,13 +26,6 @@ export const LoginPage = () => {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
     },
   });
-
-  const handleLoginWithTwitter = async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "twitter",
-    });
-    console.log(data, error);
-  };
 
   const handleLogin = async (email: string) => {
     setLoading(true);
@@ -77,7 +71,7 @@ export const LoginPage = () => {
             </Group>
           </form>
         </Paper>
-        <Button onClick={handleLoginWithTwitter}>Login with Twitter</Button>
+        <Button onClick={() => signIn()}>Login with Twitter</Button>
       </Stack>
     </Container>
   );

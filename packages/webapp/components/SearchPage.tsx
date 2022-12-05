@@ -7,7 +7,6 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter, IconSearch } from "@tabler/icons";
 import { useState } from "react";
 import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
@@ -15,15 +14,13 @@ import { FilterForm } from "./FilterForm";
 import { apiUserSearch, usernameFilters } from "../utils";
 import { UserTable } from "./UserTable/UserTable";
 import { Filters, TwitterUser } from "@twips/lib";
-import { useRouter } from "next/router";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 export const SearchPage = () => {
   const [filters, setFilters] = useState<Filters>({});
   const [searchLoading, setSearchLoading] = useState(false);
   const [users, setUsers] = useState<TwitterUser[]>([]);
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  const router = useRouter();
+  const { data: session, status } = useSession();
 
   const handleSearch = async () => {
     setSearchLoading(true);
@@ -52,11 +49,6 @@ export const SearchPage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    console.log(error);
-  };
-
   return (
     <AppShell
       padding="md"
@@ -71,10 +63,8 @@ export const SearchPage = () => {
             </Title>
             <Group>
               <Text>Signed in: {session.user.email}</Text>
-              <Button onClick={handleLogout}>Logout</Button>
-              <Button onClick={() => router.push("/api/auth/twitter/login")}>
-                Connect Twitter
-              </Button>
+              <Button onClick={() => signOut()}>Logout</Button>
+              <Button onClick={() => signIn("twitter")}>Connect Twitter</Button>
             </Group>
           </Group>
         </Header>

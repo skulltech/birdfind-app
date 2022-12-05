@@ -1,13 +1,11 @@
-import { useUser } from "@supabase/auth-helpers-react";
 import { SearchPage } from "../components/SearchPage";
 import { LoginPage } from "../components/LoginPage";
-import { useEffect } from "react";
-import axios from "axios";
+import { useSession } from "next-auth/react";
 
 const Home = () => {
-  const user = useUser();
+  const { data: session } = useSession();
 
-  return user ? <SearchPage /> : <LoginPage />;
+  return session ? <SearchPage /> : <LoginPage />;
 };
 
 export default Home;
