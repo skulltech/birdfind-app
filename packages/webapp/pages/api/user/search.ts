@@ -66,6 +66,7 @@ export default async function handler(
     },
     {}
   );
+
   // Get args out of camelCase req params
   const {
     followedBy,

@@ -1,11 +1,10 @@
 import { SearchPage } from "../components/SearchPage";
 import { LoginPage } from "../components/LoginPage";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 const Home = () => {
-  const { data: session } = useSession();
-
-  return session ? <SearchPage /> : <LoginPage />;
+  return <SearchPage />;
 };
 
 export default Home;

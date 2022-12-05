@@ -3,6 +3,10 @@ import { camelCase } from "lodash";
 import { Filters, GeneralFilters, TwitterUser } from "./types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import Client from "twitter-api-sdk";
+import {
+  findUsersByUsername,
+  TwitterResponse,
+} from "twitter-api-sdk/dist/types";
 
 const userSelectFields = [
   "id::text",
@@ -20,22 +24,30 @@ const userSelectFields = [
 ];
 
 export type UpdateUsersArgs = {
-  usernames: string[];
+  users: string[] | TwitterResponse<findUsersByUsername>["data"];
   supabase: SupabaseClient;
   twitter: Client;
 };
 
+const isArrayOfStrings = (value: unknown): value is string[] => {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
+};
+
 // Fetch users from Twitter API and update DB cache
 export const updateUsers = async ({
-  usernames,
+  users,
   supabase,
   twitter,
 }: UpdateUsersArgs) => {
-  console.log("Making request to findUsersByUsername.");
-  const response = await twitter.users.findUsersByUsername({
-    usernames,
-    "user.fields": userApiFields,
-  });
+  if (isArrayOfStrings(users)) {
+    console.log("Making request to findUsersByUsername.");
+    const response = await twitter.users.findUsersByUsername({
+      usernames: users,
+      "user.fields": userApiFields,
+    });
+  }
 
   if (response.data) {
     const { error } = await supabase.from("twitter_user").upsert(

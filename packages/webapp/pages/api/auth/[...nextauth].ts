@@ -6,17 +6,31 @@ import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
 import { oauthAccountExists } from "../../../utils";
 
+const twitterScopes = [
+  "users.read",
+  "follows.read",
+  "follows.write",
+  "mute.read",
+  "mute.write",
+  "block.read",
+  "block.write",
+];
+
 // Taken from: https://github.com/nextauthjs/next-auth/discussions/3936#discussioncomment-2165109
 export function getNextAuthOptions(req?: NextApiRequest): NextAuthOptions {
   return {
     session: {
       strategy: "jwt",
     },
+    pages: {
+      signIn: "/account/signin",
+    },
     providers: [
       TwitterProvider({
         clientId: process.env.TWITTER_CLIENT_ID,
         clientSecret: process.env.TWITTER_CLIENT_SECRET,
         version: "2.0",
+        authorization: { params: { scope: twitterScopes.join(" ") } },
       }),
       EmailProvider({
         server: {
@@ -36,6 +50,7 @@ export function getNextAuthOptions(req?: NextApiRequest): NextAuthOptions {
     }),
     callbacks: {
       async signIn({ user, account, profile, email, credentials }) {
+        console.log({ user, account, profile, email, credentials });
         if (
           account.provider === "twitter" &&
           // User is logged in already and he's linking Twitter to his account
@@ -52,9 +67,10 @@ export function getNextAuthOptions(req?: NextApiRequest): NextAuthOptions {
         session.twitter = token.twitter;
         return session;
       },
+
       async jwt({ token, account, profile }) {
-        if (account) {
-          console.log(account);
+        // If logging in with Twitter, inject twitter details to JWT
+        if (account && account.provider === "twitter") {
           token.twitter = {
             accessToken: account.access_token,
             // @ts-ignore
