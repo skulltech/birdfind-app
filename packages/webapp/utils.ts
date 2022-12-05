@@ -6,6 +6,16 @@ import { createClient } from "@supabase/supabase-js";
 
 export type FlattenedFilter = [string, number | string | Date];
 
+export type TwitterToken = {
+  accessToken: string;
+  profile: {
+    profile_image_url: string;
+    username: string;
+    name: string;
+    id: string;
+  };
+};
+
 export const flattenFilters = (filters: Filters) => {
   const { followedBy, followerOf, ...generalFilters } = filters;
   const flattenedFilters: FlattenedFilter[] = Object.entries(generalFilters);
@@ -106,7 +116,8 @@ export const apiUserUpdate = async (
   return response.status;
 };
 
-export const oauthAccountExists = async (providerAccountId: string) => {
+// Get the user linked with an oauth account
+export const getUserByOauthAccount = async (providerAccountId: string) => {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -118,5 +129,25 @@ export const oauthAccountExists = async (providerAccountId: string) => {
     .eq("providerAccountId", providerAccountId);
   if (error) throw error;
 
-  return Boolean(data.length);
+  return data.length ? data[0] : null;
+};
+
+// Get the Oauth account linked with user
+export const getOauthAccountByUser = async (
+  userId: string,
+  provider: string
+) => {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    { db: { schema: "next_auth" } }
+  );
+  const { data, error } = await supabase
+    .from("accounts")
+    .select("*")
+    .eq("userId", userId)
+    .eq("provider", provider);
+  if (error) throw error;
+
+  return data.length ? data[0] : null;
 };

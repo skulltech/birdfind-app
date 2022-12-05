@@ -4,10 +4,11 @@ import EmailProvider from "next-auth/providers/email";
 import { SupabaseAdapter } from "@next-auth/supabase-adapter";
 import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
-import { oauthAccountExists } from "../../../utils";
+import { getUserByOauthAccount, TwitterToken } from "../../../utils";
 
 const twitterScopes = [
   "users.read",
+  "tweet.read",
   "follows.read",
   "follows.write",
   "mute.read",
@@ -24,6 +25,7 @@ export function getNextAuthOptions(req?: NextApiRequest): NextAuthOptions {
     },
     pages: {
       signIn: "/account/signin",
+      newUser: "/account/update",
     },
     providers: [
       TwitterProvider({
@@ -33,7 +35,7 @@ export function getNextAuthOptions(req?: NextApiRequest): NextAuthOptions {
         authorization: { params: { scope: twitterScopes.join(" ") } },
       }),
       EmailProvider({
-        server: {
+        server: process.env.EMAIL_SERVER ?? {
           host: process.env.EMAIL_SERVER_HOST,
           port: process.env.EMAIL_SERVER_PORT,
           auth: {
@@ -50,21 +52,19 @@ export function getNextAuthOptions(req?: NextApiRequest): NextAuthOptions {
     }),
     callbacks: {
       async signIn({ user, account, profile, email, credentials }) {
-        console.log({ user, account, profile, email, credentials });
         if (
           account.provider === "twitter" &&
           // User is logged in already and he's linking Twitter to his account
           !(await getSession({ req })) &&
           // He is not logged in but he has already linked Twitter with his account
-          !(await oauthAccountExists(account.providerAccountId))
+          !(await getUserByOauthAccount(account.providerAccountId))
         )
           return false;
         return true;
       },
 
       async session({ session, token, user }) {
-        // @ts-ignore
-        session.twitter = token.twitter;
+        session.twitter = token.twitter as TwitterToken;
         return session;
       },
 

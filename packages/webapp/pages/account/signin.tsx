@@ -22,7 +22,6 @@ const SignIn = () => {
 
   const form = useForm({
     initialValues: {
-      name: "",
       email: "",
     },
     validate: {
@@ -33,17 +32,12 @@ const SignIn = () => {
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
 
-    // Call signIn with name in authParams in case of registration
-    const authParams = type == "register" ? { name: values.name } : undefined;
-    const { error, ok } = await signIn(
-      "email",
-      {
-        email: values.email,
-        redirect: false,
-        callbackUrl: "/",
-      },
-      authParams
-    );
+    // Call signIn
+    const { error, ok } = await signIn("email", {
+      email: values.email,
+      redirect: false,
+      callbackUrl: "/",
+    });
 
     // Show notification depending on success
     if (ok)
@@ -68,7 +62,7 @@ const SignIn = () => {
   };
 
   return (
-    <Container size="xs" p="xl" mt={200}>
+    <Container size="xs" p="xl" mt={100}>
       <Paper radius="md" p="xl" withBorder>
         <Text size="lg" weight={500}>
           Welcome to Twips, {type} with
@@ -79,7 +73,7 @@ const SignIn = () => {
               <Button
                 radius="xl"
                 leftIcon={<IconBrandTwitter />}
-                onClick={() => signIn("twitter")}
+                onClick={() => signIn("twitter", { callbackUrl: "/" })}
               >
                 Twitter
               </Button>
@@ -94,17 +88,6 @@ const SignIn = () => {
 
         <form onSubmit={form.onSubmit(() => {})}>
           <Stack mt="md">
-            {type === "register" && (
-              <TextInput
-                required
-                label="Name"
-                placeholder="Your name"
-                value={form.values.name}
-                onChange={(event) =>
-                  form.setFieldValue("name", event.currentTarget.value)
-                }
-              />
-            )}
             <TextInput
               required
               label="Email"
