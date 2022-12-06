@@ -5,12 +5,11 @@ import { IconAt } from "@tabler/icons";
 import { TwitterUser } from "@twips/lib";
 import { useEffect, useState } from "react";
 import {
-  apiUserLookup,
-  apiUserUpdate,
   dateFilters,
   numberFilters,
   usernameFilters,
-} from "../utils";
+} from "../utils/components";
+import { lookupUser, updateUser } from "../utils/twips-api";
 
 export type FilterFormProps = {
   onSubmit: (arg0: string, arg1: Date | number | string) => void;
@@ -67,7 +66,7 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
       let user: TwitterUser | null;
       try {
         const username = filterValue as string;
-        user = await apiUserLookup(username);
+        user = await lookupUser(username);
       } catch (error) {
         console.log(error);
         return;
@@ -95,7 +94,7 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
 
       if (networkUpdatedAt.getTime() === 0) {
         try {
-          await apiUserUpdate(user.id, networkDirection);
+          await updateUser(user.id, networkDirection);
           showNotification({
             title: "Sorry",
             message: `We don't have @${filterValue}'s ${networkDirection} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,

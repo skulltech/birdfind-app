@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { getOauthAccountByUser } from "./utils";
+import { getOauthAccountByUser } from "./utils/nextauth";
 
 export const middleware = async (req: NextRequest) => {
   const url = req.nextUrl.clone();

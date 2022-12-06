@@ -1,4 +1,4 @@
-import { apiUserSearch, usernameFilters } from "../utils";
+import { searchUser } from "../utils/twips-api";
 import { useState } from "react";
 import { Filters, TwitterUser } from "@twips/lib";
 import { Button, Group, Stack } from "@mantine/core";
@@ -6,6 +6,7 @@ import { FilterForm } from "../components/FilterForm";
 import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
 import { IconSearch } from "@tabler/icons";
 import { UserTable } from "../components/UserTable/UserTable";
+import { usernameFilters } from "../utils/components";
 
 const Home = () => {
   const [filters, setFilters] = useState<Filters>({});
@@ -15,7 +16,7 @@ const Home = () => {
   const handleSearch = async () => {
     setSearchLoading(true);
     try {
-      const users = await apiUserSearch(filters);
+      const users = await searchUser(filters);
       setUsers(users);
     } catch (error) {
       console.log(error);

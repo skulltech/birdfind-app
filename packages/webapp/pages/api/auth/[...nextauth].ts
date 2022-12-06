@@ -1,10 +1,11 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import TwitterProvider from "next-auth/providers/twitter";
 import EmailProvider from "next-auth/providers/email";
+import GoogleProvider from "next-auth/providers/google";
 import { SupabaseAdapter } from "@next-auth/supabase-adapter";
 import { getSession } from "next-auth/react";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getUserByOauthAccount, TwitterToken } from "../../../utils";
+import { getUserByOauthAccount, TwitterToken } from "../../../utils/nextauth";
 
 const twitterScopes = [
   "users.read",
@@ -44,6 +45,10 @@ export function getNextAuthOptions(req?: NextApiRequest): NextAuthOptions {
           },
         },
         from: process.env.EMAIL_FROM,
+      }),
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       }),
     ],
     adapter: SupabaseAdapter({

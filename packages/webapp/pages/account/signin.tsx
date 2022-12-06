@@ -12,7 +12,7 @@ import {
 import { useForm } from "@mantine/form";
 import { upperFirst, useToggle } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
-import { IconBrandTwitter, IconCheck } from "@tabler/icons";
+import { IconBrandGoogle, IconBrandTwitter, IconCheck } from "@tabler/icons";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
@@ -68,24 +68,30 @@ const SignIn = () => {
           Welcome to Twips, {type} with
         </Text>
         {type === "login" && (
-          <>
-            <Group grow mb="md" mt="md">
-              <Button
-                radius="xl"
-                leftIcon={<IconBrandTwitter />}
-                onClick={() => signIn("twitter", { callbackUrl: "/" })}
-              >
-                Twitter
-              </Button>
-            </Group>
-            <Divider
-              label="Or continue with email"
-              labelPosition="center"
-              my="lg"
-            />
-          </>
+          <Group grow mb="md" mt="md">
+            <Button
+              radius="xl"
+              leftIcon={<IconBrandTwitter />}
+              onClick={() => signIn("twitter", { callbackUrl: "/" })}
+            >
+              Twitter
+            </Button>
+          </Group>
         )}
-
+        <Group grow mb="md" mt="md">
+          <Button
+            radius="xl"
+            leftIcon={<IconBrandGoogle />}
+            onClick={() => signIn("google", { callbackUrl: "/" })}
+          >
+            Google
+          </Button>
+        </Group>
+        <Divider
+          label="Or continue with email"
+          labelPosition="center"
+          my="lg"
+        />
         <form onSubmit={form.onSubmit(() => {})}>
           <Stack mt="md">
             <TextInput
