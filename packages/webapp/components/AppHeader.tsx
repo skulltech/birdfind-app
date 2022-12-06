@@ -1,33 +1,56 @@
-import { Avatar, Group, Header, Menu, Text, Title } from "@mantine/core";
+import {
+  Avatar,
+  Group,
+  Header,
+  Menu,
+  Text,
+  Title,
+  UnstyledButton,
+} from "@mantine/core";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter, IconLogout } from "@tabler/icons";
-import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { getUserDetails, UserDetails } from "../utils/components";
 
 export const AppHeader = () => {
-  const { data: session } = useSession();
+  const supabase = useSupabaseClient();
+  const router = useRouter();
+  const [user, setUser] = useState<UserDetails>(null);
+
+  // Load user details
+  useEffect(() => {
+    const loadUserDetails = async () => {
+      setUser(await getUserDetails(supabase));
+    };
+    loadUserDetails();
+  }, [supabase]);
 
   return (
     <Header height={60} p="xs">
       <Group position="apart">
-        <Title order={2}>
-          <Group>
-            <IconBrandTwitter />
-            Twips
-          </Group>
-        </Title>
-        {session && (
+        <UnstyledButton onClick={() => router.push("/")}>
+          <Title order={2}>
+            <Group>
+              <IconBrandTwitter />
+              Twips
+            </Group>
+          </Title>
+        </UnstyledButton>
+
+        {user && (
           <Menu shadow="md" trigger="hover">
             <Menu.Target>
               <Group>
-                <Avatar
-                  src={session.twitter.profile.profile_image_url}
-                  radius="xl"
-                />
+                <Avatar src={user.profileImageUrl} radius="xl">
+                  {user.email[0].toUpperCase()}
+                </Avatar>
                 <div>
                   <Text size="sm" weight={500}>
-                    @{session.twitter.profile.username}
+                    @{user.username ?? "username"}
                   </Text>
                   <Text color="dimmed" size="xs">
-                    {session.user.email}
+                    {user.email}
                   </Text>
                 </div>
               </Group>
@@ -35,9 +58,20 @@ export const AppHeader = () => {
 
             <Menu.Dropdown>
               <Menu.Item
+                icon={<IconBrandTwitter size={14} />}
+                onClick={() => router.push("/auth/twitter")}
+              >
+                {user.username
+                  ? "Connect to a different Twitter account"
+                  : "Connect to Twitter"}
+              </Menu.Item>
+              <Menu.Item
                 color="red"
                 icon={<IconLogout size={14} />}
-                onClick={() => signOut()}
+                onClick={() => {
+                  supabase.auth.signOut();
+                  window.location.replace("/auth/signin");
+                }}
               >
                 Sign out
               </Menu.Item>
