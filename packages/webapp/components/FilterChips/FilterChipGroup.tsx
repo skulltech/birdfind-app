@@ -1,7 +1,11 @@
 import { Group, GroupProps } from "@mantine/core";
 import { Dispatch, SetStateAction } from "react";
 import { FilterChip } from "./FilterChip";
-import { FlattenedFilter, flattenFilters } from "../../utils/components";
+import {
+  FlattenedFilter,
+  flattenFilters,
+  usernameFilters,
+} from "../../utils/components";
 import { Filters } from "@twips/lib";
 
 export type FilterChipGroupProps = {
@@ -17,7 +21,7 @@ export const FilterChipGroup = ({
 }: FilterChipGroupProps) => {
   const handleRemoveFilter = (filter: FlattenedFilter) => {
     const [name, value] = filter;
-    if (name == "followedBy" || name == "followerOf")
+    if (usernameFilters.includes(name))
       setFilters({
         ...filters,
         [name]: filters[name].filter((x: string) => x != value),

@@ -39,26 +39,16 @@ const userFields:
   "withheld",
 ];
 
-export const getTwitterProfile = async (token, username: string) => {
-  const authClient = getTwitterAuthClient();
-  authClient.token = token;
-
-  const client = new Client(authClient);
-  const { data: profile } = await client.users.findUserByUsername(username, {
+export const getTwitterProfile = async (twitter: Client, username: string) => {
+  const { data: profile } = await twitter.users.findUserByUsername(username, {
     "user.fields": userFields,
   });
-
   return profile;
 };
 
-export const getTwitterProfileOfUser = async (token) => {
-  const authClient = getTwitterAuthClient();
-  authClient.token = token;
-
-  const client = new Client(authClient);
-  const { data: profile } = await client.users.findMyUser({
+export const getTwitterProfileOfUser = async (twitter: Client) => {
+  const { data: profile } = await twitter.users.findMyUser({
     "user.fields": userFields,
   });
-
   return profile;
 };

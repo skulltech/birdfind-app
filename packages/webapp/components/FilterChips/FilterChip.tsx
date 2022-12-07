@@ -12,7 +12,6 @@ export const FilterChip = ({ filter, onClose }: FilterChipProps) => {
       <Group position="apart" grow={false}>
         <Text size="sm">{renderFilter(filter)}</Text>
         <CloseButton
-          title="Remove filter"
           size="sm"
           radius="lg"
           variant="outline"

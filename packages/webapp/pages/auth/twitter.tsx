@@ -3,9 +3,9 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getUserDetails, UserDetails } from "../../utils/components";
+import { getUserDetails, UserDetails } from "../../utils/supabase";
 
-const Update = () => {
+const TwitterAuth = () => {
   const router = useRouter();
   const supabase = useSupabaseClient();
   const [user, setUser] = useState<UserDetails>(null);
@@ -23,16 +23,14 @@ const Update = () => {
       <Paper withBorder p="lg">
         <Stack>
           <Text>You have to connect to a Twitter account to use Twips.</Text>
-          {user?.username && (
-            <Text>Currently connected to @{user?.username}</Text>
+          {user?.twitter_id && (
+            <Text>Currently connected to @{user?.twitter_username}</Text>
           )}
           <Button
-            onClick={() => {
-              router.push("/api/auth/twitter/signin");
-            }}
+            onClick={() => router.push("/api/auth/twitter/signin")}
             leftIcon={<IconBrandTwitter />}
           >
-            {user?.username
+            {user?.twitter_id
               ? "Connect to a different Twitter account"
               : "Connect Twitter"}
           </Button>
@@ -42,4 +40,4 @@ const Update = () => {
   );
 };
 
-export default Update;
+export default TwitterAuth;

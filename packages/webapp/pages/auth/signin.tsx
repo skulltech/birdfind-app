@@ -12,20 +12,37 @@ import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandGoogle, IconCheck } from "@tabler/icons";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { getUserProfile } from "../../utils/supabase";
 
 const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const supabase = useSupabaseClient();
+  const router = useRouter();
 
   const form = useForm({
-    initialValues: {
-      email: "",
-    },
+    initialValues: { email: "" },
     validate: {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
     },
   });
+
+  // To check if user is signed in already, to bypass middleware's limitation
+  useEffect(() => {
+    const loadUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const profile = await getUserProfile(supabase);
+      const twitterId = profile ? profile.twitter_id : null;
+
+      if (session && !twitterId) router.push("/auth/twitter");
+      if (session && twitterId) router.push("/");
+    };
+
+    loadUser();
+  }, [router, supabase]);
 
   const handleEmailSignIn = async (email: string) => {
     setLoading(true);
@@ -68,9 +85,7 @@ const SignIn = () => {
             onClick={() =>
               supabase.auth.signInWithOAuth({
                 provider: "google",
-                options: {
-                  redirectTo: "/",
-                },
+                options: { redirectTo: "http://127.0.0.1:3000" },
               })
             }
           >

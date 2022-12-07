@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { Client } from "twitter-api-sdk";
 import {
   getUserProfile,
   updateUserProfile,
@@ -43,7 +44,8 @@ export default async function handler(
   const { token: token } = await authClient.requestAccessToken(code);
 
   // Get logged in Oauth user's Twitter profile
-  const profile = await getTwitterProfileOfUser(token);
+  const twitter = new Client(token.access_token);
+  const profile = await getTwitterProfileOfUser(twitter);
 
   // Complete Oauth flow in DB
   await updateUserProfile(supabase, userProfile.id, {

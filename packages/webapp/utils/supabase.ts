@@ -1,5 +1,20 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { TwitterResponse, findMyUser } from "twitter-api-sdk/dist/types";
+
+export type UserDetails = {
+  id: string;
+  email: string;
+  twitter_id: string;
+  twitter_username: string;
+  twitter_profile_image_url: string;
+  twitter_oauth_token: object;
+};
+
+export const getServiceRoleSupabase = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
 
 const twitterProfileFields = [
   "id::text",
@@ -37,6 +52,15 @@ const userProfileFields = [
   "twitter_oauth_state",
   "twitter_oauth_token",
   "twitter_id::text",
+];
+
+const userDetailsFields = [
+  "id",
+  "email",
+  "twitter_id::text",
+  "twitter_username",
+  "twitter_oauth_token",
+  "twitter_profile_image_url",
 ];
 
 export const getUserProfile = async (
@@ -106,6 +130,23 @@ export const upsertTwitterProfile = async (
   profile: TwitterResponse<findMyUser>["data"]
 ) => {
   const row = serializeTwitterProfile(profile);
-  const { error } = await supabase.from("twitter_profile").upsert(row);
+  const { data, error } = await supabase
+    .from("twitter_profile")
+    .upsert(row)
+    .select(twitterProfileFields.join(","));
   if (error) throw error;
+
+  return data[0];
+};
+
+export const getUserDetails = async (
+  supabase: SupabaseClient
+): Promise<UserDetails> => {
+  const { data, error } = await supabase
+    .from("user_details")
+    .select(userDetailsFields.join(","));
+  if (error) throw error;
+
+  // @ts-ignore
+  return data.length ? data[0] : null;
 };

@@ -1,7 +1,5 @@
 import dayjs from "dayjs";
 import { Filters } from "@twips/lib";
-import { SupabaseClient } from "@supabase/supabase-js";
-import { getTwitterProfile, getUserProfile } from "./supabase";
 
 export type FlattenedFilter = [string, number | string | Date];
 
@@ -47,30 +45,4 @@ export const renderFilter = (filter: FlattenedFilter): string => {
   };
 
   return renderFunctions[filter[0]](filter[1]);
-};
-
-export type UserDetails = {
-  email: string;
-  username?: string;
-  profileImageUrl?: string;
-};
-
-export const getUserDetails = async (
-  supabase: SupabaseClient
-): Promise<UserDetails> => {
-  const {
-    data: { user: user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const userProfile = await getUserProfile(supabase);
-  const twitterProfile = userProfile.twitter_id
-    ? await getTwitterProfile(supabase, userProfile.twitter_id)
-    : null;
-
-  return {
-    email: user.email,
-    username: twitterProfile?.username,
-    profileImageUrl: twitterProfile?.profile_image_url,
-  };
 };

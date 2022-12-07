@@ -3,11 +3,17 @@ import type { NextRequest } from "next/server";
 import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getUserProfile } from "./utils/supabase";
 
-export const middleware = async (req: NextRequest) => {
-  const url = req.nextUrl.clone();
+const unauthorized = () =>
+  new NextResponse(JSON.stringify({ message: "You are not authorized" }), {
+    status: 401,
+    headers: { "content-type": "application/json" },
+  });
 
-  // The API unauthorized route is always allowed
-  if (url.pathname.startsWith("/api/auth/unauthorized")) return;
+export const middleware = async (req: NextRequest) => {
+  const path = req.nextUrl.pathname;
+
+  // To fix bug with latest NextJS
+  if (path.startsWith("/_next")) return;
 
   const res = NextResponse.next();
   const supabase = createMiddlewareSupabaseClient({ req, res });
@@ -17,29 +23,35 @@ export const middleware = async (req: NextRequest) => {
   const profile = await getUserProfile(supabase);
   const twitterId = profile ? profile.twitter_id : null;
 
-  // If it's an API route then redirect to 401 api route
-  if (url.pathname.startsWith("/api")) {
+  // Auth API routes
+  if (path.startsWith("/api/auth")) {
+    if (session) return;
+    return unauthorized();
+  }
+
+  // User API routes
+  if (path.startsWith("/api/user")) {
     if (session && twitterId) return;
-    return NextResponse.redirect(new URL("/api/auth/unauthorized", req.url));
+    return unauthorized();
   }
 
   // Sign in page
-  if (url.pathname.startsWith("/auth/signin")) {
-    if (!session) return;
+  if (path.startsWith("/auth/signin")) {
     if (session && !twitterId)
       return NextResponse.redirect(new URL("/auth/twitter", req.url));
-    return NextResponse.redirect(new URL("/", req.url));
+    if (session && twitterId)
+      return NextResponse.redirect(new URL("/", req.url));
+    return;
   }
 
-  // If it's a frontend route then redirect to signin page or twitter page
-  if (session) {
-    if (twitterId) return;
-    else return NextResponse.redirect(new URL("/auth/twitter", req.url));
-  } else {
+  // Twitter linking page
+  if (path.startsWith("/auth/twitter")) {
+    if (session) return;
     return NextResponse.redirect(new URL("/auth/signin", req.url));
   }
-};
 
-export const config = {
-  matcher: "/",
+  // For all the rest
+  if (!session) return NextResponse.redirect(new URL("/auth/signin", req.url));
+  if (session && !twitterId)
+    return NextResponse.redirect(new URL("/auth/twitter", req.url));
 };

@@ -11,7 +11,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter, IconLogout } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getUserDetails, UserDetails } from "../utils/components";
+import { getUserDetails, UserDetails } from "../utils/supabase";
 
 export const AppHeader = () => {
   const supabase = useSupabaseClient();
@@ -42,12 +42,12 @@ export const AppHeader = () => {
           <Menu shadow="md" trigger="hover">
             <Menu.Target>
               <Group>
-                <Avatar src={user.profileImageUrl} radius="xl">
+                <Avatar src={user.twitter_profile_image_url} radius="xl">
                   {user.email[0].toUpperCase()}
                 </Avatar>
                 <div>
                   <Text size="sm" weight={500}>
-                    @{user.username ?? "username"}
+                    @{user.twitter_username ?? "username"}
                   </Text>
                   <Text color="dimmed" size="xs">
                     {user.email}
@@ -61,7 +61,7 @@ export const AppHeader = () => {
                 icon={<IconBrandTwitter size={14} />}
                 onClick={() => router.push("/auth/twitter")}
               >
-                {user.username
+                {user.twitter_id
                   ? "Connect to a different Twitter account"
                   : "Connect to Twitter"}
               </Menu.Item>

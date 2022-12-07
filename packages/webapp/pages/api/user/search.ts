@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { searchUsers } from "@twips/lib";
 import { camelCase } from "lodash";
 import Client from "twitter-api-sdk";
-import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { createClient } from "@supabase/supabase-js";
 
 type Data = {
@@ -43,15 +42,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  const supabase = createServerSupabaseClient({ req, res });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return res.status(401).json({
-      error: "The user is not authenticated",
-    });
-
   const twitter = new Client(process.env.TWITTER_BEARER_TOKEN);
   const serviceRoleSupabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,

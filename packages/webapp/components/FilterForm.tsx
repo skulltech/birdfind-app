@@ -1,15 +1,16 @@
 import { Button, Group, Select, TextInput, NumberInput } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconAt } from "@tabler/icons";
-import { TwitterUser } from "@twips/lib";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import {
   dateFilters,
   numberFilters,
   usernameFilters,
 } from "../utils/components";
-import { lookupUser, updateUser } from "../utils/twips-api";
+import { updateUser } from "../utils/api";
 
 export type FilterFormProps = {
   onSubmit: (arg0: string, arg1: Date | number | string) => void;
@@ -28,6 +29,7 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
   );
   const [isFilterValid, setIsFilterValid] = useState(false);
   const [addFilterLoading, setAddFilterLoading] = useState(false);
+  const supabase = useSupabaseClient();
 
   useEffect(() => {
     setFilterValue(undefined);
@@ -63,13 +65,16 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
       setAddFilterLoading(true);
 
       // Lookup user
-      let user: TwitterUser | null;
+      let user;
       try {
         const username = filterValue as string;
-        user = await lookupUser(username);
+        const response = await axios.get("/api/user/lookup", {
+          params: { username },
+        });
+        let { user: user } = response.data;
+        user = user;
       } catch (error) {
         console.log(error);
-        return;
       }
 
       setAddFilterLoading(false);

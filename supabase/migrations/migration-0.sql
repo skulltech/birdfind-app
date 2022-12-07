@@ -2,6 +2,7 @@
 
 create table if not exists user_profile (
     id uuid references auth.users not null primary key,
+    email text not null unique,
     
     twitter_oauth_state jsonb,
     twitter_oauth_token jsonb,
@@ -22,7 +23,6 @@ create policy "Users can insert their own profile."
 create policy "Users can update own profile."
   on user_profile for update
   using ( auth.uid() = id );
-
 
 
 -- Storing and searching Twitter users and follow network
@@ -130,8 +130,8 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into user_profile (id)
-  values (new.id);
+  insert into user_profile (id, email)
+  values (new.id, new.email);
   return new;
 end;
 $$;
@@ -140,3 +140,11 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+
+create view user_details as
+  select user_profile.id, user_profile.email, user_profile.twitter_id, user_profile.twitter_oauth_token, twitter_profile.username as twitter_username, twitter_profile.profile_image_url as twitter_profile_image_url
+  from user_profile 
+  left join twitter_profile on user_profile.twitter_id = twitter_profile.id;
+
+alter view user_details owner to authenticated;

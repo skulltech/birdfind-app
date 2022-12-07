@@ -1,4 +1,3 @@
-import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -19,14 +18,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<null | ErrorData>
 ) {
-  const supabase = createServerSupabaseClient({ req, res });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user)
-    return res.status(401).json({
-      error: "The user is not authenticated",
-    });
   const { userId, direction } = req.query;
 
   // Validate UserId param
