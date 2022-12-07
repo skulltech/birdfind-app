@@ -7,6 +7,11 @@ import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { useState } from "react";
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
+// Monkeypatching BigInt
+BigInt.prototype["toJSON"] = function () {
+  return this.toString();
+};
+
 export default function App({
   Component,
   pageProps,

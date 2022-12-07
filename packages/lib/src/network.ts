@@ -5,30 +5,16 @@ import {
   usersIdFollowers,
   usersIdFollowing,
 } from "twitter-api-sdk/dist/types";
-import { dedupeUsers, userApiFields } from "./helpers";
+import { twitterUserFields } from "./utils";
 
-export type GetNetworkArgs = {
-  userId: BigInt;
-  supabase: SupabaseClient;
-  direction: "followers" | "following";
-};
+const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
+  const dedupedUsers = new Set<string>();
 
-export const getNetwork = async ({
-  userId,
-  supabase,
-  direction,
-}: GetNetworkArgs) => {
-  const { data: users, error: selectError } = await supabase
-    .from("twitter_follow")
-    .select(
-      direction == "followers" ? "follower_id::text" : "following_id::text"
-    )
-    .eq(direction == "followers" ? "following_id" : "follower_id", userId);
-  if (selectError) throw selectError;
-
-  return users.map((x) =>
-    BigInt(x[direction == "followers" ? "follower_id" : "following_id"])
-  );
+  return arr.filter((x) => {
+    if (dedupedUsers.has(x.id)) return false;
+    dedupedUsers.add(x.id);
+    return true;
+  });
 };
 
 export type UpdateNetworkArgs = {
@@ -52,15 +38,15 @@ export const updateNetwork = async ({
   twitter,
   paginationToken,
 }: UpdateNetworkArgs): Promise<UpdateNetworkResult> => {
-  const apiFunc =
+  const response = (
     direction == "followers"
       ? twitter.users.usersIdFollowers
-      : twitter.users.usersIdFollowing;
-  const response = apiFunc(
+      : twitter.users.usersIdFollowing
+  )(
     userId.toString(),
     {
       max_results: 1000,
-      "user.fields": userApiFields,
+      "user.fields": twitterUserFields,
     },
     { pagination_token: paginationToken }
   );

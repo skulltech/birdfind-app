@@ -71,11 +71,13 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
         const response = await axios.get("/api/user/lookup", {
           params: { username },
         });
-        let { user: user } = response.data;
+        console.log(response.data);
+        let { twitterProfile: user } = response.data;
         user = user;
       } catch (error) {
         console.log(error);
       }
+      console.log(user);
 
       setAddFilterLoading(false);
 

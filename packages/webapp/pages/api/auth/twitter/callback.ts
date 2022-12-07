@@ -7,8 +7,8 @@ import {
   upsertTwitterProfile,
 } from "../../../../utils/supabase";
 import {
+  getSignedInTwitterUser,
   getTwitterAuthClient,
-  getTwitterProfileOfUser,
 } from "../../../../utils/twitter";
 
 type Data = {
@@ -45,7 +45,7 @@ export default async function handler(
 
   // Get logged in Oauth user's Twitter profile
   const twitter = new Client(token.access_token);
-  const profile = await getTwitterProfileOfUser(twitter);
+  const profile = await getSignedInTwitterUser(twitter);
 
   // Complete Oauth flow in DB
   await updateUserProfile(supabase, userProfile.id, {

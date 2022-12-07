@@ -1,9 +1,5 @@
+import { twitterUserFields } from "@twips/lib";
 import { auth, Client } from "twitter-api-sdk";
-import {
-  TwitterParams,
-  findMyUser,
-  findUserByUsername,
-} from "twitter-api-sdk/dist/types";
 
 export const getTwitterAuthClient = () =>
   new auth.OAuth2User({
@@ -23,32 +19,16 @@ export const getTwitterAuthClient = () =>
     ],
   });
 
-const userFields:
-  | TwitterParams<findMyUser>["user.fields"]
-  | TwitterParams<findUserByUsername>["user.fields"] = [
-  "created_at",
-  "description",
-  "entities",
-  "location",
-  "pinned_tweet_id",
-  "profile_image_url",
-  "protected",
-  "public_metrics",
-  "url",
-  "verified",
-  "withheld",
-];
-
-export const getTwitterProfile = async (twitter: Client, username: string) => {
-  const { data: profile } = await twitter.users.findUserByUsername(username, {
-    "user.fields": userFields,
+export const getTwitterUser = async (twitter: Client, username: string) => {
+  const { data: user } = await twitter.users.findUserByUsername(username, {
+    "user.fields": twitterUserFields,
   });
-  return profile;
+  return user;
 };
 
-export const getTwitterProfileOfUser = async (twitter: Client) => {
+export const getSignedInTwitterUser = async (twitter: Client) => {
   const { data: profile } = await twitter.users.findMyUser({
-    "user.fields": userFields,
+    "user.fields": twitterUserFields,
   });
   return profile;
 };

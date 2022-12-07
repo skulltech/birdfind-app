@@ -26,6 +26,10 @@ export const AppHeader = () => {
     loadUserDetails();
   }, [supabase]);
 
+  useEffect(() => {
+    console.log(user);
+  }, [user]);
+
   return (
     <Header height={60} p="xs">
       <Group position="apart">
@@ -42,12 +46,12 @@ export const AppHeader = () => {
           <Menu shadow="md" trigger="hover">
             <Menu.Target>
               <Group>
-                <Avatar src={user.twitter_profile_image_url} radius="xl">
+                <Avatar src={user.twitter?.profileImageUrl} radius="xl">
                   {user.email[0].toUpperCase()}
                 </Avatar>
                 <div>
                   <Text size="sm" weight={500}>
-                    @{user.twitter_username ?? "username"}
+                    @{user.twitter?.username ?? "username"}
                   </Text>
                   <Text color="dimmed" size="xs">
                     {user.email}
@@ -61,7 +65,7 @@ export const AppHeader = () => {
                 icon={<IconBrandTwitter size={14} />}
                 onClick={() => router.push("/auth/twitter")}
               >
-                {user.twitter_id
+                {user.twitter
                   ? "Connect to a different Twitter account"
                   : "Connect to Twitter"}
               </Menu.Item>

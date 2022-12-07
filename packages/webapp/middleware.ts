@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { getUserProfile } from "./utils/supabase";
+import { getUserDetails } from "./utils/supabase";
 
 const unauthorized = () =>
   new NextResponse(JSON.stringify({ message: "You are not authorized" }), {
@@ -17,41 +17,39 @@ export const middleware = async (req: NextRequest) => {
 
   const res = NextResponse.next();
   const supabase = createMiddlewareSupabaseClient({ req, res });
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  const profile = await getUserProfile(supabase);
-  const twitterId = profile ? profile.twitter_id : null;
+
+  const user = await getUserDetails(supabase);
+  const userTwitter = user ? user.twitter : null;
 
   // Auth API routes
   if (path.startsWith("/api/auth")) {
-    if (session) return;
+    if (user) return;
     return unauthorized();
   }
 
   // User API routes
   if (path.startsWith("/api/user")) {
-    if (session && twitterId) return;
+    if (user && userTwitter) return;
     return unauthorized();
   }
 
   // Sign in page
   if (path.startsWith("/auth/signin")) {
-    if (session && !twitterId)
+    if (user && !userTwitter)
       return NextResponse.redirect(new URL("/auth/twitter", req.url));
-    if (session && twitterId)
+    if (user && userTwitter)
       return NextResponse.redirect(new URL("/", req.url));
     return;
   }
 
   // Twitter linking page
   if (path.startsWith("/auth/twitter")) {
-    if (session) return;
+    if (user) return;
     return NextResponse.redirect(new URL("/auth/signin", req.url));
   }
 
   // For all the rest
-  if (!session) return NextResponse.redirect(new URL("/auth/signin", req.url));
-  if (session && !twitterId)
+  if (!user) return NextResponse.redirect(new URL("/auth/signin", req.url));
+  if (user && !userTwitter)
     return NextResponse.redirect(new URL("/auth/twitter", req.url));
 };

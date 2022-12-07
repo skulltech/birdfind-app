@@ -1,19 +1,20 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { TwitterProfile } from "@twips/lib";
 import { NextApiRequest, NextApiResponse } from "next";
 import { Client } from "twitter-api-sdk";
 import {
   getServiceRoleSupabase,
-  getUserProfile,
+  getUserDetails,
   upsertTwitterProfile,
 } from "../../../utils/supabase";
-import { getTwitterProfile } from "../../../utils/twitter";
+import { getTwitterUser } from "../../../utils/twitter";
 
 type ErrorData = {
   message?: string;
 };
 
 type SuccessData = {
-  user: any;
+  twitterProfile: TwitterProfile;
 };
 
 export default async function handler(
@@ -33,13 +34,20 @@ export default async function handler(
     return;
   }
 
-  const userProfile = await getUserProfile(supabase);
-  const token = userProfile.twitter_oauth_token;
-  const twitter = new Client(token.access_token);
-  const user = await getTwitterProfile(twitter, username);
+  const userDetails = await getUserDetails(supabase);
+  const twitter = new Client(userDetails.twitter.oauthToken.access_token);
+  const twitterUser = await getTwitterUser(twitter, username);
+
+  if (!twitterUser) {
+    res.status(200).json({ twitterProfile: null });
+    return;
+  }
 
   const serviceRoleSupabase = getServiceRoleSupabase();
-  await upsertTwitterProfile(serviceRoleSupabase, user);
+  const twitterProfile = await upsertTwitterProfile(
+    serviceRoleSupabase,
+    twitterUser
+  );
 
-  res.status(200).json({ user });
+  res.status(200).json({ twitterProfile });
 }
