@@ -5,7 +5,7 @@ import {
   usersIdFollowers,
   usersIdFollowing,
 } from "twitter-api-sdk/dist/types";
-import { twitterUserFields } from "./utils";
+import { serializeTwitterUser, twitterUserFields } from "./utils";
 
 const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
   const dedupedUsers = new Set<string>();
@@ -78,23 +78,8 @@ export const updateNetwork = async ({
 
   // Upsert followers to database
   const { error: insertUsersError } = await supabase
-    .from("twitter_user")
-    .upsert(
-      dedupedUsers.map((x) => {
-        return {
-          username: x.username,
-          id: x.id,
-          name: x.name,
-          followers_count: x.public_metrics.followers_count,
-          following_count: x.public_metrics.following_count,
-          tweet_count: x.public_metrics.tweet_count,
-          description: x.description,
-          user_created_at: x.created_at,
-          updated_at: new Date().toISOString(),
-          profile_image_url: x.profile_image_url,
-        };
-      })
-    );
+    .from("twitter_profile")
+    .upsert(dedupedUsers.map(serializeTwitterUser));
   if (insertUsersError) throw insertUsersError;
 
   // Upsert relations to database
@@ -121,7 +106,7 @@ export const updateNetwork = async ({
   if (paginationToken === undefined && rateLimitResetsAt === undefined) {
     // Upsert user's followersUpdatedAt field in database
     const { error: updateUserError } = await supabase
-      .from("twitter_user")
+      .from("twitter_profile")
       .update({
         [direction == "followers"
           ? "followers_updated_at"

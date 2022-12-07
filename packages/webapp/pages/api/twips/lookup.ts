@@ -14,7 +14,7 @@ type ErrorData = {
 };
 
 type SuccessData = {
-  twitterProfile: TwitterProfile;
+  profile: TwitterProfile;
 };
 
 export default async function handler(
@@ -39,15 +39,12 @@ export default async function handler(
   const twitterUser = await getTwitterUser(twitter, username);
 
   if (!twitterUser) {
-    res.status(200).json({ twitterProfile: null });
+    res.status(200).json({ profile: null });
     return;
   }
 
   const serviceRoleSupabase = getServiceRoleSupabase();
-  const twitterProfile = await upsertTwitterProfile(
-    serviceRoleSupabase,
-    twitterUser
-  );
+  const profile = await upsertTwitterProfile(serviceRoleSupabase, twitterUser);
 
-  res.status(200).json({ twitterProfile });
+  res.status(200).json({ profile });
 }

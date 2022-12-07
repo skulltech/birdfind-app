@@ -26,10 +26,6 @@ export const AppHeader = () => {
     loadUserDetails();
   }, [supabase]);
 
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
-
   return (
     <Header height={60} p="xs">
       <Group position="apart">

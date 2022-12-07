@@ -2,6 +2,7 @@
   "name": "@twips/job-queue",
   "version": "1.0.0",
   "scripts": {
+    "start": "parallel --ungroup ::: 'yarn workers:update-followers' 'yarn workers:update-following' 'yarn api'",
     "api": "ts-node src/api.ts",
     "workers:update-following": "ts-node src/workers/update-network/following.ts",
     "workers:update-followers": "ts-node src/workers/update-network/followers.ts"

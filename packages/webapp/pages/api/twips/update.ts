@@ -37,7 +37,7 @@ export default async function handler(
     });
 
   const response = await axios.get(
-    process.env.JOB_QUEUE_API_URL + "/network/update",
+    `${process.env.JOB_QUEUE_API_URL}/network/update`,
     {
       params: { userId, direction, key: process.env.JOB_QUEUE_API_KEY },
     }

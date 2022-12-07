@@ -5,6 +5,9 @@ import { Client } from "twitter-api-sdk";
 import * as dotenv from "dotenv";
 dotenv.config();
 
+// To suppress warnings
+process.removeAllListeners("warning");
+
 export interface UpdateNetworkJobInput {
   userId: BigInt;
   paginationToken?: string;
@@ -60,7 +63,7 @@ export const getUpdateNetworkWorker = (
         (job.returnvalue.rateLimitResetsAt.getTime() - Date.now()) /
         (1000 * 60);
       console.log(
-        `${job.id} has completed! Updated ${
+        `${queueName}: ${job.id} has completed! Updated ${
           job.returnvalue.updatedCount
         } users.${
           job.returnvalue.rateLimitResetsAt
@@ -70,13 +73,13 @@ export const getUpdateNetworkWorker = (
       );
     } else {
       console.log(
-        `${job.id} has completed! Updated ${job.returnvalue.updatedCount} users.`
+        `${queueName}: ${job.id} has completed! Updated ${job.returnvalue.updatedCount} users.`
       );
     }
   });
 
   worker.on("failed", (job, err) => {
-    console.log(`${job.id} has failed with ${err.message}`);
+    console.log(`${queueName}: ${job.id} has failed with ${err.message}`);
   });
 
   return worker;

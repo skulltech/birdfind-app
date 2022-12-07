@@ -1,7 +1,7 @@
 import Client from "twitter-api-sdk";
 import { createClient } from "@supabase/supabase-js";
 import * as dotenv from "dotenv";
-import { searchUsers, updateNetwork, getUsers } from "@twips/lib";
+import { updateNetwork } from "@twips/lib";
 dotenv.config();
 
 const main = async () => {
@@ -28,7 +28,7 @@ const main = async () => {
 
   const result = await updateNetwork({
     // userId: BigInt(44196397),
-    userId: BigInt("706786251660087300"),
+    userId: BigInt("1575106696334413825"),
     supabase,
     twitter,
     direction: "followers",

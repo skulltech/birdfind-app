@@ -1,4 +1,4 @@
-import { searchUser } from "../utils/api";
+import { searchUser } from "../utils/twips";
 import { useState } from "react";
 import { Filters, TwitterUser } from "@twips/lib";
 import { Button, Group, Stack } from "@mantine/core";

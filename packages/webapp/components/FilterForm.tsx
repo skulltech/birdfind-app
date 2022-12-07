@@ -3,14 +3,13 @@ import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconAt } from "@tabler/icons";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import {
   dateFilters,
   numberFilters,
   usernameFilters,
 } from "../utils/components";
-import { updateUser } from "../utils/api";
+import { lookupTwips, updateTwips } from "../utils/twips";
 
 export type FilterFormProps = {
   onSubmit: (arg0: string, arg1: Date | number | string) => void;
@@ -64,20 +63,9 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
     if (usernameFilters.includes(filterName)) {
       setAddFilterLoading(true);
 
-      // Lookup user
-      let user;
-      try {
-        const username = filterValue as string;
-        const response = await axios.get("/api/user/lookup", {
-          params: { username },
-        });
-        console.log(response.data);
-        let { twitterProfile: user } = response.data;
-        user = user;
-      } catch (error) {
-        console.log(error);
-      }
-      console.log(user);
+      // Lookup user on Twips
+      const username = filterValue as string;
+      const user = await lookupTwips(username);
 
       setAddFilterLoading(false);
 
@@ -100,29 +88,21 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
         filterName === "followerOf" ? "followers" : "following";
 
       if (networkUpdatedAt.getTime() === 0) {
-        try {
-          await updateUser(user.id, networkDirection);
-          showNotification({
-            title: "Sorry",
-            message: `We don't have @${filterValue}'s ${networkDirection} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,
-            color: "red",
-          });
-        } catch (error) {
-          console.log(error);
-        }
+        await updateTwips(user.id, networkDirection);
+        showNotification({
+          title: "Sorry",
+          message: `We don't have @${filterValue}'s ${networkDirection} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,
+          color: "red",
+        });
         return;
       }
 
       if (Date.now() - networkUpdatedAt.getTime() > staleCacheTimeout) {
-        try {
-          showNotification({
-            title: "Warning",
-            message: `@${filterValue}'s ${networkDirection} might be stale. A job has been scheduled to update it.`,
-            color: "yellow",
-          });
-        } catch (error) {
-          console.log(error);
-        }
+        showNotification({
+          title: "Warning",
+          message: `@${filterValue}'s ${networkDirection} might be stale. A job has been scheduled to update it.`,
+          color: "yellow",
+        });
       }
 
       setAddFilterLoading(false);

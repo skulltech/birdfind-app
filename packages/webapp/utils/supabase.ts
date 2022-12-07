@@ -1,5 +1,9 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { parseTwitterProfiles, twitterProfileFields } from "@twips/lib";
+import {
+  parseTwitterProfiles,
+  serializeTwitterUser,
+  twitterProfileFields,
+} from "@twips/lib";
 import { TwitterResponse, findMyUser } from "twitter-api-sdk/dist/types";
 import { camelCase } from "lodash";
 
@@ -53,29 +57,6 @@ const parseUserDetails = (row: any) => {
           oauthToken: camelCaseRow.twitterOauthToken,
         }
       : null,
-  };
-};
-
-const serializeTwitterUser = (user: TwitterResponse<findMyUser>["data"]) => {
-  return {
-    id: user.id,
-    updated_at: new Date().toISOString(),
-    username: user.username,
-    name: user.name,
-    user_created_at: user.created_at,
-    description: user.description,
-    entities: user.entities,
-    location: user.location,
-    pinned_tweet_id: user.pinned_tweet_id,
-    profile_image_url: user.profile_image_url,
-    protected: user.protected,
-    followers_count: user.public_metrics.followers_count,
-    following_count: user.public_metrics.following_count,
-    tweet_count: user.public_metrics.tweet_count,
-    listed_count: user.public_metrics.listed_count,
-    url: user.url,
-    verified: user.verified,
-    withheld: user.withheld,
   };
 };
 
