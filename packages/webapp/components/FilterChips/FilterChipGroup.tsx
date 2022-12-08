@@ -5,7 +5,7 @@ import {
   FlattenedFilter,
   flattenFilters,
   usernameFilters,
-} from "../../utils/components";
+} from "../../utils/helpers";
 import { Filters } from "@twips/lib";
 
 export type FilterChipGroupProps = {

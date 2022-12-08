@@ -1,5 +1,5 @@
 import { CloseButton, Group, Paper, Text } from "@mantine/core";
-import { FlattenedFilter, renderFilter } from "../../utils/components";
+import { FlattenedFilter, renderFilter } from "../../utils/helpers";
 
 export type FilterChipProps = {
   filter: FlattenedFilter;

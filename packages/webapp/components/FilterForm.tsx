@@ -3,11 +3,7 @@ import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
 import { IconAt } from "@tabler/icons";
 import { useEffect, useState } from "react";
-import {
-  dateFilters,
-  numberFilters,
-  usernameFilters,
-} from "../utils/components";
+import { dateFilters, numberFilters, usernameFilters } from "../utils/helpers";
 import { lookupTwips, updateTwips } from "../utils/twips";
 
 export type FilterFormProps = {

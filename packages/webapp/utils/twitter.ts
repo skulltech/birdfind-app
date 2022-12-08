@@ -41,10 +41,6 @@ export const getTwitterClient = async (
   userId: string,
   oauthToken: any
 ) => {
-  console.log(
-    "Token expires at",
-    new Date(oauthToken.expires_at).toLocaleTimeString()
-  );
   // Refresh token and save it to DB if it has expired
   if (oauthToken.expires_at <= Date.now() / 1000) {
     const authClient = getTwitterAuthClient(oauthToken);
@@ -54,4 +50,8 @@ export const getTwitterClient = async (
   }
 
   return new Client(oauthToken.access_token);
+};
+
+export const followUsers = async (twitter: Client) => {
+  twitter.users.usersIdFollow();
 };

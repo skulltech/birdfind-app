@@ -5,14 +5,15 @@ import { FilterForm } from "../components/FilterForm";
 import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
 import { IconSearch } from "@tabler/icons";
 import { UserTable } from "../components/UserTable/UserTable";
-import { usernameFilters } from "../utils/components";
+import { usernameFilters } from "../utils/helpers";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 const Home = () => {
   const [filters, setFilters] = useState<Filters>({});
   const [searchable, setSearchable] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [users, setUsers] = useState<TwitterProfile[]>([]);
+  const [users, setUsers] = useState<TwitterProfile[]>(null);
+  const [selectedUsers, setSelectedUsers] = useState<TwitterProfile[]>([]);
   const supabase = useSupabaseClient();
 
   useEffect(() => {
@@ -72,7 +73,13 @@ const Home = () => {
           </Button>
         </Group>
       </Stack>
-      {users.length ? <UserTable users={users} /> : null}
+      {users != null && (
+        <UserTable
+          users={users}
+          selectedUsers={selectedUsers}
+          setSelectedUsers={setSelectedUsers}
+        />
+      )}
     </Stack>
   );
 };

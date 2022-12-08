@@ -1,6 +1,6 @@
-import { Group, Stack, Text, Pagination, ActionIcon } from "@mantine/core";
+import { Group, Stack, Text, Pagination, Checkbox } from "@mantine/core";
 import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -12,26 +12,60 @@ import {
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
 import { CustomTable, Th } from "./CustomTable";
-import { TwitterUser } from "@twips/lib";
+import { TwitterProfile } from "@twips/lib";
+import { ActionForm } from "../ActionForm";
 
 export type UserTableProps = {
-  users: TwitterUser[];
+  users: TwitterProfile[];
+  selectedUsers: TwitterProfile[];
+  setSelectedUsers: Dispatch<SetStateAction<TwitterProfile[]>>;
 };
 
-export const UserTable = ({ users }: UserTableProps) => {
+export const UserTable = ({
+  users,
+  selectedUsers,
+  setSelectedUsers,
+}: UserTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = useState({});
 
-  const columns = useMemo<ColumnDef<TwitterUser>[]>(
+  // Set selected users
+  useEffect(() => {
+    const indices = Object.keys(rowSelection).map((x) => parseInt(x));
+    const selectedUsers: TwitterProfile[] = [];
+    for (const i of indices) selectedUsers.push(users[i]);
+    setSelectedUsers(selectedUsers);
+  }, [rowSelection, users, setSelectedUsers]);
+
+  const columns = useMemo<ColumnDef<TwitterProfile>[]>(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            transitionDuration={0}
+            indeterminate={table.getIsSomeRowsSelected()}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            transitionDuration={0}
+          />
+        ),
+      },
       {
         accessorFn: (row) => row,
         header: "Profile",
         cell: (info) => (
           <UserProfileCard
-            username={info.getValue<TwitterUser>().username}
-            name={info.getValue<TwitterUser>().name}
-            description={info.getValue<TwitterUser>().description}
-            profileImageUrl={info.getValue<TwitterUser>().profileImageUrl}
+            username={info.getValue<TwitterProfile>().username}
+            name={info.getValue<TwitterProfile>().name}
+            description={info.getValue<TwitterProfile>().description}
+            profileImageUrl={info.getValue<TwitterProfile>().profileImageUrl}
           />
         ),
         enableSorting: false,
@@ -61,12 +95,14 @@ export const UserTable = ({ users }: UserTableProps) => {
     []
   );
 
-  const table = useReactTable<TwitterUser>({
+  const table = useReactTable<TwitterProfile>({
     data: users,
     columns,
     state: {
       sorting,
+      rowSelection,
     },
+    onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -108,7 +144,12 @@ export const UserTable = ({ users }: UserTableProps) => {
   return (
     <Stack>
       <Group position="apart">
-        <Text weight="bold">{users.length + " search results"}</Text>
+        <Group>
+          <Text>
+            {Object.keys(rowSelection).length} of {users.length} users selected
+          </Text>
+          <ActionForm userIds={selectedUsers.map((x) => x.id)} />
+        </Group>
         <Pagination
           page={table.getState().pagination.pageIndex + 1}
           onChange={(page) => table.setPageIndex(page - 1)}

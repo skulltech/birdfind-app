@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getTwitterProfile, updateNetwork } from "@twips/lib";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { isBigIntish } from "../../../utils/helpers";
 import {
   getServiceRoleSupabase,
   getUserDetails,
@@ -19,16 +20,8 @@ type SuccessData = {
   fetched: boolean;
 };
 
-const isBigIntish = (arg: string) => {
-  try {
-    BigInt(arg);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
-type Direction = "followers" | "following";
+const directions = ["followers", "following"] as const;
+type Direction = typeof directions[number];
 
 export default async function handler(
   req: NextApiRequest,
@@ -49,7 +42,7 @@ export default async function handler(
   if (
     !direction ||
     typeof direction != "string" ||
-    !["followers", "following"].includes(direction)
+    !directions.includes(direction as Direction)
   )
     return res.status(400).json({
       error: "Direction param is not provided or invalid",
