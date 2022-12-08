@@ -1,10 +1,11 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { upsertTwitterProfiles } from "@twips/lib";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Client } from "twitter-api-sdk";
 import {
+  completeOauthFlow,
+  getServiceRoleSupabase,
   getUserProfile,
-  updateUserProfile,
-  upsertTwitterProfile,
 } from "../../../../utils/supabase";
 import {
   getSignedInTwitterUser,
@@ -47,15 +48,18 @@ export default async function handler(
   const twitter = new Client(token.access_token);
   const profile = await getSignedInTwitterUser(twitter);
 
-  // Complete Oauth flow in DB
-  await updateUserProfile(supabase, userProfile.id, {
-    twitter_oauth_state: null,
-    twitter_oauth_token: token,
-    twitter_id: profile.id,
-  });
+  const serviceRoleSupabase = getServiceRoleSupabase();
 
   // Update profile in the twitter_profile table
-  await upsertTwitterProfile(supabase, profile);
+  await upsertTwitterProfiles(serviceRoleSupabase, [profile]);
+
+  // Complete Oauth flow in DB
+  await completeOauthFlow(
+    serviceRoleSupabase,
+    userProfile.id,
+    profile.id,
+    token
+  );
 
   res.redirect("/");
 }

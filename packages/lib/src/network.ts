@@ -5,7 +5,8 @@ import {
   usersIdFollowers,
   usersIdFollowing,
 } from "twitter-api-sdk/dist/types";
-import { serializeTwitterUser, twitterUserFields } from "./utils";
+import { upsertTwitterProfiles } from "./profiles";
+import { twitterUserFields } from "./utils";
 
 const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
   const dedupedUsers = new Set<string>();
@@ -73,14 +74,9 @@ export const updateNetwork = async ({
     }
   }
 
-  // Remove duplicates
+  // Remove duplicates and Upsert followers to database
   const dedupedUsers = dedupeUsers(users);
-
-  // Upsert followers to database
-  const { error: insertUsersError } = await supabase
-    .from("twitter_profile")
-    .upsert(dedupedUsers.map(serializeTwitterUser));
-  if (insertUsersError) throw insertUsersError;
+  await upsertTwitterProfiles(supabase, dedupedUsers);
 
   // Upsert relations to database
   const { error: insertEdgesError } = await supabase

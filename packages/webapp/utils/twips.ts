@@ -18,9 +18,9 @@ export const lookupTwips = async (
 export const updateTwips = async (
   userId: BigInt,
   direction: "followers" | "following"
-) => {
+): Promise<boolean> => {
   const response = await axios.get("/api/twips/update", {
     params: { userId: userId.toString(), direction },
   });
-  return response.status;
+  return response.data.fetched;
 };

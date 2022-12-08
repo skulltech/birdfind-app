@@ -7,7 +7,7 @@ create table if not exists user_profile (
     twitter_oauth_state jsonb,
     twitter_oauth_token jsonb,
 
-    twitter_id bigint
+    twitter_id bigint unique
 );
 
 alter table user_profile enable row level security;
@@ -64,23 +64,6 @@ create policy "Twitter profiles are viewable by authenticated users."
     to authenticated
     using (true);
 
-create policy "Users can insert their own twitter profile."
-    on twitter_profile for insert
-    with check (
-        auth.uid() in (
-            select user_profile.id from user_profile
-            where user_profile.twitter_id = twitter_profile.id
-        )
-    );
-
-create policy "Users can update own twitter profile."
-  on twitter_profile for update
-  using (
-        auth.uid() in (
-            select user_profile.id from user_profile
-            where user_profile.twitter_id = twitter_profile.id
-        )
-    );
 
 create table if not exists twitter_follow (
     created_at timestamp with time zone default now() not null,
@@ -93,7 +76,13 @@ create table if not exists twitter_follow (
 
 alter table twitter_follow enable row level security;
 
-create or replace function search_follow_network
+create policy "Twitter follows are viewable by authenticated users."
+    on twitter_follow for select
+    to authenticated
+    using (true);
+
+
+create function search_follow_network
     (follower_of bigint[], followed_by bigint[])
     returns setof twitter_profile as $$
 begin

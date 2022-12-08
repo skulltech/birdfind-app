@@ -1,16 +1,14 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { TwitterProfile } from "@twips/lib";
+import { TwitterProfile, upsertTwitterProfiles } from "@twips/lib";
 import { NextApiRequest, NextApiResponse } from "next";
-import { Client } from "twitter-api-sdk";
 import {
   getServiceRoleSupabase,
   getUserDetails,
-  upsertTwitterProfile,
 } from "../../../utils/supabase";
-import { getTwitterUser } from "../../../utils/twitter";
+import { getTwitterClient, getTwitterUser } from "../../../utils/twitter";
 
 type ErrorData = {
-  message?: string;
+  error?: string;
 };
 
 type SuccessData = {
@@ -30,12 +28,16 @@ export default async function handler(
   if (!username || typeof username != "string") {
     res
       .status(400)
-      .json({ message: "Username param is invalid or not provided" });
+      .json({ error: "Username param is invalid or not provided" });
     return;
   }
 
   const userDetails = await getUserDetails(supabase);
-  const twitter = new Client(userDetails.twitter.oauthToken.access_token);
+  const twitter = await getTwitterClient(
+    supabase,
+    userDetails.id,
+    userDetails.twitter.oauthToken
+  );
   const twitterUser = await getTwitterUser(twitter, username);
 
   if (!twitterUser) {
@@ -44,7 +46,9 @@ export default async function handler(
   }
 
   const serviceRoleSupabase = getServiceRoleSupabase();
-  const profile = await upsertTwitterProfile(serviceRoleSupabase, twitterUser);
+  const profiles = await upsertTwitterProfiles(serviceRoleSupabase, [
+    twitterUser,
+  ]);
 
-  res.status(200).json({ profile });
+  res.status(200).json({ profile: profiles[0] });
 }

@@ -1,7 +1,6 @@
 import { Button, Group, Select, TextInput, NumberInput } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { showNotification } from "@mantine/notifications";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconAt } from "@tabler/icons";
 import { useEffect, useState } from "react";
 import {
@@ -28,7 +27,6 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
   );
   const [isFilterValid, setIsFilterValid] = useState(false);
   const [addFilterLoading, setAddFilterLoading] = useState(false);
-  const supabase = useSupabaseClient();
 
   useEffect(() => {
     setFilterValue(undefined);
@@ -42,8 +40,11 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
     }
 
     // For username fields
-    if (usernameFilters.includes(filterName)) {
-      const username = filterValue as string;
+    if (
+      usernameFilters.includes(filterName) &&
+      typeof filterValue == "string"
+    ) {
+      const username = filterValue;
       const lowercaseUsername = username.toLowerCase();
       if (
         /^([a-zA-Z0-9_]){4,15}$/.test(username) &&
@@ -88,12 +89,13 @@ export const FilterForm = ({ onSubmit }: FilterFormProps) => {
         filterName === "followerOf" ? "followers" : "following";
 
       if (networkUpdatedAt.getTime() === 0) {
-        await updateTwips(user.id, networkDirection);
-        showNotification({
-          title: "Sorry",
-          message: `We don't have @${filterValue}'s ${networkDirection} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,
-          color: "red",
-        });
+        const fetched = await updateTwips(user.id, networkDirection);
+        if (!fetched)
+          showNotification({
+            title: "Sorry",
+            message: `We don't have @${filterValue}'s ${networkDirection} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,
+            color: "red",
+          });
         return;
       }
 

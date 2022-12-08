@@ -1,6 +1,11 @@
 import { camelCase } from "lodash";
 import { Filters, TwitterProfile } from "./utils";
 import { SupabaseClient } from "@supabase/supabase-js";
+import {
+  findUserByUsername,
+  TwitterResponse,
+  usersIdFollowers,
+} from "twitter-api-sdk/dist/types";
 
 export const twitterProfileFields = [
   "id::text",
@@ -25,6 +30,31 @@ export const twitterProfileFields = [
   "verified",
   "withheld",
 ];
+
+const serializeTwitterUser = (
+  user: TwitterResponse<findUserByUsername>["data"]
+) => {
+  return {
+    id: user.id,
+    updated_at: new Date().toISOString(),
+    username: user.username,
+    name: user.name,
+    user_created_at: user.created_at,
+    description: user.description,
+    entities: user.entities ?? null,
+    location: user.location ?? null,
+    pinned_tweet_id: user.pinned_tweet_id ?? null,
+    profile_image_url: user.profile_image_url,
+    protected: user.protected,
+    followers_count: user.public_metrics.followers_count,
+    following_count: user.public_metrics.following_count,
+    tweet_count: user.public_metrics.tweet_count,
+    listed_count: user.public_metrics.listed_count,
+    url: user.url ?? null,
+    verified: user.verified,
+    withheld: user.withheld ?? null,
+  };
+};
 
 export const getTwitterProfile = async (
   supabase: SupabaseClient,
@@ -63,15 +93,43 @@ export const parseTwitterProfiles = (rows: any[]): TwitterProfile[] => {
   return parsedProfiles;
 };
 
+export const upsertTwitterProfiles = async (
+  supabase: SupabaseClient,
+  users: TwitterResponse<usersIdFollowers>["data"]
+) => {
+  const { data, error } = await supabase
+    .from("twitter_profile")
+    .upsert(users.map(serializeTwitterUser))
+    .select(twitterProfileFields.join(","));
+  if (error) throw error;
+
+  return parseTwitterProfiles(data);
+};
+
+const getTwitterIds = async (
+  supabase: SupabaseClient,
+  usernames: string[]
+): Promise<string[]> => {
+  const { data, error } = await supabase
+    .from("twitter_profile")
+    .select("id::text")
+    .in("username", usernames);
+  if (error) throw error;
+
+  // @ts-ignore
+  return data.map((x) => x.id);
+};
+
 export const searchTwitterProfiles = async (
   supabase: SupabaseClient,
   filters: Filters
 ): Promise<TwitterProfile[]> => {
-  const { followerOf, followedBy, ...generalFilters } = filters;
+  const { followerOf, followedBy, ...otherFilters } = filters;
+
   let query = supabase
     .rpc("search_follow_network", {
-      follower_of: filters.followerOf?.map((x: BigInt) => x.toString()) ?? [],
-      followed_by: filters.followedBy.map((x: BigInt) => x.toString()) ?? [],
+      follower_of: followerOf ? await getTwitterIds(supabase, followerOf) : [],
+      followed_by: followedBy ? await getTwitterIds(supabase, followedBy) : [],
     })
     .select(twitterProfileFields.join(","));
 
@@ -94,12 +152,11 @@ export const searchTwitterProfiles = async (
       query.gt("user_created_at", value.toISOString()),
   };
 
-  if (filters)
-    for (const [key, value] of Object.entries(generalFilters))
-      query = appendFilterFunctions[key](query, value);
+  for (const [key, value] of Object.entries(otherFilters))
+    query = appendFilterFunctions[key](query, value);
 
-  const { data: profiles, error } = await query;
+  const { data, error } = await query;
   if (error) throw error;
 
-  return parseTwitterProfiles(profiles);
+  return parseTwitterProfiles(data);
 };

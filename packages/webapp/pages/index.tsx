@@ -1,22 +1,30 @@
-import { searchUser } from "../utils/twips";
-import { useState } from "react";
-import { Filters, TwitterUser } from "@twips/lib";
+import { useEffect, useState } from "react";
+import { Filters, searchTwitterProfiles, TwitterProfile } from "@twips/lib";
 import { Button, Group, Stack } from "@mantine/core";
 import { FilterForm } from "../components/FilterForm";
 import { FilterChipGroup } from "../components/FilterChips/FilterChipGroup";
 import { IconSearch } from "@tabler/icons";
 import { UserTable } from "../components/UserTable/UserTable";
 import { usernameFilters } from "../utils/components";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 const Home = () => {
   const [filters, setFilters] = useState<Filters>({});
+  const [searchable, setSearchable] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [users, setUsers] = useState<TwitterUser[]>([]);
+  const [users, setUsers] = useState<TwitterProfile[]>([]);
+  const supabase = useSupabaseClient();
+
+  useEffect(() => {
+    setSearchable(false);
+    if (filters.followedBy?.length || filters.followerOf?.length)
+      setSearchable(true);
+  }, [filters]);
 
   const handleSearch = async () => {
     setSearchLoading(true);
     try {
-      const users = await searchUser(filters);
+      const users = await searchTwitterProfiles(supabase, filters);
       setUsers(users);
     } catch (error) {
       console.log(error);
@@ -43,27 +51,27 @@ const Home = () => {
   return (
     <Stack>
       <FilterForm onSubmit={handleAddFilter} />
-      {Object.keys(filters).length ? (
-        <Stack>
+      <Stack>
+        {Boolean(Object.keys(filters).length) && (
           <FilterChipGroup
             filters={filters}
             setFilters={setFilters}
             groupProps={{ position: "center" }}
           />
-          <Group position="center">
-            <Button
-              leftIcon={<IconSearch />}
-              size="lg"
-              variant="default"
-              loading={searchLoading}
-              onClick={handleSearch}
-              radius="xl"
-            >
-              Search users
-            </Button>
-          </Group>
-        </Stack>
-      ) : null}
+        )}
+        <Group position="center">
+          <Button
+            leftIcon={<IconSearch />}
+            size="lg"
+            variant="outline"
+            loading={searchLoading}
+            onClick={handleSearch}
+            disabled={!searchable}
+          >
+            Search
+          </Button>
+        </Group>
+      </Stack>
       {users.length ? <UserTable users={users} /> : null}
     </Stack>
   );

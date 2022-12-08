@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { updateUserProfile } from "../../../../utils/supabase";
+import { startOauthFlow, updateUserProfile } from "../../../../utils/supabase";
 import { getTwitterAuthClient } from "../../../../utils/twitter";
 
 export default async function handler(
@@ -12,16 +12,11 @@ export default async function handler(
     req,
     res,
   });
-  const {
-    data: { user: user },
-  } = await supabase.auth.getUser();
 
   // Generate random Oauth state and save in DB
   const state = randomBytes(16).toString("hex");
   const challenge = randomBytes(16).toString("hex");
-  await updateUserProfile(supabase, user.id, {
-    twitter_oauth_state: { state, challenge },
-  });
+  await startOauthFlow(supabase, state, challenge);
 
   // Generate auth URL and redirect
   const authClient = getTwitterAuthClient();

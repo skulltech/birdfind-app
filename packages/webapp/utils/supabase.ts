@@ -1,10 +1,4 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import {
-  parseTwitterProfiles,
-  serializeTwitterUser,
-  twitterProfileFields,
-} from "@twips/lib";
-import { TwitterResponse, findMyUser } from "twitter-api-sdk/dist/types";
 import { camelCase } from "lodash";
 
 export const getServiceRoleSupabase = () =>
@@ -70,6 +64,56 @@ export const getUserProfile = async (
   return data.length ? data[0] : null;
 };
 
+export const startOauthFlow = async (
+  supabase: SupabaseClient,
+  state: string,
+  challenge: string
+) => {
+  const {
+    data: { user: user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase
+    .from("user_profile")
+    .update({ twitter_oauth_state: { state, challenge } })
+    .eq("id", user.id);
+  if (error) throw error;
+};
+
+export const completeOauthFlow = async (
+  supabase: SupabaseClient,
+  userId: string,
+  twitterId: string,
+  oauthToken: any
+) => {
+  // Check if someone has this Twitter account linked already
+  const { count, error: selectError } = await supabase
+    .from("user_profile")
+    .select("*", { count: "exact", head: true })
+    .eq("twitter_id", twitterId);
+  if (selectError) throw selectError;
+
+  // If yes, then remove that link
+  if (count) {
+    const { error: removeLinkError } = await supabase
+      .from("user_profile")
+      .update({ twitter_oauth_token: null, twitter_id: null })
+      .eq("twitter_id", twitterId);
+    if (removeLinkError) throw removeLinkError;
+  }
+
+  // Link twitter to the new account
+  const { error: addLinkError } = await supabase
+    .from("user_profile")
+    .update({
+      twitter_oauth_state: null,
+      twitter_oauth_token: oauthToken,
+      twitter_id: twitterId,
+    })
+    .eq("id", userId);
+  if (addLinkError) throw addLinkError;
+};
+
 export const updateUserProfile = async (
   supabase: SupabaseClient,
   userId: string,
@@ -80,20 +124,6 @@ export const updateUserProfile = async (
     .update(values)
     .eq("id", userId);
   if (error) throw error;
-};
-
-export const upsertTwitterProfile = async (
-  supabase: SupabaseClient,
-  user: TwitterResponse<findMyUser>["data"]
-) => {
-  const row = serializeTwitterUser(user);
-  const { data, error } = await supabase
-    .from("twitter_profile")
-    .upsert(row)
-    .select(twitterProfileFields.join(","));
-  if (error) throw error;
-
-  return parseTwitterProfiles(data)[0];
 };
 
 export const getUserDetails = async (
