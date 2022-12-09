@@ -55,3 +55,7 @@ export const isBigIntish = (arg: string) => {
     return false;
   }
 };
+
+export interface FilterInputProps {
+  label: string;
+}

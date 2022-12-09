@@ -42,7 +42,7 @@ export const getTwitterClient = async (
   oauthToken: any
 ) => {
   // Refresh token and save it to DB if it has expired
-  if (oauthToken.expires_at <= Date.now() / 1000) {
+  if (oauthToken.expires_at <= Date.now()) {
     const authClient = getTwitterAuthClient(oauthToken);
     const { token } = await authClient.refreshAccessToken();
     await updateUserProfile(supabase, userId, { twitter_oauth_token: token });
@@ -50,8 +50,4 @@ export const getTwitterClient = async (
   }
 
   return new Client(oauthToken.access_token);
-};
-
-export const followUsers = async (twitter: Client) => {
-  twitter.users.usersIdFollow();
 };
