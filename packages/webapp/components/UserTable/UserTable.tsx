@@ -30,6 +30,8 @@ import {
   IconSortDescending,
 } from "@tabler/icons";
 
+const selectLimit = 10;
+
 const useStyles = createStyles((theme) => ({
   th: {
     padding: "0 !important",
@@ -152,6 +154,7 @@ export const UserTable = ({
 }: UserTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
+  const [selectDisabled, setSelectDisabled] = useState(false);
 
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
@@ -159,6 +162,10 @@ export const UserTable = ({
   // Set selected users
   useEffect(() => {
     const indices = Object.keys(rowSelection).map((x) => parseInt(x));
+
+    if (indices.length >= selectLimit) setSelectDisabled(true);
+    else setSelectDisabled(false);
+
     const selectedUsers: TwitterProfile[] = [];
     for (const i of indices) selectedUsers.push(users[i]);
     setSelectedUsers(selectedUsers);
@@ -175,15 +182,16 @@ export const UserTable = ({
             onChange={table.getToggleAllRowsSelectedHandler()}
             transitionDuration={0}
             indeterminate={table.getIsSomeRowsSelected()}
+            disabled={users.length > 10}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             size="xs"
-            // style={{ zIndex: -1, position: "relative" }}
             checked={row.getIsSelected()}
             onChange={row.getToggleSelectedHandler()}
             transitionDuration={0}
+            disabled={!row.getIsSelected() && selectDisabled}
           />
         ),
         size: 10,
@@ -223,7 +231,7 @@ export const UserTable = ({
         size: 170,
       },
     ],
-    []
+    [selectDisabled, users.length]
   );
 
   const table = useReactTable<TwitterProfile>({

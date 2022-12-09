@@ -11,6 +11,8 @@ export type Filters = {
   tweetCountGreaterThan?: number;
   createdBefore?: Date;
   createdAfter?: Date;
+  blockedBy?: string;
+  mutedBy?: string;
 };
 
 export type TwitterProfile = {

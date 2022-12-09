@@ -7,6 +7,7 @@ import {
   IconVolume,
   IconVolumeOff,
 } from "@tabler/icons";
+import { useState } from "react";
 import { ActionButton } from "./ActionButton";
 
 type ActionFormProps = {
@@ -15,6 +16,7 @@ type ActionFormProps = {
 
 export const ActionButtonGroup = ({ userIds }: ActionFormProps) => {
   const disabled = !Boolean(userIds.length);
+  const [loading, setLoading] = useState(false);
 
   return (
     <Group>

@@ -94,6 +94,8 @@ export const FilterChipGroup = (props) => {
       tweetCountLessThan,
       createdAfter,
       createdBefore,
+      mutedBy,
+      blockedBy,
     } = filters;
 
     followedBy?.forEach((x) => {
@@ -140,6 +142,18 @@ export const FilterChipGroup = (props) => {
     if (chip) chips.push(chip);
 
     setChips(chips);
+
+    if (mutedBy)
+      chips.push({
+        label: "Muted by you",
+        filtersToRemove: { mutedBy },
+      });
+
+    if (blockedBy)
+      chips.push({
+        label: "Blocked by you",
+        filtersToRemove: { blockedBy },
+      });
   }, [filters]);
 
   return (

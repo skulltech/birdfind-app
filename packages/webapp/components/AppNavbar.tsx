@@ -1,13 +1,6 @@
-import {
-  Divider,
-  Navbar,
-  ScrollArea,
-  Space,
-  Stack,
-  Title,
-} from "@mantine/core";
-import { useEffect } from "react";
+import { Divider, Navbar, ScrollArea, Stack, Title } from "@mantine/core";
 import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
+import { CheckboxInput } from "./FilterInputs/CheckboxInput";
 import { DateRangeInput } from "./FilterInputs/DateRangeInput";
 import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
 import { UsernameInput } from "./FilterInputs/UsernameInput";
@@ -31,6 +24,10 @@ export const AppNavbar = ({ ...props }) => {
                 </>
               )}
               <Title order={4}>Select Filters</Title>
+
+              <CheckboxInput label="Blocked by you" action="block" />
+              <CheckboxInput label="Muted by you" action="mute" />
+
               <UsernameInput direction="followers" label="Follower of" />
               <UsernameInput direction="following" label="Followed by" />
               <NumberRangeInput label="Followers count" metric="followers" />
