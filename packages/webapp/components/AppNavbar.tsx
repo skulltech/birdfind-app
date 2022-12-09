@@ -13,17 +13,13 @@ import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
 import { UsernameInput } from "./FilterInputs/UsernameInput";
 import { useTwips } from "./TwipsProvider";
 
-export const AppNavbar = () => {
+export const AppNavbar = ({ ...props }) => {
   const { user, filters } = useTwips();
-
-  useEffect(() => {
-    console.log(filters);
-  }, [filters]);
 
   return (
     user &&
     user.twitter && (
-      <Navbar width={{ base: 300 }} p="xs" pr={0}>
+      <Navbar width={{ base: 300 }} p="xs" pr={0} {...props}>
         <ScrollArea pr="md">
           <Navbar.Section>
             <Stack style={{ fontSize: 14 }}>

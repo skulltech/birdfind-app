@@ -1,63 +1,61 @@
-import { ActionIcon, Button, Group, Select, Tooltip } from "@mantine/core";
+import { Group } from "@mantine/core";
 import {
   IconCircleCheck,
   IconCircleOff,
   IconUserMinus,
-  IconUserOff,
   IconUserPlus,
   IconVolume,
   IconVolumeOff,
 } from "@tabler/icons";
-import { useState } from "react";
 import { ActionButton } from "./ActionButton";
-
-const titleCase = (str: string) => str[0].toUpperCase() + str.slice(1);
 
 type ActionFormProps = {
   userIds: BigInt[];
 };
 
 export const ActionButtonGroup = ({ userIds }: ActionFormProps) => {
+  const disabled = !Boolean(userIds.length);
+
   return (
     <Group>
       <ActionButton
         label="Follow"
-        disabled={false}
+        disabled={disabled}
         onClick={() => {}}
         Icon={IconUserPlus}
         color="green"
       />
       <ActionButton
         label="Unfollow"
-        disabled={false}
+        disabled={disabled}
         onClick={() => {}}
         Icon={IconUserMinus}
         color="red"
       />
       <ActionButton
         label="Block"
-        disabled={false}
+        disabled={disabled}
         onClick={() => {}}
         Icon={IconCircleOff}
         color="red"
       />
       <ActionButton
         label="Unblock"
-        disabled={false}
+        disabled={disabled}
         onClick={() => {}}
         Icon={IconCircleCheck}
         color="green"
       />
       <ActionButton
         label="Mute"
-        disabled={false}
+        disabled={disabled}
         onClick={() => {}}
         Icon={IconVolumeOff}
         color="red"
       />
       <ActionButton
         label="Unmute"
-        disabled={false}
+        disabled={disabled}
         onClick={() => {}}
         Icon={IconVolume}
         color="green"

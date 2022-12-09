@@ -8,6 +8,7 @@ import {
   Table,
   UnstyledButton,
   Center,
+  ScrollArea,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -32,6 +33,33 @@ import {
 const useStyles = createStyles((theme) => ({
   th: {
     padding: "0 !important",
+  },
+
+  header: {
+    position: "sticky",
+    top: 0,
+    backgroundColor:
+      theme.colorScheme === "dark"
+        ? theme.colors.dark[8]
+        : theme.colors.gray[0],
+    transition: "box-shadow 150ms ease",
+
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      borderBottom: `1px solid ${
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[3]
+          : theme.colors.gray[2]
+      }`,
+    },
+  },
+
+  scrolled: {
+    boxShadow: theme.shadows.sm,
   },
 
   rowSelected: {
@@ -75,6 +103,7 @@ export const Th = ({
   ...others
 }: ThProps) => {
   const { classes } = useStyles();
+
   const Icon = sorted
     ? sorted == "asc"
       ? IconSortAscending
@@ -124,6 +153,9 @@ export const UserTable = ({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
 
+  const { classes, cx } = useStyles();
+  const [scrolled, setScrolled] = useState(false);
+
   // Set selected users
   useEffect(() => {
     const indices = Object.keys(rowSelection).map((x) => parseInt(x));
@@ -148,6 +180,7 @@ export const UserTable = ({
         cell: ({ row }) => (
           <Checkbox
             size="xs"
+            // style={{ zIndex: -1, position: "relative" }}
             checked={row.getIsSelected()}
             onChange={row.getToggleSelectedHandler()}
             transitionDuration={0}
@@ -259,22 +292,32 @@ export const UserTable = ({
           total={table.getPageCount()}
         />
       </Group>
-      <Table horizontalSpacing="md" verticalSpacing="xs">
-        <thead>{headers}</thead>
-        <tbody>
-          {rows.length > 0 ? (
-            rows
-          ) : (
-            <tr>
-              <td colSpan={6}>
-                <Text weight={500} align="center">
-                  Nothing found
-                </Text>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+      <ScrollArea
+        sx={{ height: "80vh" }}
+        onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+      >
+        <Table horizontalSpacing="md" verticalSpacing="xs">
+          <thead
+            className={cx(classes.header, { [classes.scrolled]: scrolled })}
+            style={{ zIndex: 1 }}
+          >
+            {headers}
+          </thead>
+          <tbody>
+            {rows.length > 0 ? (
+              rows
+            ) : (
+              <tr>
+                <td colSpan={6}>
+                  <Text weight={500} align="center">
+                    Nothing found
+                  </Text>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </ScrollArea>
     </Stack>
   );
 };

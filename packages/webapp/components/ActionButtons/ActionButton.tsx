@@ -1,5 +1,4 @@
 import { ActionIcon, DefaultMantineColor, Tooltip } from "@mantine/core";
-import { Component } from "react";
 
 type ActionButtonProps = {
   Icon: any;
@@ -21,10 +20,10 @@ export const ActionButton = ({
       <ActionIcon
         onClick={onClick}
         disabled={disabled}
-        variant="default"
+        variant="outline"
         color={color}
       >
-        <Icon size={14} />
+        <Icon size={16} />
       </ActionIcon>
     </Tooltip>
   );

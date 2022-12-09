@@ -1,13 +1,16 @@
 import {
   ActionIcon,
   Avatar,
+  Burger,
   Group,
   Header,
+  MediaQuery,
   Menu,
   Text,
   Title,
   UnstyledButton,
   useMantineColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
@@ -19,25 +22,38 @@ import {
 import { useRouter } from "next/router";
 import { useTwips } from "./TwipsProvider";
 
-export const AppHeader = () => {
+export const AppHeader = ({ opened, setOpened }) => {
   const supabase = useSupabaseClient();
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { user } = useTwips();
+  const theme = useMantineTheme();
 
   const dark = colorScheme === "dark";
 
   return (
     <Header height={60} p="xs">
       <Group position="apart">
-        <UnstyledButton onClick={() => router.push("/")}>
-          <Title order={2}>
-            <Group>
-              <IconBrandTwitter />
-              Twips
-            </Group>
-          </Title>
-        </UnstyledButton>
+        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <MediaQuery largerThan="sm" styles={{ display: "none" }}>
+            <Burger
+              opened={opened}
+              onClick={() => setOpened((o) => !o)}
+              size="sm"
+              color={theme.colors.gray[6]}
+              mr="xl"
+            />
+          </MediaQuery>
+          <UnstyledButton onClick={() => router.push("/")}>
+            <Title order={2}>
+              <Group>
+                <IconBrandTwitter />
+                Twips
+              </Group>
+            </Title>
+          </UnstyledButton>
+        </div>
+
         <Group>
           {user && (
             <Menu shadow="md">

@@ -29,6 +29,7 @@ export default function App({
   const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
   const toggleColorScheme = (value?: ColorScheme) =>
     setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
+  const [opened, setOpened] = useState(false);
 
   return (
     <SessionContextProvider
@@ -47,8 +48,10 @@ export default function App({
           <NotificationsProvider position="top-right">
             <TwipsProvider supabase={supabase}>
               <AppShell
-                navbar={<AppNavbar />}
-                header={<AppHeader />}
+                padding="xs"
+                navbar={<AppNavbar hiddenBreakpoint="sm" hidden={!opened} />}
+                header={<AppHeader opened={opened} setOpened={setOpened} />}
+                navbarOffsetBreakpoint="sm"
                 styles={(theme) => ({
                   main: {
                     backgroundColor:
