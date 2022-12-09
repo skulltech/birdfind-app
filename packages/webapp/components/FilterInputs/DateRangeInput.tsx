@@ -20,12 +20,12 @@ export const DateRangeInput = ({ label }: DateRangeInputProps) => {
   return (
     <Stack spacing="xs">
       <Text>{label}</Text>
-      <Group noWrap spacing="xs">
+      <Group noWrap spacing={8}>
         <DatePicker
           maxDate={max(new Date(), maxDate)}
           value={minDate}
           onChange={setMinDate}
-          inputFormat="DD/MM/YYYY"
+          inputFormat="DD/MM/YY"
         />
         <Text align="center">to</Text>
         <DatePicker
@@ -33,15 +33,16 @@ export const DateRangeInput = ({ label }: DateRangeInputProps) => {
           maxDate={new Date()}
           value={maxDate}
           onChange={setMaxDate}
-          inputFormat="DD/MM/YYYY"
+          inputFormat="DD/MM/YY"
         />
         <ActionIcon
+          size="lg"
           variant="default"
           onClick={() =>
             addFilters({ createdBefore: maxDate, createdAfter: minDate })
           }
         >
-          <IconArrowNarrowRight />
+          <IconArrowNarrowRight size={16} />
         </ActionIcon>
       </Group>
     </Stack>

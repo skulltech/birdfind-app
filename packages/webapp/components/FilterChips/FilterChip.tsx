@@ -9,7 +9,7 @@ export const FilterChip = ({ label, onClose }: FilterChipProps) => {
   return (
     <Paper shadow="md" withBorder p="xs">
       <Group position="apart" grow={false}>
-        <Text size="sm">{label}</Text>
+        <Text>{label}</Text>
         <CloseButton
           size="sm"
           radius="lg"

@@ -4,9 +4,6 @@ import { useState } from "react";
 import { FilterInputProps } from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
 
-const numberFormatter = (arg: string | undefined) =>
-  arg == undefined ? "" : arg.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
 interface NumberRangeInputProps extends FilterInputProps {
   metric: "tweet" | "followers" | "following";
 }
@@ -19,7 +16,7 @@ export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
   return (
     <Stack spacing="xs">
       <Text>{label}</Text>
-      <Group spacing="xs" noWrap position="center">
+      <Group spacing={8} noWrap position="center">
         <NumberInput
           value={minValue}
           onChange={setMinValue}
@@ -28,7 +25,6 @@ export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
           step={10}
           stepHoldDelay={500}
           stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-          formatter={numberFormatter}
         />
         <Text align="center" span>
           to
@@ -40,9 +36,9 @@ export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
           step={10}
           stepHoldDelay={500}
           stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
-          formatter={numberFormatter}
         />
         <ActionIcon
+          size="lg"
           variant="default"
           onClick={() => {
             if (metric == "followers")
@@ -62,7 +58,7 @@ export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
               });
           }}
         >
-          <IconArrowNarrowRight />
+          <IconArrowNarrowRight size={16} />
         </ActionIcon>
       </Group>
     </Stack>

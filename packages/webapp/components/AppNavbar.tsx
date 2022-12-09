@@ -1,4 +1,11 @@
-import { Navbar, ScrollArea, Space, Stack, Title } from "@mantine/core";
+import {
+  Divider,
+  Navbar,
+  ScrollArea,
+  Space,
+  Stack,
+  Title,
+} from "@mantine/core";
 import { useEffect } from "react";
 import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
 import { DateRangeInput } from "./FilterInputs/DateRangeInput";
@@ -16,13 +23,18 @@ export const AppNavbar = () => {
   return (
     user &&
     user.twitter && (
-      <Navbar width={{ base: 350 }} p="xs" pr={0}>
+      <Navbar width={{ base: 300 }} p="xs" pr={0}>
         <ScrollArea pr="md">
           <Navbar.Section>
-            <Stack>
+            <Stack style={{ fontSize: 14 }}>
+              {Boolean(Object.keys(filters).length) && (
+                <>
+                  <Title order={4}>Applied Filters</Title>
+                  <FilterChipGroup />
+                  <Divider mt="md" />
+                </>
+              )}
               <Title order={4}>Select Filters</Title>
-              <FilterChipGroup />
-              <Space />
               <UsernameInput direction="followers" label="Follower of" />
               <UsernameInput direction="following" label="Followed by" />
               <NumberRangeInput label="Followers count" metric="followers" />

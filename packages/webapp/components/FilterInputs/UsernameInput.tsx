@@ -84,13 +84,20 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
     <Group noWrap spacing="xs" position="apart">
       <Text>{label}</Text>
       <TextInput
-        placeholder="Enter username"
+        style={{ width: 180 }}
         value={username}
         icon={<IconAt size={14} />}
         onChange={(event) => setUsername(event.currentTarget.value)}
         error={!valid}
         rightSection={loading && <Loader size="xs" />}
-        onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
+        onKeyDown={getHotkeyHandler([
+          [
+            "Enter",
+            () => {
+              if (valid) handleSubmit();
+            },
+          ],
+        ])}
       />
     </Group>
   );

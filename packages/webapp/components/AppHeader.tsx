@@ -40,21 +40,23 @@ export const AppHeader = () => {
         </UnstyledButton>
         <Group>
           {user && (
-            <Menu shadow="md" trigger="hover">
+            <Menu shadow="md">
               <Menu.Target>
-                <Group>
-                  <Avatar src={user.twitter?.profileImageUrl} radius="xl">
-                    {user.email[0].toUpperCase()}
-                  </Avatar>
-                  <div>
-                    <Text size="sm" weight={500}>
-                      @{user.twitter?.username ?? "username"}
-                    </Text>
-                    <Text color="dimmed" size="xs">
-                      {user.email}
-                    </Text>
-                  </div>
-                </Group>
+                <UnstyledButton>
+                  <Group>
+                    <Avatar src={user.twitter?.profileImageUrl} radius="xl">
+                      {user.email[0].toUpperCase()}
+                    </Avatar>
+                    <div>
+                      <Text size="sm" weight={500}>
+                        @{user.twitter?.username ?? "username"}
+                      </Text>
+                      <Text color="dimmed" size="xs">
+                        {user.email}
+                      </Text>
+                    </div>
+                  </Group>
+                </UnstyledButton>
               </Menu.Target>
 
               <Menu.Dropdown>

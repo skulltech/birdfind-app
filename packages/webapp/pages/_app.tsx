@@ -47,7 +47,6 @@ export default function App({
           <NotificationsProvider position="top-right">
             <TwipsProvider supabase={supabase}>
               <AppShell
-                padding="md"
                 navbar={<AppNavbar />}
                 header={<AppHeader />}
                 styles={(theme) => ({

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { searchTwitterProfiles, TwitterProfile } from "@twips/lib";
-import { Skeleton } from "@mantine/core";
+import { Container, Skeleton } from "@mantine/core";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useTwips } from "../components/TwipsProvider";
@@ -14,7 +14,6 @@ const Home = () => {
 
   useEffect(() => {
     const handleSearch = async () => {
-      console.log("searching");
       setSearchLoading(true);
       try {
         const users = await searchTwitterProfiles(supabase, filters);
