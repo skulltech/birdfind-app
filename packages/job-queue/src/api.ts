@@ -2,6 +2,7 @@ import Fastify, { FastifyInstance, RouteShorthandOptions } from "fastify";
 import { addUpdateNetworkJob } from "./workers/update-network/common";
 import { AddressInfo } from "net";
 import * as dotenv from "dotenv";
+import { Relation, relations } from "@twips/lib";
 dotenv.config();
 
 const server: FastifyInstance = Fastify({});
@@ -9,7 +10,7 @@ const server: FastifyInstance = Fastify({});
 interface QueryString {
   key: string;
   userId: BigInt;
-  direction: "followers" | "following";
+  relation: Relation;
 }
 
 const opts: RouteShorthandOptions = {
@@ -19,9 +20,12 @@ const opts: RouteShorthandOptions = {
       properties: {
         userId: { type: "string" },
         key: { type: "string" },
-        direction: { type: "string", enum: ["followers", "following"] },
+        relation: {
+          type: "string",
+          enum: relations,
+        },
       },
-      required: ["userId", "key", "direction"],
+      required: ["userId", "key", "relation"],
     },
     response: {
       200: {
@@ -50,8 +54,8 @@ server.get<{ Querystring: QueryString }>(
       return { message: "Not authenticated" };
     }
 
-    const { direction, userId } = request.query;
-    const jobId = await addUpdateNetworkJob({ direction, userId });
+    const { relation, userId } = request.query;
+    const jobId = await addUpdateNetworkJob({ relation, userId });
 
     return {
       message: "Successfully added job to queue",

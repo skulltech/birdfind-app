@@ -1,5 +1,10 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { getTwitterProfile, updateNetwork } from "@twips/lib";
+import {
+  getTwitterProfile,
+  Relation,
+  relations,
+  updateNetwork,
+} from "@twips/lib";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { isBigIntish } from "../../../utils/helpers";
@@ -20,9 +25,6 @@ type SuccessData = {
   fetched: boolean;
 };
 
-const directions = ["followers", "following"] as const;
-type Direction = typeof directions[number];
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<SuccessData | ErrorData>
@@ -32,7 +34,7 @@ export default async function handler(
     res,
   });
 
-  const { userId, direction } = req.query;
+  const { userId, relation } = req.query;
 
   // Validate params
   if (!userId || typeof userId != "string" || !isBigIntish(userId))
@@ -40,9 +42,9 @@ export default async function handler(
       error: "UserId param is not provided or invalid",
     });
   if (
-    !direction ||
-    typeof direction != "string" ||
-    !directions.includes(direction as Direction)
+    !relation ||
+    typeof relation != "string" ||
+    !relations.includes(relation as Relation)
   )
     return res.status(400).json({
       error: "Direction param is not provided or invalid",

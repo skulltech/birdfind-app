@@ -31,7 +31,7 @@ const main = async () => {
     userId: BigInt("1575106696334413825"),
     supabase,
     twitter,
-    direction: "followers",
+    relation: "blocking",
   });
   console.log(result);
 };

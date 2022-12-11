@@ -2,10 +2,12 @@
   "name": "@twips/job-queue",
   "version": "1.0.0",
   "scripts": {
-    "start": "parallel --ungroup ::: 'yarn workers:update-followers' 'yarn workers:update-following' 'yarn api'",
+    "start": "parallel --ungroup ::: 'yarn workers:update-network:followers' 'yarn workers:update-network:following' 'yarn workers:update-network:blocking' 'yarn workers:update-network:muting' 'yarn api'",
     "api": "ts-node src/api.ts",
-    "workers:update-following": "ts-node src/workers/update-network/following.ts",
-    "workers:update-followers": "ts-node src/workers/update-network/followers.ts"
+    "workers:update-network:following": "ts-node src/workers/update-network/following.ts",
+    "workers:update-network:followers": "ts-node src/workers/update-network/followers.ts",
+    "workers:update-network:blocking": "ts-node src/workers/update-network/blocking.ts",
+    "workers:update-network:muting": "ts-node src/workers/update-network/muting.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",

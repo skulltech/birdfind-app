@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { updateNetwork, UpdateNetworkResult } from "@twips/lib";
+import { Relation, updateNetwork, UpdateNetworkResult } from "@twips/lib";
 import { Queue, Worker } from "bullmq";
 import { Client } from "twitter-api-sdk";
 import * as dotenv from "dotenv";
@@ -21,11 +21,11 @@ const redisConnection = {
 // 2 seconds
 const bufferMs = 2 * 1000;
 
-export const getUpdateNetworkWorker = (
-  direction: "followers" | "following"
-) => {
-  const queueName =
-    direction == "followers" ? "update-followers" : "update-following";
+const getQueueName = (relation: Relation) => `update-network::${relation}`;
+
+export const getUpdateNetworkWorker = (relation: Relation) => {
+  const queueName = getQueueName(relation);
+
   const worker = new Worker<UpdateNetworkJobInput, UpdateNetworkResult>(
     queueName,
     async (job) => {
@@ -36,7 +36,7 @@ export const getUpdateNetworkWorker = (
       const twitter = new Client(process.env.TWITTER_BEARER_TOKEN);
       const updateNetworkResult = await updateNetwork({
         userId: job.data.userId,
-        direction,
+        relation,
         supabase,
         twitter,
       });
@@ -45,7 +45,7 @@ export const getUpdateNetworkWorker = (
       if (rateLimitResetsAt !== undefined) {
         const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
         await addUpdateNetworkJob({
-          direction,
+          relation,
           delay,
           paginationToken,
           userId: job.data.userId,
@@ -86,7 +86,7 @@ export const getUpdateNetworkWorker = (
 };
 
 export type AddUpdateNetworkJob = {
-  direction: "followers" | "following";
+  relation: Relation;
   userId: BigInt;
   delay?: number;
   buffer?: number;
@@ -94,20 +94,19 @@ export type AddUpdateNetworkJob = {
 };
 
 export const addUpdateNetworkJob = async ({
-  direction,
+  relation,
   delay,
   paginationToken,
   userId,
 }: AddUpdateNetworkJob) => {
-  const queueName =
-    direction == "followers" ? "update-followers" : "update-following";
+  const queueName = getQueueName(relation);
   const queue = new Queue<UpdateNetworkJobInput, UpdateNetworkResult>(
     queueName,
     { connection: redisConnection }
   );
 
   const job = await queue.add(
-    `Update ${direction} of user ${userId}`,
+    `Update ${relation} of user ${userId}`,
     { userId, paginationToken },
     {
       delay,

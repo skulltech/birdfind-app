@@ -1,4 +1,4 @@
-import { parseTwitterProfiles, TwitterProfile } from "@twips/lib";
+import { parseTwitterProfiles, Relation, TwitterProfile } from "@twips/lib";
 import axios from "axios";
 
 export const lookupTwips = async (
@@ -17,10 +17,10 @@ export const lookupTwips = async (
 
 export const updateTwips = async (
   userId: BigInt,
-  direction: "followers" | "following"
+  relation: Relation
 ): Promise<boolean> => {
   const response = await axios.get("/api/twips/update", {
-    params: { userId: userId.toString(), direction },
+    params: { userId: userId.toString(), relation },
   });
   return response.data.fetched;
 };

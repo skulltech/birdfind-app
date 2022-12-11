@@ -1,5 +1,13 @@
 import { findUserByUsername, TwitterParams } from "twitter-api-sdk/dist/types";
 
+export const relations = [
+  "followers",
+  "following",
+  "blocking",
+  "muting",
+] as const;
+export type Relation = typeof relations[number];
+
 export type Filters = {
   followedBy?: string[];
   followerOf?: string[];

@@ -64,14 +64,13 @@ create policy "Twitter profiles are viewable by authenticated users."
     to authenticated
     using (true);
 
-
 create table if not exists twitter_follow (
     created_at timestamp with time zone default now() not null,
     updated_at timestamp with time zone default now() not null,
-    follower_id bigint not null,
-    following_id bigint not null,
+    source_id bigint not null,
+    target_id bigint not null,
 
-    primary key (follower_id, following_id)
+    primary key (source_id, target_id)
 );
 
 alter table twitter_follow enable row level security;
@@ -81,36 +80,62 @@ create policy "Twitter follows are viewable by authenticated users."
     to authenticated
     using (true);
 
+create table if not exists twitter_block (
+    created_at timestamp with time zone default now() not null,
+    updated_at timestamp with time zone default now() not null,
+    source_id bigint not null,
+    target_id bigint not null,
 
-create function search_follow_network
-    (follower_of bigint[], followed_by bigint[])
+    primary key (source_id, target_id)
+);
+
+alter table twitter_block enable row level security;
+
+create policy "Twitter blocks are viewable by only source users."
+    on twitter_block for select
+    to authenticated
+    using (
+      auth.uid() in (
+      select user_profile.id from user_profile
+      where user_profile.twitter_id = twitter_block.source_id
+    ));
+
+
+create table if not exists twitter_mute (
+    created_at timestamp with time zone default now() not null,
+    updated_at timestamp with time zone default now() not null,
+    source_id bigint not null,
+    target_id bigint not null,
+
+    primary key (source_id, target_id)
+);
+
+alter table twitter_mute enable row level security;
+
+create policy "Twitter blocks are viewable by only source users."
+    on twitter_mute for select
+    to authenticated
+    using (
+      auth.uid() in (
+      select user_profile.id from user_profile
+      where user_profile.twitter_id = twitter_mute.source_id
+    ));
+
+create or replace function search_twitter_profiles
+    (follower_of bigint[] default null, followed_by bigint[] default null, muted_by bigint default null, blocked_by bigint default null)
     returns setof twitter_profile as $$
 begin
-    if array_length(follower_of, 1) > 0 and array_length(followed_by, 1) > 0 then
-        return query
-          select * from twitter_profile where id in (
-            select follower_id from twitter_follow group by follower_id
-                having array_agg(following_id) @> follower_of
-            intersect
-            select following_id from twitter_follow group by following_id
-                having array_agg(follower_id) @> followed_by
-          );
-    elseif array_length(follower_of, 1) > 0 then
-        return query
-          select * from twitter_profile where id in (
-            select follower_id from twitter_follow group by follower_id
-                having array_agg(following_id) @> follower_of
-          );
-    elseif array_length(followed_by, 1) > 0 then
-        return query
-          select * from twitter_profile where id in (
-            select following_id from twitter_follow group by following_id
-                having array_agg(follower_id) @> followed_by
-          );
-    end if;
+
+return query select * from twitter_profile where
+    ((follower_of is null) or
+      id in (select source_id from twitter_follow group by source_id
+        having array_agg(target_id) @> follower_of))
+    and
+    ((followed_by is null) or
+      id in (select target_id from twitter_follow group by target_id
+        having array_agg(source_id) @> followed_by));
 end
 $$ language plpgsql;
-
 
 -- inserts a row into public.users
 create function public.handle_new_user()

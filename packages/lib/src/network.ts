@@ -1,12 +1,8 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Client } from "twitter-api-sdk";
-import {
-  TwitterResponse,
-  usersIdFollowers,
-  usersIdFollowing,
-} from "twitter-api-sdk/dist/types";
+import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 import { upsertTwitterProfiles } from "./profiles";
-import { twitterUserFields } from "./utils";
+import { Relation, twitterUserFields } from "./utils";
 
 const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
   const dedupedUsers = new Set<string>();
@@ -20,7 +16,7 @@ const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
 
 export type UpdateNetworkArgs = {
   userId: BigInt;
-  direction: "followers" | "following";
+  relation: Relation;
   supabase: SupabaseClient;
   twitter: Client;
   paginationToken?: string;
@@ -32,18 +28,73 @@ export type UpdateNetworkResult = {
   rateLimitResetsAt?: Date;
 };
 
+type Params = {
+  table: string;
+  updatedAtColumn: string;
+  getTwitterMethod: (twitter: Client) => any;
+  getRow: (
+    sourceId: BigInt,
+    targetId: string
+  ) => { source_id: string; target_id: string };
+};
+
+const params: Record<Relation, Params> = {
+  followers: {
+    table: "twitter_follow",
+    updatedAtColumn: "followers_updated_at",
+    getTwitterMethod: (twitter) => twitter.users.usersIdFollowers,
+    getRow: (sourceId: BigInt, targetId: string) => {
+      return {
+        source_id: targetId,
+        target_id: sourceId.toString(),
+      };
+    },
+  },
+  following: {
+    table: "twitter_follow",
+    updatedAtColumn: "following_updated_at",
+    getTwitterMethod: (twitter) => twitter.users.usersIdFollowing,
+    getRow: (sourceId: BigInt, targetId: string) => {
+      return {
+        source_id: sourceId.toString(),
+        target_id: targetId,
+      };
+    },
+  },
+  blocking: {
+    table: "twitter_block",
+    updatedAtColumn: "blocking_updated_at",
+    getTwitterMethod: (twitter) => twitter.users.usersIdBlocking,
+    getRow: (sourceId: BigInt, targetId: string) => {
+      return {
+        source_id: sourceId.toString(),
+        target_id: targetId,
+      };
+    },
+  },
+  muting: {
+    table: "twitter_mute",
+    updatedAtColumn: "muting_updated_at",
+    getTwitterMethod: (twitter) => twitter.users.usersIdMuting,
+    getRow: (sourceId: BigInt, targetId: string) => {
+      return {
+        source_id: sourceId.toString(),
+        target_id: targetId,
+      };
+    },
+  },
+};
+
 export const updateNetwork = async ({
   userId,
-  direction,
+  relation,
   supabase,
   twitter,
   paginationToken,
 }: UpdateNetworkArgs): Promise<UpdateNetworkResult> => {
-  const response = (
-    direction == "followers"
-      ? twitter.users.usersIdFollowers
-      : twitter.users.usersIdFollowing
-  )(
+  const { table, updatedAtColumn, getTwitterMethod, getRow } = params[relation];
+
+  const response = getTwitterMethod(twitter)(
     userId.toString(),
     {
       max_results: 1000,
@@ -53,13 +104,11 @@ export const updateNetwork = async ({
   );
 
   // Loop through paginated response and get all users
-  const users: TwitterResponse<
-    typeof direction extends "followers" ? usersIdFollowers : usersIdFollowing
-  >["data"] = [];
+  const users: TwitterResponse<usersIdFollowers>["data"] = [];
   let rateLimitResetsAt: Date;
   try {
     for await (const page of response) {
-      console.log(`Fetching ${direction} of user ${userId}`);
+      console.log(`Fetching ${relation} of user ${userId}`);
       users.push(...page.data);
       paginationToken = page.meta.next_token;
     }
@@ -79,23 +128,14 @@ export const updateNetwork = async ({
   await upsertTwitterProfiles(supabase, dedupedUsers);
 
   // Upsert relations to database
-  const { error: insertEdgesError } = await supabase
-    .from("twitter_follow")
-    .upsert(
-      dedupedUsers.map((x) => {
-        return direction == "followers"
-          ? {
-              follower_id: x.id,
-              following_id: userId.toString(),
-              updated_at: new Date().toISOString(),
-            }
-          : {
-              follower_id: userId.toString(),
-              following_id: x.id,
-              updated_at: new Date().toISOString(),
-            };
-      })
-    );
+  const { error: insertEdgesError } = await supabase.from(table).upsert(
+    dedupedUsers.map((x) => {
+      return {
+        ...getRow(userId, x.id),
+        updated_at: new Date().toISOString(),
+      };
+    })
+  );
   if (insertEdgesError) throw insertEdgesError;
 
   // If no more pagination remaining, and if not rate-limited
@@ -103,11 +143,7 @@ export const updateNetwork = async ({
     // Upsert user's followersUpdatedAt field in database
     const { error: updateUserError } = await supabase
       .from("twitter_profile")
-      .update({
-        [direction == "followers"
-          ? "followers_updated_at"
-          : "following_updated_at"]: new Date().toISOString(),
-      })
+      .update({ [updatedAtColumn]: new Date().toISOString() })
       .eq("id", userId.toString());
     if (updateUserError) throw updateUserError;
   }

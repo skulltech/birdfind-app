@@ -153,7 +153,11 @@ export const searchTwitterProfiles = async (
   };
 
   for (const [key, value] of Object.entries(otherFilters))
-    query = appendFilterFunctions[key](query, value);
+    try {
+      query = appendFilterFunctions[key](query, value);
+    } catch (error) {
+      console.log(error);
+    }
 
   const { data, error } = await query;
   if (error) throw error;
