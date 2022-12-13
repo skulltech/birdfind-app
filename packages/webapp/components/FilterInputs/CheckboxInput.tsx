@@ -11,6 +11,7 @@ export const CheckboxInput = ({ label, action }: CheckboxInputProps) => {
   const [checked, setChecked] = useState(false);
   const { user, addFilters } = useTwips();
 
+  // add and remove filter on check and uncheck
   useEffect(() => {
     if (action == "block")
       addFilters({ blockedBy: checked ? user.twitter.username : null });

@@ -125,7 +125,6 @@ create or replace function search_twitter_profiles
     (follower_of bigint[] default null, followed_by bigint[] default null, muted_by bigint default null, blocked_by bigint default null)
     returns setof twitter_profile as $$
 begin
-
 return query select * from twitter_profile where
     ((follower_of is null) or
       id in (select source_id from twitter_follow group by source_id

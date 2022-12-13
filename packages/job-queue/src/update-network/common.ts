@@ -1,6 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
 import {
-  addUpdateNetworkJob,
   getQueueName,
   getTwitterClient,
   Relation,
@@ -8,7 +7,7 @@ import {
   UpdateNetworkJobInput,
   UpdateNetworkResult,
 } from "@twips/lib";
-import { Worker } from "bullmq";
+import { ConnectionOptions, Queue, Worker } from "bullmq";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -39,23 +38,26 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
         process.env.SUPABASE_SERVICE_ROLE_KEY
       );
 
-      const { userId } = job.data;
+      const { userId, signedInUserId } = job.data;
 
       // Get user's oauth token from Supabase
       const { data, error } = await supabase
         .from("user_profile")
         .select("twitter_oauth_token")
-        .eq("id", userId);
+        .eq("id", signedInUserId);
       if (error) throw error;
       if (!data.length) throw Error("User not found");
       const oauthToken = data[0].twitter_oauth_token;
 
-      const twitter = getTwitterClient({
+      // Get twitter client of user
+      const twitter = await getTwitterClient({
         ...twitterSecrets,
         supabase,
-        userId,
+        userId: signedInUserId,
         oauthToken,
       });
+
+      // Update network
       const updateNetworkResult = await updateNetwork({
         userId: job.data.userId,
         relation,
@@ -64,6 +66,7 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
       });
       const { rateLimitResetsAt, paginationToken } = updateNetworkResult;
 
+      // If it got rate limited, schedule another job
       if (rateLimitResetsAt !== undefined) {
         const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
         await addUpdateNetworkJob({
@@ -71,11 +74,13 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
           relation,
           delay,
           paginationToken,
-          userId: job.data.userId,
+          userId,
+          signedInUserId,
         });
       }
       return updateNetworkResult;
-    }
+    },
+    { connection }
   );
 
   worker.on("completed", (job) => {
@@ -85,9 +90,7 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
         (job.returnvalue.rateLimitResetsAt.getTime() - Date.now()) /
         (1000 * 60);
       console.log(
-        `${queueName}: ${job.id} has completed! Updated ${
-          job.returnvalue.updatedCount
-        } users.${
+        `${queueName}: ${job.id} has completed! Updated ${updatedCount} users.${
           job.returnvalue.rateLimitResetsAt
             ? ` Scheduled another job after ${delayMinutes} minutes to get around rate limit.`
             : ""
@@ -95,7 +98,7 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
       );
     } else {
       console.log(
-        `${queueName}: ${job.id} has completed! Updated ${job.returnvalue.updatedCount} users.`
+        `${queueName}: ${job.id} has completed! Updated ${updatedCount} users.`
       );
     }
   });
@@ -105,4 +108,38 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
   });
 
   return worker;
+};
+
+export interface AddUpdateNetworkJobArgs extends UpdateNetworkJobInput {
+  connection: ConnectionOptions;
+  relation: Relation;
+  delay?: number;
+  buffer?: number;
+}
+
+export const addUpdateNetworkJob = async ({
+  connection,
+  relation,
+  delay,
+  paginationToken,
+  signedInUserId,
+  userId,
+}: AddUpdateNetworkJobArgs) => {
+  const queue = new Queue<UpdateNetworkJobInput, UpdateNetworkResult>(
+    getQueueName(relation),
+    { connection }
+  );
+
+  const job = await queue.add(
+    `Update ${relation} of user ${userId}`,
+    { signedInUserId, userId, paginationToken },
+    {
+      delay,
+      jobId: `${userId}::${paginationToken ?? null}`,
+      removeOnComplete: true,
+      removeOnFail: true,
+    }
+  );
+
+  return job.id;
 };

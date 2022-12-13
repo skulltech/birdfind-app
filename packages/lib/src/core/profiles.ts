@@ -124,12 +124,17 @@ export const searchTwitterProfiles = async (
   supabase: SupabaseClient,
   filters: Filters
 ): Promise<TwitterProfile[]> => {
-  const { followerOf, followedBy, ...otherFilters } = filters;
+  const { followerOf, followedBy, blockedBy, mutedBy, ...otherFilters } =
+    filters;
 
   let query = supabase
-    .rpc("search_follow_network", {
-      follower_of: followerOf ? await getTwitterIds(supabase, followerOf) : [],
-      followed_by: followedBy ? await getTwitterIds(supabase, followedBy) : [],
+    .rpc("search_twitter_profiles", {
+      follower_of: followerOf
+        ? await getTwitterIds(supabase, followerOf)
+        : null,
+      followed_by: followedBy
+        ? await getTwitterIds(supabase, followedBy)
+        : null,
     })
     .select(twitterProfileFields.join(","));
 
