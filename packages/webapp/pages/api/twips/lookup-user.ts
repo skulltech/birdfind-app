@@ -1,11 +1,20 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { TwitterProfile, upsertTwitterProfiles } from "@twips/lib";
+import {
+  getTwitterClient,
+  TwitterProfile,
+  upsertTwitterProfiles,
+} from "@twips/lib";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   getServiceRoleSupabase,
   getUserDetails,
 } from "../../../utils/supabase";
-import { getTwitterClient, getTwitterUser } from "../../../utils/twitter";
+import { getTwitterUser, twitterSecrets } from "../../../utils/twitter";
+import { z } from "zod";
+
+const schema = z.object({
+  username: z.string(),
+});
 
 type ErrorData = {
   error?: string;
@@ -19,25 +28,24 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<SuccessData | ErrorData>
 ) {
+  // Schema validation
+  const parsedQuery = schema.safeParse(req.query);
+  if (!parsedQuery.success)
+    return res.status(400).send({ error: "Bad request params" });
+  const { username } = parsedQuery.data;
+
   const supabase = createServerSupabaseClient({
     req,
     res,
   });
 
-  const { username } = req.query;
-  if (!username || typeof username != "string") {
-    res
-      .status(400)
-      .json({ error: "Username param is invalid or not provided" });
-    return;
-  }
-
   const userDetails = await getUserDetails(supabase);
-  const twitter = await getTwitterClient(
+  const twitter = await getTwitterClient({
+    ...twitterSecrets,
     supabase,
-    userDetails.id,
-    userDetails.twitter.oauthToken
-  );
+    userId: userDetails.id,
+    oauthToken: userDetails.twitter.oauthToken,
+  });
   const twitterUser = await getTwitterUser(twitter, username);
 
   if (!twitterUser) {

@@ -1,8 +1,9 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { getTwitterAuthClient } from "@twips/lib";
 import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { startOauthFlow, updateUserProfile } from "../../../../utils/supabase";
-import { getTwitterAuthClient } from "../../../../utils/twitter";
+import { startOauthFlow } from "../../../../utils/supabase";
+import { twitterSecrets } from "../../../../utils/twitter";
 
 export default async function handler(
   req: NextApiRequest,
@@ -19,7 +20,7 @@ export default async function handler(
   await startOauthFlow(supabase, state, challenge);
 
   // Generate auth URL and redirect
-  const authClient = getTwitterAuthClient();
+  const authClient = getTwitterAuthClient(twitterSecrets);
   const authUrl = authClient.generateAuthURL({
     state,
     code_challenge_method: "plain",

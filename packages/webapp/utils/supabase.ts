@@ -114,18 +114,6 @@ export const completeOauthFlow = async (
   if (addLinkError) throw addLinkError;
 };
 
-export const updateUserProfile = async (
-  supabase: SupabaseClient,
-  userId: string,
-  values: any
-) => {
-  const { error } = await supabase
-    .from("user_profile")
-    .update(values)
-    .eq("id", userId);
-  if (error) throw error;
-};
-
 export const getUserDetails = async (
   supabase: SupabaseClient
 ): Promise<UserDetails> => {

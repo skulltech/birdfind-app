@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { upsertTwitterProfiles } from "@twips/lib";
+import { getTwitterAuthClient, upsertTwitterProfiles } from "@twips/lib";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Client } from "twitter-api-sdk";
 import {
@@ -9,34 +9,44 @@ import {
 } from "../../../../utils/supabase";
 import {
   getSignedInTwitterUser,
-  getTwitterAuthClient,
+  twitterSecrets,
 } from "../../../../utils/twitter";
+import { z } from "zod";
 
-type Data = {
-  message?: string;
+const schema = z.object({
+  code: z.string(),
+  state: z.string(),
+});
+
+type ErrorData = {
+  error?: string;
 };
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ErrorData>
 ) {
+  // Schema validation
+  const parsedQuery = schema.safeParse(req.query);
+  if (!parsedQuery.success)
+    return res.status(400).send({ error: "Bad request params" });
+  const { code, state } = parsedQuery.data;
+
+  // Get user
   const supabase = createServerSupabaseClient({
     req,
     res,
   });
   const userProfile = await getUserProfile(supabase);
-  const { code, state } = req.query;
 
-  // Validations
+  // Check if Oauth flow exists and is valid
   if (!userProfile.twitter_oauth_state)
-    return res.status(500).send({ message: "No existing Oauth flow found" });
-  if (!(code && state && typeof code == "string" && typeof state == "string"))
-    return res.status(500).send({ message: "Incomplete or invalid params" });
+    return res.status(500).send({ error: "No existing Oauth flow found" });
   if (state !== userProfile.twitter_oauth_state.state)
-    return res.status(500).send({ message: "Oauth state is not matching" });
+    return res.status(500).send({ error: "Oauth state is not matching" });
 
   // Prime authClient with oauth state and then get access token
-  const authClient = getTwitterAuthClient();
+  const authClient = getTwitterAuthClient(twitterSecrets);
   authClient.generateAuthURL({
     state,
     code_challenge_method: "plain",

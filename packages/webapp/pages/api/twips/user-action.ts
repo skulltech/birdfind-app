@@ -1,8 +1,7 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
-import { isBigIntish } from "../../../utils/helpers";
 import { getUserDetails } from "../../../utils/supabase";
-import { getTwitterClient } from "../../../utils/twitter";
+import { z } from "zod";
 
 type ErrorData = {
   error?: string;
@@ -16,31 +15,28 @@ const actions = [
   "mute",
   "unmute",
 ] as const;
+
+const schema = z.object({
+  userId: z.bigint(),
+  action: z.enum(actions),
+});
+
 type Action = typeof actions[number];
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ErrorData>
 ) {
+  // Schema validation
+  const parsedQuery = schema.safeParse(req.query);
+  if (!parsedQuery.success)
+    return res.status(400).send({ error: "Bad request params" });
+  const { userId, action } = parsedQuery.data;
+
   const supabase = createServerSupabaseClient({
     req,
     res,
   });
-  const { userId, action } = req.query;
-
-  // Validate params
-  if (!userId || userId != "string" || !isBigIntish(userId))
-    return res.status(400).json({
-      error: "UserId param is not provided or invalid",
-    });
-  if (
-    !action ||
-    typeof action != "string" ||
-    !actions.includes(action as Action)
-  )
-    return res.status(400).json({
-      error: "Action param is not provided or invalid",
-    });
 
   // const serviceRoleSupabase = getServiceRoleSupabase();
   const userDetails = await getUserDetails(supabase);

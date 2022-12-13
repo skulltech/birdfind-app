@@ -47,15 +47,6 @@ export const renderFilter = (filter: FlattenedFilter): string => {
   return renderFunctions[filter[0]](filter[1]);
 };
 
-export const isBigIntish = (arg: string) => {
-  try {
-    BigInt(arg);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
 export interface FilterInputProps {
   label: string;
 }

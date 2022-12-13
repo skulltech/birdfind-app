@@ -1,27 +1,32 @@
 import { createClient } from "@supabase/supabase-js";
-import { Relation, updateNetwork, UpdateNetworkResult } from "@twips/lib";
-import { Queue, Worker } from "bullmq";
-import { Client } from "twitter-api-sdk";
+import {
+  addUpdateNetworkJob,
+  getQueueName,
+  getTwitterClient,
+  Relation,
+  updateNetwork,
+  UpdateNetworkJobInput,
+  UpdateNetworkResult,
+} from "@twips/lib";
+import { Worker } from "bullmq";
 import * as dotenv from "dotenv";
 dotenv.config();
 
 // To suppress warnings
 process.removeAllListeners("warning");
 
-export interface UpdateNetworkJobInput {
-  userId: BigInt;
-  paginationToken?: string;
-}
+const connection = {
+  host: process.env.REDIS_HOST,
+  port: parseInt(process.env.REDIS_PORT),
+};
 
-const redisConnection = {
-  host: "localhost",
-  port: 6379,
+const twitterSecrets = {
+  clientId: process.env.TWITTER_CLIENT_ID,
+  clientSecret: process.env.TWITTER_CLIENT_SECRET,
 };
 
 // 2 seconds
 const bufferMs = 2 * 1000;
-
-const getQueueName = (relation: Relation) => `update-network::${relation}`;
 
 export const getUpdateNetworkWorker = (relation: Relation) => {
   const queueName = getQueueName(relation);
@@ -33,7 +38,24 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
         process.env.SUPABASE_API_URL,
         process.env.SUPABASE_SERVICE_ROLE_KEY
       );
-      const twitter = new Client(process.env.TWITTER_BEARER_TOKEN);
+
+      const { userId } = job.data;
+
+      // Get user's oauth token from Supabase
+      const { data, error } = await supabase
+        .from("user_profile")
+        .select("twitter_oauth_token")
+        .eq("id", userId);
+      if (error) throw error;
+      if (!data.length) throw Error("User not found");
+      const oauthToken = data[0].twitter_oauth_token;
+
+      const twitter = getTwitterClient({
+        ...twitterSecrets,
+        supabase,
+        userId,
+        oauthToken,
+      });
       const updateNetworkResult = await updateNetwork({
         userId: job.data.userId,
         relation,
@@ -45,6 +67,7 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
       if (rateLimitResetsAt !== undefined) {
         const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
         await addUpdateNetworkJob({
+          connection,
           relation,
           delay,
           paginationToken,
@@ -52,8 +75,7 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
         });
       }
       return updateNetworkResult;
-    },
-    { connection: redisConnection }
+    }
   );
 
   worker.on("completed", (job) => {
@@ -83,38 +105,4 @@ export const getUpdateNetworkWorker = (relation: Relation) => {
   });
 
   return worker;
-};
-
-export type AddUpdateNetworkJob = {
-  relation: Relation;
-  userId: BigInt;
-  delay?: number;
-  buffer?: number;
-  paginationToken?: string;
-};
-
-export const addUpdateNetworkJob = async ({
-  relation,
-  delay,
-  paginationToken,
-  userId,
-}: AddUpdateNetworkJob) => {
-  const queueName = getQueueName(relation);
-  const queue = new Queue<UpdateNetworkJobInput, UpdateNetworkResult>(
-    queueName,
-    { connection: redisConnection }
-  );
-
-  const job = await queue.add(
-    `Update ${relation} of user ${userId}`,
-    { userId, paginationToken },
-    {
-      delay,
-      jobId: `${userId}::${paginationToken ?? null}`,
-      removeOnComplete: true,
-      removeOnFail: true,
-    }
-  );
-
-  return job.id;
 };
