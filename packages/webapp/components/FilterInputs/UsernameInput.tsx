@@ -65,6 +65,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
     addFilters({
       [direction == "followers" ? "followerOf" : "followedBy"]: [username],
     });
+    setUsername("");
   };
 
   // Regex check if the username is valid

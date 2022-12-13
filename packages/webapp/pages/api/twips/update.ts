@@ -52,7 +52,7 @@ export default async function handler(
 
   const profile = getTwitterProfile(supabase, userId);
   if (
-    profile[direction == "followers" ? "followersCount" : "followingCount"] <
+    profile[relation == "followers" ? "followersCount" : "followingCount"] <
     fetchNumDirectly
   ) {
     const serviceRoleSupabase = getServiceRoleSupabase();
@@ -64,7 +64,7 @@ export default async function handler(
     );
     const { rateLimitResetsAt } = await updateNetwork({
       userId: BigInt(userId),
-      direction: direction as Direction,
+      relation: relation as Relation,
       supabase: serviceRoleSupabase,
       twitter,
     });
@@ -77,7 +77,7 @@ export default async function handler(
   const response = await axios.get(
     `${process.env.JOB_QUEUE_API_URL}/network/update`,
     {
-      params: { userId, direction, key: process.env.JOB_QUEUE_API_KEY },
+      params: { userId, relation, key: process.env.JOB_QUEUE_API_KEY },
     }
   );
   if (response.status != 200) throw Error(response.data.message);
