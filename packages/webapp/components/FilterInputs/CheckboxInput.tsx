@@ -1,7 +1,6 @@
-import { Checkbox, Loader } from "@mantine/core";
+import { Checkbox } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { FilterInputProps } from "../../utils/helpers";
-import { updateTwips } from "../../utils/twips";
 import { useTwips } from "../TwipsProvider";
 
 interface CheckboxInputProps extends FilterInputProps {
@@ -10,19 +9,30 @@ interface CheckboxInputProps extends FilterInputProps {
 
 export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   const [checked, setChecked] = useState(false);
-  const { addFilters } = useTwips();
+  const { filters, addFilters, removeFilters } = useTwips();
 
-  // add and remove filter on check and uncheck
+  const addFilter = () => {
+    if (relation == "blocking") addFilters({ blockedByUser: true });
+    else addFilters({ mutedByUser: true });
+  };
+
+  const removeFilter = () => {
+    if (relation == "blocking") removeFilters({ blockedByUser: true });
+    else removeFilters({ mutedByUser: true });
+  };
+
   useEffect(() => {
-    if (relation == "blocking") addFilters({ blockedByUser: checked });
-    else addFilters({ mutedByUser: checked });
-  }, [checked]);
+    if (relation == "blocking") setChecked(filters.blockedByUser ?? false);
+    else setChecked(filters.mutedByUser ?? false);
+  }, [filters]);
 
   return (
     <Checkbox
       label={label}
       checked={checked}
-      onChange={(event) => setChecked(event.currentTarget.checked)}
+      onChange={(event) =>
+        event.currentTarget.checked ? addFilter() : removeFilter()
+      }
     />
   );
 };
