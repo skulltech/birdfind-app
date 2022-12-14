@@ -1,7 +1,7 @@
 import { Stack } from "@mantine/core";
-import { Filters } from "@twips/lib";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import { Filters } from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
 import { FilterChip } from "./FilterChip";
 
@@ -94,8 +94,8 @@ export const FilterChipGroup = (props) => {
       tweetCountLessThan,
       createdAfter,
       createdBefore,
-      mutedBy,
-      blockedBy,
+      mutedByUser,
+      blockedByUser,
     } = filters;
 
     followedBy?.forEach((x) => {
@@ -111,7 +111,7 @@ export const FilterChipGroup = (props) => {
       });
     });
 
-    let chip;
+    let chip: Chip;
 
     chip = renderNumberRangeFilter({
       min: { followersCountGreaterThan },
@@ -143,16 +143,16 @@ export const FilterChipGroup = (props) => {
 
     setChips(chips);
 
-    if (mutedBy)
+    if (mutedByUser)
       chips.push({
         label: "Muted by you",
-        filtersToRemove: { mutedBy },
+        filtersToRemove: { mutedByUser },
       });
 
-    if (blockedBy)
+    if (blockedByUser)
       chips.push({
         label: "Blocked by you",
-        filtersToRemove: { blockedBy },
+        filtersToRemove: { blockedByUser },
       });
   }, [filters]);
 

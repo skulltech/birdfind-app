@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getUserDetails } from "../../../utils/supabase";
 import { z } from "zod";
+import { getTwitterClient } from "@twips/lib";
 
 type ErrorData = {
   error?: string;

@@ -1,31 +1,20 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import {
+  Relation,
+  twitterUserFields,
+  UpdateRelationResult,
+  upsertTwitterProfiles,
+} from "@twips/lib";
 import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
-import { upsertTwitterProfiles } from "./profiles";
-import { Relation, twitterUserFields } from "./utils";
+import { dedupeUsers } from "./utils";
 
-const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
-  const dedupedUsers = new Set<string>();
-
-  return arr.filter((x) => {
-    if (dedupedUsers.has(x.id)) return false;
-    dedupedUsers.add(x.id);
-    return true;
-  });
-};
-
-export type UpdateNetworkArgs = {
+export type UpdateRelationArgs = {
   userId: BigInt;
   relation: Relation;
   supabase: SupabaseClient;
   twitter: Client;
   paginationToken?: string;
-};
-
-export type UpdateNetworkResult = {
-  updatedCount: number;
-  paginationToken?: string;
-  rateLimitResetsAt?: Date;
 };
 
 type Params = {
@@ -85,13 +74,13 @@ const params: Record<Relation, Params> = {
   },
 };
 
-export const updateNetwork = async ({
+export const updateRelation = async ({
   userId,
   relation,
   supabase,
   twitter,
   paginationToken,
-}: UpdateNetworkArgs): Promise<UpdateNetworkResult> => {
+}: UpdateRelationArgs): Promise<UpdateRelationResult> => {
   const { table, updatedAtColumn, getTwitterMethod, getRow } = params[relation];
 
   const response = getTwitterMethod(twitter)(
@@ -108,7 +97,6 @@ export const updateNetwork = async ({
   let rateLimitResetsAt: Date;
   try {
     for await (const page of response) {
-      console.log(`Fetching ${relation} of user ${userId}`);
       users.push(...page.data);
       paginationToken = page.meta.next_token;
     }

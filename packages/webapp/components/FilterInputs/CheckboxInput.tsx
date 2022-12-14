@@ -1,21 +1,21 @@
-import { Checkbox } from "@mantine/core";
+import { Checkbox, Loader } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { FilterInputProps } from "../../utils/helpers";
+import { updateTwips } from "../../utils/twips";
 import { useTwips } from "../TwipsProvider";
 
 interface CheckboxInputProps extends FilterInputProps {
-  action: "block" | "mute";
+  relation: "blocking" | "muting";
 }
 
-export const CheckboxInput = ({ label, action }: CheckboxInputProps) => {
+export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   const [checked, setChecked] = useState(false);
-  const { user, addFilters } = useTwips();
+  const { addFilters } = useTwips();
 
   // add and remove filter on check and uncheck
   useEffect(() => {
-    if (action == "block")
-      addFilters({ blockedBy: checked ? user.twitter.username : null });
-    else addFilters({ mutedBy: checked ? user.twitter.username : null });
+    if (relation == "blocking") addFilters({ blockedByUser: checked });
+    else addFilters({ mutedByUser: checked });
   }, [checked]);
 
   return (

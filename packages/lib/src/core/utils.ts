@@ -8,9 +8,9 @@ export const relations = [
 ] as const;
 export type Relation = typeof relations[number];
 
-export type Filters = {
-  followedBy?: string[];
-  followerOf?: string[];
+export type SupabaseFilters = {
+  followedBy?: BigInt[];
+  followerOf?: BigInt[];
   followersCountLessThan?: number;
   followersCountGreaterThan?: number;
   followingCountLessThan?: number;
@@ -19,8 +19,8 @@ export type Filters = {
   tweetCountGreaterThan?: number;
   createdBefore?: Date;
   createdAfter?: Date;
-  blockedBy?: string;
-  mutedBy?: string;
+  blockedBy?: BigInt[];
+  mutedBy?: BigInt[];
 };
 
 export type TwitterProfile = {

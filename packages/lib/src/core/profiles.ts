@@ -1,5 +1,5 @@
 import { camelCase } from "lodash";
-import { Filters, TwitterProfile } from "./utils";
+import { SupabaseFilters, TwitterProfile } from "./utils";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   findUserByUsername,
@@ -106,35 +106,19 @@ export const upsertTwitterProfiles = async (
   return parseTwitterProfiles(data);
 };
 
-const getTwitterIds = async (
-  supabase: SupabaseClient,
-  usernames: string[]
-): Promise<string[]> => {
-  const { data, error } = await supabase
-    .from("twitter_profile")
-    .select("id::text")
-    .in("username", usernames);
-  if (error) throw error;
-
-  // @ts-ignore
-  return data.map((x) => x.id);
-};
-
 export const searchTwitterProfiles = async (
   supabase: SupabaseClient,
-  filters: Filters
+  filters: SupabaseFilters
 ): Promise<TwitterProfile[]> => {
   const { followerOf, followedBy, blockedBy, mutedBy, ...otherFilters } =
     filters;
 
   let query = supabase
     .rpc("search_twitter_profiles", {
-      follower_of: followerOf
-        ? await getTwitterIds(supabase, followerOf)
-        : null,
-      followed_by: followedBy
-        ? await getTwitterIds(supabase, followedBy)
-        : null,
+      follower_of: followerOf,
+      followed_by: followedBy,
+      blocked_by: blockedBy,
+      muted_by: mutedBy,
     })
     .select(twitterProfileFields.join(","));
 
@@ -158,11 +142,7 @@ export const searchTwitterProfiles = async (
   };
 
   for (const [key, value] of Object.entries(otherFilters))
-    try {
-      query = appendFilterFunctions[key](query, value);
-    } catch (error) {
-      console.log(error);
-    }
+    query = appendFilterFunctions[key](query, value);
 
   const { data, error } = await query;
   if (error) throw error;

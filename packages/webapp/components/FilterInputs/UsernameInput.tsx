@@ -18,7 +18,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   const [username, setUsername] = useState("");
   const [valid, setValid] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { addFilters } = useTwips();
+  const { addFilters, addUserId } = useTwips();
 
   // Lookup user on Twips, if required fetch network or schedule job to do so
   const handleSubmit = async () => {
@@ -26,15 +26,13 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
 
     // Lookup user on Twips
     const user = await lookupTwips(username);
-
-    setLoading(false);
-
     if (!user) {
       showNotification({
         title: "Error",
         message: "User doesn't exist",
         color: "red",
       });
+      setLoading(false);
       return;
     }
 
@@ -45,16 +43,20 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
 
     if (networkUpdatedAt.getTime() === 0) {
       const fetched = await updateTwips(user.id, direction);
-      if (!fetched)
+      if (!fetched) {
         showNotification({
           title: "Sorry",
           message: `We don't have @${username}'s ${direction} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,
           color: "red",
         });
-      return;
+        setLoading(false);
+        return;
+      }
     }
+    setLoading(false);
 
     if (Date.now() - networkUpdatedAt.getTime() > staleCacheTimeout) {
+      console.log(networkUpdatedAt.toLocaleTimeString());
       showNotification({
         title: "Warning",
         message: `@${username}'s ${direction} might be stale. A job has been scheduled to update it.`,
@@ -62,6 +64,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
       });
     }
 
+    addUserId(username, user.id);
     addFilters({
       [direction == "followers" ? "followerOf" : "followedBy"]: [username],
     });

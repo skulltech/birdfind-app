@@ -1,10 +1,14 @@
 import { Relation } from "./core";
 
-export const getQueueName = (relation: Relation) =>
-  "update-network:" + relation;
-
-export type UpdateNetworkJobInput = {
+export type UpdateRelationJobInput = {
   signedInUserId: string;
+  relation: Relation;
   userId: BigInt;
   paginationToken?: string;
+};
+
+export type UpdateRelationResult = {
+  updatedCount: number;
+  paginationToken?: string;
+  rateLimitResetsAt?: Date;
 };

@@ -26,7 +26,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ErrorData>
 ) {
-  // Schema validation
+  // Schema validation and get params
   const parsedQuery = schema.safeParse(req.query);
   if (!parsedQuery.success)
     return res.status(400).send({ error: "Bad request params" });

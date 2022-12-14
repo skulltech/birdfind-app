@@ -2,13 +2,9 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { relations } from "@twips/lib";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
-import {
-  addUpdateNetworkJob,
-  getUpdateNetworkJobStatus,
-} from "../../../utils/job-queue";
+import { queue } from "../../../utils/job-queue";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const retries = 5;
 
 // Custom bigint Zod type
 const bigint = z.string().refine((x) => {
@@ -25,31 +21,22 @@ const schema = z.object({
   relation: z.enum(relations),
 });
 
-const redisConnection = {
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT),
-};
-
 type ErrorData = {
   error?: string;
 };
 
-type SuccessData = {
-  // Whether fetched or scheduled
-  fetched: boolean;
-};
-
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<SuccessData | ErrorData>
+  res: NextApiResponse<null | ErrorData>
 ) {
-  // Schema validation
+  // Schema validation and get params
   const parsedQuery = schema.safeParse(req.query);
   if (!parsedQuery.success)
     return res.status(400).send({ error: "Bad request params" });
+  const { userId: strUserId, relation } = parsedQuery.data;
+  const userId = BigInt(strUserId);
 
-  const { userId, relation } = parsedQuery.data;
-
+  // Get logged in user
   const supabase = createServerSupabaseClient({
     req,
     res,
@@ -58,24 +45,27 @@ export default async function handler(
     data: { user: user },
   } = await supabase.auth.getUser();
 
-  const jobId = await addUpdateNetworkJob({
-    connection: redisConnection,
-    relation,
-    userId: BigInt(userId),
+  // Add job
+  const job = await queue.add(`Update ${relation} of user ${userId}`, {
     signedInUserId: user.id,
+    userId,
+    relation,
   });
 
-  // Check if job is completed in a loop
-  let fetched = false;
-  for (const i of Array(retries)) {
-    const jobStatus = await getUpdateNetworkJobStatus({
-      jobId,
-      connection: redisConnection,
-      relation,
-    });
-    if (jobStatus != "completed") await sleep(1);
-    else fetched = true;
-  }
+  // Check if job is completed or failed in a loop
+  while (true) {
+    const jobState = await job.getState();
 
-  res.status(200).send({ fetched });
+    // Return if failed or completed
+    if (jobState == "failed") {
+      res.status(500).send({ error: "Error while processing job" });
+      return;
+    } else if (jobState == "completed") {
+      res.status(200).send(null);
+      return;
+    }
+
+    // Otherwise wait for a second and go again
+    await sleep(1000);
+  }
 }

@@ -18,10 +18,9 @@ export const updateTwips = async (
   userId: BigInt,
   relation: Relation
 ): Promise<boolean> => {
-  const response = await axios.get("/api/twips/update-network", {
+  const response = await axios.get("/api/twips/update-follow-network", {
     params: { userId, relation },
   });
-  if (response.status != 200) throw Error(response.data.message);
-
-  return response.data.fetched;
+  if (response.status != 200) throw Error(response.data.error);
+  return true;
 };

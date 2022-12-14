@@ -2,16 +2,13 @@
   "name": "@twips/job-queue",
   "version": "1.0.0",
   "scripts": {
-    "start": "parallel --ungroup ::: 'yarn update-network:followers' 'yarn update-network:following' 'yarn update-network:blocking' 'yarn update-network:muting'",
-    "update-network:following": "ts-node src/update-network/following.ts",
-    "update-network:followers": "ts-node src/update-network/followers.ts",
-    "update-network:blocking": "ts-node src/update-network/blocking.ts",
-    "update-network:muting": "ts-node src/update-network/muting.ts"
+    "start": "parallel --ungroup ts-node src/update-relation/worker.ts ::: {1..3}"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",
     "@twips/lib": "^1.0.0",
     "bullmq": "^3.2.4",
+    "bullmq-dashboard-runnable": "^0.0.6",
     "dotenv": "^16.0.3",
     "twitter-api-sdk": "^1.2.1"
   },

@@ -289,7 +289,7 @@ export const UserTable = ({
       <Group position="apart">
         <Group>
           <Text size={14}>
-            {Object.keys(rowSelection).length} users selected
+            {Object.keys(rowSelection).length} of {users.length} users selected
           </Text>
           <ActionButtonGroup userIds={selectedUsers.map((x) => x.id)} />
         </Group>

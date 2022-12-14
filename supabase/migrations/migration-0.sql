@@ -34,6 +34,8 @@ create table if not exists twitter_profile (
     
     followers_updated_at timestamp with time zone default 'epoch' not null,
     following_updated_at timestamp with time zone default 'epoch' not null,
+    muting_updated_at timestamp with time zone default 'epoch' not null,
+    blocking_updated_at timestamp with time zone default 'epoch' not null,
 
     -- All user.fields available, in order as in Twitter docs
     username text not null,
@@ -122,7 +124,7 @@ create policy "Twitter blocks are viewable by only source users."
     ));
 
 create or replace function search_twitter_profiles
-    (follower_of bigint[] default null, followed_by bigint[] default null, muted_by bigint default null, blocked_by bigint default null)
+    (follower_of bigint[] default null, followed_by bigint[] default null, muted_by bigint[] default null, blocked_by bigint[] default null)
     returns setof twitter_profile as $$
 begin
 return query select * from twitter_profile where
@@ -132,7 +134,15 @@ return query select * from twitter_profile where
     and
     ((followed_by is null) or
       id in (select target_id from twitter_follow group by target_id
-        having array_agg(source_id) @> followed_by));
+        having array_agg(source_id) @> followed_by))
+    and
+    ((muted_by is null) or
+      id in (select target_id from twitter_mute group by target_id
+        having array_agg(source_id) @> muted_by))
+    and
+    ((blocked_by is null) or
+      id in (select target_id from twitter_block group by target_id
+        having array_agg(source_id) @> blocked_by));
 end
 $$ language plpgsql;
 
