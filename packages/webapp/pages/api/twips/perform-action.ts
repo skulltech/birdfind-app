@@ -1,6 +1,9 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getUserDetails } from "../../../utils/supabase";
+import {
+  getServiceRoleSupabase,
+  getUserDetails,
+} from "../../../utils/supabase";
 import { z } from "zod";
 import { getTwitterClient } from "@twips/lib";
 import { twitterSecrets } from "../../../utils/twitter";
@@ -40,26 +43,70 @@ export default async function handler(
   });
   const sourceUserId = userDetails.twitter.id.toString();
 
-  const funcs = {
-    follow: () =>
-      twitter.users.usersIdFollow(sourceUserId, {
-        target_user_id: targetUserId,
-      }),
-    unfollow: () => twitter.users.usersIdUnfollow(sourceUserId, targetUserId),
-    block: () =>
-      twitter.users.usersIdBlock(sourceUserId, {
-        target_user_id: targetUserId,
-      }),
-    unblock: () => twitter.users.usersIdUnblock(sourceUserId, targetUserId),
-    mute: () =>
-      twitter.users.usersIdMute(sourceUserId, { target_user_id: targetUserId }),
-    unmute: () => twitter.users.usersIdUnmute(sourceUserId, targetUserId),
+  const params = {
+    follow: {
+      twitterFunction: () =>
+        twitter.users.usersIdFollow(sourceUserId, {
+          target_user_id: targetUserId,
+        }),
+      updateRelationArgs: ["twitter_follow", true] as const,
+    },
+    unfollow: {
+      twitterFunction: () =>
+        twitter.users.usersIdUnfollow(sourceUserId, targetUserId),
+      updateRelationArgs: ["twitter_follow", false] as const,
+    },
+    block: {
+      twitterFunction: () =>
+        twitter.users.usersIdBlock(sourceUserId, {
+          target_user_id: targetUserId,
+        }),
+      updateRelationArgs: ["twitter_block", true] as const,
+    },
+    unblock: {
+      twitterFunction: () =>
+        twitter.users.usersIdUnblock(sourceUserId, targetUserId),
+      updateRelationArgs: ["twitter_block", false] as const,
+    },
+    mute: {
+      twitterFunction: () =>
+        twitter.users.usersIdMute(sourceUserId, {
+          target_user_id: targetUserId,
+        }),
+      updateRelationArgs: ["twitter_mute", true] as const,
+    },
+    unmute: {
+      twitterFunction: () =>
+        twitter.users.usersIdUnmute(sourceUserId, targetUserId),
+      updateRelationArgs: ["twitter_mute", false] as const,
+    },
   };
 
   // Perform action
-  const { errors } = await funcs[action]();
+  const { errors } = await params[action].twitterFunction();
 
   if (errors && errors.length)
     res.status(500).send({ error: errors[0].detail });
-  else res.status(200).send(null);
+  else {
+    // Update relation on Supabase
+    const supabase = getServiceRoleSupabase();
+    const [table, add] = params[action].updateRelationArgs;
+    if (add) {
+      const { error } = await supabase.from(table).upsert({
+        source_id: sourceUserId,
+        target_id: targetUserId,
+        updated_at: Date.now(),
+      });
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq("source_id", sourceUserId)
+        .eq("target_id", targetUserId);
+      if (error) throw error;
+    }
+
+    res.status(200).send(null);
+  }
 }

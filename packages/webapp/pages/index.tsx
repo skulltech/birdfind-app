@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
 import { searchTwitterProfiles, TwitterProfile } from "@twips/lib";
-import { Skeleton } from "@mantine/core";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useTwips } from "../components/TwipsProvider";
 
 const Home = () => {
   const { filters, userIds, user, addFilters } = useTwips();
-  const [searchLoading, setSearchLoading] = useState(false);
   const [users, setUsers] = useState<TwitterProfile[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<TwitterProfile[]>([]);
   const supabase = useSupabaseClient();
@@ -19,7 +17,12 @@ const Home = () => {
 
   useEffect(() => {
     const handleSearch = async () => {
-      setSearchLoading(true);
+      // If no filters, show 0 users
+      if (Object.keys(filters).length == 0) {
+        setUsers([]);
+        return;
+      }
+
       try {
         // Create SupabaseFilters object from Filters object
         const supabaseFilters = {
@@ -42,20 +45,17 @@ const Home = () => {
       } catch (error) {
         console.log(error);
       }
-      setSearchLoading(false);
     };
 
     handleSearch();
   }, [filters, userIds]);
 
   return (
-    <Skeleton visible={searchLoading}>
-      <UserTable
-        users={users}
-        selectedUsers={selectedUsers}
-        setSelectedUsers={setSelectedUsers}
-      />
-    </Skeleton>
+    <UserTable
+      users={users}
+      selectedUsers={selectedUsers}
+      setSelectedUsers={setSelectedUsers}
+    />
   );
 };
 
