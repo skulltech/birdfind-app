@@ -15,7 +15,10 @@ export const getTwitterAuthClient = ({
   new auth.OAuth2User({
     client_id: clientId,
     client_secret: clientSecret,
-    callback: "http://127.0.0.1:3000/api/auth/twitter/callback",
+    callback:
+      process.env.NODE_ENV == "development"
+        ? "http://127.0.0.1:3000/api/auth/twitter/callback"
+        : "https://app.twips.xyz/api/auth/twitter/callback",
     scopes: [
       "users.read",
       "tweet.read",

@@ -83,10 +83,7 @@ const SignIn = () => {
             radius="xl"
             leftIcon={<IconBrandGoogle />}
             onClick={() =>
-              supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: { redirectTo: "http://127.0.0.1:3000" },
-              })
+              supabase.auth.signInWithOAuth({ provider: "google" })
             }
           >
             Google
