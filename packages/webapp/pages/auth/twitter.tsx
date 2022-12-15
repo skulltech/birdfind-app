@@ -23,14 +23,14 @@ const TwitterAuth = () => {
       <Paper withBorder p="lg">
         <Stack>
           <Text>You have to connect to a Twitter account to use Twips.</Text>
-          {user?.twitter_id && (
-            <Text>Currently connected to @{user?.twitter_username}</Text>
+          {user?.twitter && (
+            <Text>Currently connected to @{user?.twitter?.username}</Text>
           )}
           <Button
             onClick={() => router.push("/api/auth/twitter/signin")}
             leftIcon={<IconBrandTwitter />}
           >
-            {user?.twitter_id
+            {user?.twitter
               ? "Connect to a different Twitter account"
               : "Connect Twitter"}
           </Button>

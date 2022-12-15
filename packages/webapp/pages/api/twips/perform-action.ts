@@ -95,7 +95,7 @@ export default async function handler(
       const { error } = await supabase.from(table).upsert({
         source_id: sourceUserId,
         target_id: targetUserId,
-        updated_at: Date.now(),
+        updated_at: new Date().toISOString(),
       });
       if (error) throw error;
     } else {

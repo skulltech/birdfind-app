@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { camelCase } from "lodash";
+import camelCase from "camelcase";
 
 export const getServiceRoleSupabase = () =>
   createClient(

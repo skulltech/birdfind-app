@@ -1,4 +1,4 @@
-import { camelCase } from "lodash";
+import camelCase from "camelcase";
 import { SupabaseFilters, TwitterProfile } from "./utils";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
