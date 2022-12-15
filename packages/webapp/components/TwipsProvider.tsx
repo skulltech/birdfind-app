@@ -1,5 +1,12 @@
+import { SupabaseClient } from "@supabase/supabase-js";
 import axios from "axios";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Filters } from "../utils/helpers";
 import { getUserDetails, UserDetails } from "../utils/supabase";
 
@@ -21,7 +28,12 @@ const TwipsContext = createContext<{
   addUserId: () => {},
 });
 
-export const TwipsProvider = ({ supabase, children }) => {
+interface TwipsProviderProps {
+  supabase: SupabaseClient;
+  children: ReactNode;
+}
+
+export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   const [user, setUser] = useState<UserDetails>(null);
   const [filters, setFilters] = useState<Filters>({});
   const [userIds, setUserIds] = useState<Record<string, BigInt>>({});

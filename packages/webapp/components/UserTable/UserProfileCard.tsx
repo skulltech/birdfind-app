@@ -20,7 +20,7 @@ export const UserProfileCard = ({
 }: UserProfileCardProps) => {
   return (
     <Group>
-      <HoverCard width={400} shadow="md">
+      <HoverCard width={400} shadow="md" position="bottom-start">
         <HoverCard.Target>
           <UnstyledButton
             style={{ fontSize: 14 }}
@@ -45,7 +45,9 @@ export const UserProfileCard = ({
                 >
                   {name}
                 </Text>
-                <Text c="dimmed">@{username}</Text>
+                <Text c="dimmed" size="sm">
+                  @{username}
+                </Text>
               </Stack>
             </Group>
           </UnstyledButton>

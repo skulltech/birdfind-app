@@ -3,15 +3,13 @@ import { ActionIcon, DefaultMantineColor, Tooltip } from "@mantine/core";
 type ActionButtonProps = {
   Icon: any;
   onClick: () => void;
-  disabled: boolean;
   label: string;
-  color: DefaultMantineColor;
+  color?: DefaultMantineColor;
 };
 
 export const ActionButton = ({
   Icon,
   onClick,
-  disabled,
   label,
   color,
 }: ActionButtonProps) => {
@@ -19,11 +17,12 @@ export const ActionButton = ({
     <Tooltip label={label}>
       <ActionIcon
         onClick={onClick}
-        disabled={disabled}
-        variant="outline"
+        variant="subtle"
         color={color}
+        size="md"
+        radius="lg"
       >
-        <Icon size={16} />
+        <Icon size={14} />
       </ActionIcon>
     </Tooltip>
   );
