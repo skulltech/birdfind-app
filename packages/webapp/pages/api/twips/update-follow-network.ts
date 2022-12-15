@@ -2,22 +2,13 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { relations } from "@twips/lib";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
+import { zodBigint } from "../../../utils/helpers";
 import { queue } from "../../../utils/job-queue";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// Custom bigint Zod type
-const bigint = z.string().refine((x) => {
-  try {
-    BigInt(x);
-    return true;
-  } catch (error) {
-    return false;
-  }
-});
-
 const schema = z.object({
-  userId: bigint,
+  userId: zodBigint,
   relation: z.enum(relations),
 });
 
