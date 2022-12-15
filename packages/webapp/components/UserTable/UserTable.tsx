@@ -135,7 +135,7 @@ interface TrProps {
 export const Tr = ({ children, selected, ...others }: TrProps) => {
   const { classes } = useStyles();
   return (
-    <tr className={selected && classes.rowSelected} {...others}>
+    <tr className={selected ? classes.rowSelected : undefined} {...others}>
       {children}
     </tr>
   );

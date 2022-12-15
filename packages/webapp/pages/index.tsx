@@ -6,11 +6,16 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useTwips } from "../components/TwipsProvider";
 
 const Home = () => {
-  const { filters, userIds, user } = useTwips();
+  const { filters, userIds, user, addFilters } = useTwips();
   const [searchLoading, setSearchLoading] = useState(false);
   const [users, setUsers] = useState<TwitterProfile[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<TwitterProfile[]>([]);
   const supabase = useSupabaseClient();
+
+  useEffect(() => {
+    if (user?.twitter?.username)
+      addFilters({ followedBy: [user.twitter.username] });
+  }, [user]);
 
   useEffect(() => {
     const handleSearch = async () => {
@@ -41,7 +46,7 @@ const Home = () => {
     };
 
     handleSearch();
-  }, [filters]);
+  }, [filters, userIds]);
 
   return (
     <Skeleton visible={searchLoading}>
