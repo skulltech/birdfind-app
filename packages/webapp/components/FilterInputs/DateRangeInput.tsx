@@ -20,7 +20,7 @@ export const DateRangeInput = ({ label }: DateRangeInputProps) => {
   return (
     <Stack spacing="xs">
       <Text>{label}</Text>
-      <Group noWrap spacing={8}>
+      <Group noWrap spacing={6}>
         <DatePicker
           maxDate={max(new Date(), maxDate)}
           value={minDate}

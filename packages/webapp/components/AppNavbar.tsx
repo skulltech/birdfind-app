@@ -25,8 +25,10 @@ export const AppNavbar = ({ ...props }) => {
               )}
               <Title order={4}>Select Filters</Title>
 
-              <CheckboxInput label="Blocked by you" relation="blocking" />
-              <CheckboxInput label="Muted by you" relation="muting" />
+              <CheckboxInput label="Blocked by you" relation="blocked" />
+              <CheckboxInput label="Muted by you" relation="muted" />
+              <CheckboxInput label="Followed by you" relation="followed" />
+              <CheckboxInput label="Follower of you" relation="follower" />
 
               <UsernameInput direction="followers" label="Follower of" />
               <UsernameInput direction="following" label="Followed by" />

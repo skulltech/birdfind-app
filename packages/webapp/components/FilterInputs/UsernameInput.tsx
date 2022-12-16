@@ -1,8 +1,14 @@
-import { Autocomplete, Group, Loader, Text, TextInput } from "@mantine/core";
-import { getHotkeyHandler } from "@mantine/hooks";
+import {
+  ActionIcon,
+  Autocomplete,
+  Group,
+  Loader,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { IconAt } from "@tabler/icons";
+import { IconArrowNarrowRight, IconAt } from "@tabler/icons";
 import { useEffect, useState } from "react";
 import { FilterInputProps, TwitterProfile } from "../../utils/helpers";
 import { lookupTwips, updateTwips } from "../../utils/twips";
@@ -105,25 +111,28 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   }, [username]);
 
   return (
-    <Group noWrap spacing="xs" position="apart">
+    <Stack spacing="xs">
       <Text>{label}</Text>
-      <Autocomplete
-        style={{ width: 180 }}
-        data={autocompleteOptions}
-        value={username}
-        icon={<IconAt size={14} />}
-        onChange={setUsername}
-        error={!valid}
-        rightSection={loading && <Loader size="xs" />}
-        onKeyDown={getHotkeyHandler([
-          [
-            "Enter",
-            () => {
-              if (valid) handleSubmit();
-            },
-          ],
-        ])}
-      />
-    </Group>
+
+      <Group spacing={6} position="apart">
+        <Autocomplete
+          data={autocompleteOptions}
+          value={username}
+          icon={<IconAt size={14} />}
+          onChange={setUsername}
+          error={!valid}
+          rightSection={loading && <Loader size="xs" />}
+        />
+        <ActionIcon
+          size="lg"
+          variant="default"
+          onClick={() => {
+            if (valid) handleSubmit();
+          }}
+        >
+          <IconArrowNarrowRight size={16} />
+        </ActionIcon>
+      </Group>
+    </Stack>
   );
 };

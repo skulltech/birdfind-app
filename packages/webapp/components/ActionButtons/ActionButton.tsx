@@ -22,7 +22,7 @@ export const ActionButton = ({
         size="md"
         radius="lg"
       >
-        <Icon size={14} />
+        <Icon size={16} />
       </ActionIcon>
     </Tooltip>
   );

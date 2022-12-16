@@ -16,26 +16,22 @@ export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
   return (
     <Stack spacing="xs">
       <Text>{label}</Text>
-      <Group spacing={8} noWrap position="center">
+      <Group spacing={6} noWrap position="center">
         <NumberInput
           value={minValue}
           onChange={setMinValue}
           min={0}
           max={maxValue}
-          step={10}
-          stepHoldDelay={500}
-          stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
+          hideControls
         />
         <Text align="center" span>
           to
         </Text>
         <NumberInput
+          hideControls
           value={maxValue}
           onChange={setMaxValue}
           min={minValue}
-          step={10}
-          stepHoldDelay={500}
-          stepHoldInterval={(t) => Math.max(1000 / t ** 2, 25)}
         />
         <ActionIcon
           size="lg"
