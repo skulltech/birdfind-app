@@ -1,14 +1,12 @@
-import { Group, Loader, Text, TextInput } from "@mantine/core";
+import { Autocomplete, Group, Loader, Text, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { showNotification } from "@mantine/notifications";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconAt } from "@tabler/icons";
 import { useEffect, useState } from "react";
-import { FilterInputProps } from "../../utils/helpers";
+import { FilterInputProps, TwitterProfile } from "../../utils/helpers";
 import { lookupTwips, updateTwips } from "../../utils/twips";
 import { useTwips } from "../TwipsProvider";
-
-// 24 hours
-const staleCacheTimeout = 24 * 60 * 60 * 1000;
 
 interface UsernameInputProps extends FilterInputProps {
   direction: "followers" | "following";
@@ -19,13 +17,44 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   const [valid, setValid] = useState(false);
   const [loading, setLoading] = useState(false);
   const { addFilters, addUserId } = useTwips();
+  const supabase = useSupabaseClient();
+  const [autocompleteOptions, setAutocompleteOptions] = useState([]);
+
+  // Get username autocomplete options from Supabase
+  useEffect(() => {
+    const getAutocompleteOptions = async () => {
+      const { data, error } = await supabase
+        .from("twitter_profile")
+        .select("username")
+        .like("username", `${username}%`);
+      if (error) throw error;
+
+      const options = data.map((x) => x.username);
+      setAutocompleteOptions(options);
+    };
+
+    getAutocompleteOptions();
+  }, [username]);
 
   // Lookup user on Twips, if required fetch network or schedule job to do so
   const handleSubmit = async () => {
     setLoading(true);
 
     // Lookup user on Twips
-    const user = await lookupTwips(username);
+    let user: TwitterProfile;
+    try {
+      user = await lookupTwips(username);
+    } catch (error) {
+      console.log(error);
+      showNotification({
+        title: "Error",
+        message: "Some error ocurred",
+        color: "red",
+      });
+      setLoading(false);
+      return;
+    }
+
     if (!user) {
       showNotification({
         title: "Error",
@@ -55,15 +84,6 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
     }
     setLoading(false);
 
-    if (Date.now() - networkUpdatedAt.getTime() > staleCacheTimeout) {
-      console.log(networkUpdatedAt.toLocaleTimeString());
-      showNotification({
-        title: "Warning",
-        message: `@${username}'s ${direction} might be stale. A job has been scheduled to update it.`,
-        color: "yellow",
-      });
-    }
-
     addUserId(username, user.id);
     addFilters({
       [direction == "followers" ? "followerOf" : "followedBy"]: [username],
@@ -87,11 +107,12 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   return (
     <Group noWrap spacing="xs" position="apart">
       <Text>{label}</Text>
-      <TextInput
+      <Autocomplete
         style={{ width: 180 }}
+        data={autocompleteOptions}
         value={username}
         icon={<IconAt size={14} />}
-        onChange={(event) => setUsername(event.currentTarget.value)}
+        onChange={setUsername}
         error={!valid}
         rightSection={loading && <Loader size="xs" />}
         onKeyDown={getHotkeyHandler([

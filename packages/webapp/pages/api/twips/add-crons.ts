@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { Relation } from "@twips/lib";
+import { Relation } from "@twips/common";
 import { NextApiRequest, NextApiResponse } from "next";
 import { queue } from "../../../utils/job-queue";
 import { getUserDetails, UserDetails } from "../../../utils/supabase";

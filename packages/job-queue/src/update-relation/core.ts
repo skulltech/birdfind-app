@@ -1,10 +1,10 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   Relation,
+  serializeTwitterUser,
   twitterUserFields,
   UpdateRelationResult,
-  upsertTwitterProfiles,
-} from "@twips/lib";
+} from "@twips/common";
 import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 import { dedupeUsers } from "./utils";
@@ -113,7 +113,10 @@ export const updateRelation = async ({
 
   // Remove duplicates and Upsert followers to database
   const dedupedUsers = dedupeUsers(users);
-  await upsertTwitterProfiles(supabase, dedupedUsers);
+  const { error } = await supabase
+    .from("twitter_profile")
+    .upsert(dedupedUsers.map(serializeTwitterUser));
+  if (error) throw error;
 
   // Upsert relations to database
   const { error: insertEdgesError } = await supabase.from(table).upsert(

@@ -22,13 +22,13 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
-import { TwitterProfile } from "@twips/lib";
 import { ActionButtonGroup } from "../ActionButtons/ActionButtonGroup";
 import {
   IconArrowsSort,
   IconSortAscending,
   IconSortDescending,
 } from "@tabler/icons";
+import { TwitterProfile } from "../../utils/helpers";
 
 const selectLimit = 10;
 

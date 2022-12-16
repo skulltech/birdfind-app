@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { searchTwitterProfiles, TwitterProfile } from "@twips/lib";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useTwips } from "../components/TwipsProvider";
+import { TwitterProfile } from "../utils/helpers";
+import { searchTwitterProfiles } from "../utils/supabase";
 
 const Home = () => {
   const { filters, userIds, user, addFilters } = useTwips();

@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { getTwitterAuthClient } from "@twips/lib";
+import { getTwitterAuthClient } from "@twips/common";
 import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { startOauthFlow } from "../../../../utils/supabase";

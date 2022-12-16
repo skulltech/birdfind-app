@@ -1,8 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
-import { getTwitterClient, UpdateRelationJobInput } from "@twips/lib";
+import {
+  getTwitterClient,
+  UpdateRelationJobInput,
+  UpdateRelationResult,
+} from "@twips/common";
 import { Queue, Worker } from "bullmq";
 import * as dotenv from "dotenv";
-import { updateRelation, UpdateRelationResult } from "./core";
+import { updateRelation } from "./core";
 dotenv.config();
 
 // To suppress warnings

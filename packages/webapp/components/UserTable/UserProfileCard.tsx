@@ -9,7 +9,7 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { IconLink, IconMapPin } from "@tabler/icons";
-import { TwitterProfile } from "@twips/lib";
+import { TwitterProfile } from "../../utils/helpers";
 
 export type UserProfileCardProps = {
   profile: TwitterProfile;

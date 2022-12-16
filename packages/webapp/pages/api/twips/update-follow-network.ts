@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { relations } from "@twips/lib";
+import { relations } from "@twips/common";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { zodBigint } from "../../../utils/helpers";

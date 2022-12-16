@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",
-    "@twips/lib": "^1.0.0",
+    "@twips/common": "^1.0.0",
     "bullmq": "^3.2.4",
     "bullmq-dashboard-runnable": "^0.0.6",
     "dotenv": "^16.0.3",

@@ -1,16 +1,14 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import {
-  getTwitterClient,
-  TwitterProfile,
-  upsertTwitterProfiles,
-} from "@twips/lib";
+import { getTwitterClient } from "@twips/common";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   getServiceRoleSupabase,
   getUserDetails,
+  upsertTwitterProfile,
 } from "../../../utils/supabase";
 import { getTwitterUser, twitterSecrets } from "../../../utils/twitter";
 import { z } from "zod";
+import { TwitterProfile } from "../../../utils/helpers";
 
 const schema = z.object({
   username: z.string(),
@@ -54,9 +52,7 @@ export default async function handler(
   }
 
   const serviceRoleSupabase = getServiceRoleSupabase();
-  const profiles = await upsertTwitterProfiles(serviceRoleSupabase, [
-    twitterUser,
-  ]);
+  const profile = await upsertTwitterProfile(serviceRoleSupabase, twitterUser);
 
-  res.status(200).json({ profile: profiles[0] });
+  res.status(200).json({ profile });
 }

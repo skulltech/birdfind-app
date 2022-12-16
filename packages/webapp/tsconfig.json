@@ -15,15 +15,9 @@
     "strict": false,
     "allowJs": true,
     "incremental": true,
-    "paths": {
-      "@twips/lib": ["../lib/src"]
-    }
+    "paths": { "@twips/common": ["../common/src"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "environment.d.ts"],
   "exclude": ["node_modules"],
-  "references": [
-    {
-      "path": "../lib"
-    }
-  ]
+  "references": [{ "path": "../common" }]
 }

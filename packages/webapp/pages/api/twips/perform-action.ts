@@ -5,7 +5,7 @@ import {
   getUserDetails,
 } from "../../../utils/supabase";
 import { z } from "zod";
-import { getTwitterClient } from "@twips/lib";
+import { getTwitterClient } from "@twips/common";
 import { twitterSecrets } from "../../../utils/twitter";
 import { actions, zodBigint } from "../../../utils/helpers";
 

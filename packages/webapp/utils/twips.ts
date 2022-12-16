@@ -1,5 +1,6 @@
-import { parseTwitterProfiles, Relation, TwitterProfile } from "@twips/lib";
+import { Relation } from "@twips/common";
 import axios from "axios";
+import { parseTwitterProfile, TwitterProfile } from "./helpers";
 
 export const lookupTwips = async (
   username: string
@@ -11,7 +12,7 @@ export const lookupTwips = async (
   // Check if user doesn't exist
   if (!response.data.profile) return null;
 
-  return parseTwitterProfiles([response.data.profile])[0];
+  return parseTwitterProfile(response.data.profile);
 };
 
 export const updateTwips = async (

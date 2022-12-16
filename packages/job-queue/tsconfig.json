@@ -1,10 +1,8 @@
 {
   "compilerOptions": {
     "composite": true,
-    "paths": {
-      "@twips/lib": ["../lib/src"]
-    }
+    "paths": { "@twips/common": ["../common/src"] }
   },
   "include": ["src/**/*", "environment.d.ts"],
-  "references": [{ "path": "../lib" }]
+  "references": [{ "path": "../common" }]
 }
