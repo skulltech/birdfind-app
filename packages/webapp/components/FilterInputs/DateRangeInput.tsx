@@ -26,6 +26,7 @@ export const DateRangeInput = ({ label }: DateRangeInputProps) => {
           value={minDate}
           onChange={setMinDate}
           inputFormat="DD/MM/YY"
+          dropdownType="modal"
         />
         <Text align="center">to</Text>
         <DatePicker
@@ -34,6 +35,7 @@ export const DateRangeInput = ({ label }: DateRangeInputProps) => {
           value={maxDate}
           onChange={setMaxDate}
           inputFormat="DD/MM/YY"
+          dropdownType="modal"
         />
         <ActionIcon
           size="lg"
