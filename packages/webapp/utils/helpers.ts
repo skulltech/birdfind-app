@@ -12,8 +12,8 @@ export type Filters = {
   tweetCountGreaterThan?: number;
   createdBefore?: Date;
   createdAfter?: Date;
-  blockedByUser?: boolean;
-  mutedByUser?: boolean;
+  blockedBy?: string[];
+  mutedBy?: string[];
 };
 
 export interface FilterInputProps {
@@ -40,21 +40,6 @@ export const actions = [
 ] as const;
 
 export type Action = typeof actions[number];
-
-export type SupabaseFilters = {
-  followedBy?: BigInt[];
-  followerOf?: BigInt[];
-  followersCountLessThan?: number;
-  followersCountGreaterThan?: number;
-  followingCountLessThan?: number;
-  followingCountGreaterThan?: number;
-  tweetCountLessThan?: number;
-  tweetCountGreaterThan?: number;
-  createdBefore?: Date;
-  createdAfter?: Date;
-  blockedBy?: BigInt[];
-  mutedBy?: BigInt[];
-};
 
 export const parseTwitterProfile = (row: any): TwitterProfile => {
   const x: any = Object.entries(row).reduce((prev, [key, value]) => {

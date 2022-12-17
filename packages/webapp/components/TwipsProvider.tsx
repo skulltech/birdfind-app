@@ -16,16 +16,12 @@ const TwipsContext = createContext<{
   user: UserDetails;
   filters: Filters;
   addFilters: (arg: Partial<Filters>) => void;
-  removeFilters: (arg: Partial<Filters>) => void;
-  userIds: Record<string, BigInt>;
-  addUserId: (username: string, userId: BigInt) => void;
+  removeFilters: (...args: RemoveFiltersArg[]) => void;
 }>({
   user: null,
   filters: {},
   addFilters: () => {},
   removeFilters: () => {},
-  userIds: {},
-  addUserId: () => {},
 });
 
 interface TwipsProviderProps {
@@ -33,20 +29,24 @@ interface TwipsProviderProps {
   children: ReactNode;
 }
 
+// Remove filters
+export type RemoveFiltersArg =
+  | keyof Omit<Filters, "followedBy" | "followerOf" | "mutedBy" | "blockedBy">
+  | Pick<Filters, "followedBy">
+  | Pick<Filters, "followerOf">
+  | Pick<Filters, "mutedBy">
+  | Pick<Filters, "blockedBy">;
+
 export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   const [user, setUser] = useState<UserDetails>(null);
   const [filters, setFilters] = useState<Filters>({});
-  const [userIds, setUserIds] = useState<Record<string, BigInt>>({});
 
   // Load user details
   useEffect(() => {
     const loadUserDetails = async () => {
       const user = await getUserDetails(supabase);
       setUser(user);
-      if (user && user.twitter) {
-        await axios.get("/api/twips/add-crons");
-        addUserId(user.twitter.username, user.twitter.id);
-      }
+      if (user && user.twitter) await axios.get("/api/twips/add-crons");
     };
     loadUserDetails();
   }, [supabase]);
@@ -78,38 +78,30 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
     setFilters(updatedFilters);
   };
 
-  // Remove filters
-  const removeFilters = (arg: Partial<Filters>) => {
+  const removeFilters = (...args: RemoveFiltersArg[]) => {
     const updatedFilters = { ...filters };
 
-    for (const [filterName, filterValue] of Object.entries(arg)) {
-      if (usernameFilters.includes(filterName)) {
+    for (const arg of args) {
+      if (typeof arg == "string") delete updatedFilters[arg];
+      else {
+        if (Object.keys(arg).length == 0) break;
+
+        const [filterName, usernames] = Object.entries(arg)[0];
         const updatedValue = new Set<string>(filters[filterName]);
-        if (filterValue)
-          (filterValue as string[]).forEach((item: string) =>
-            updatedValue.delete(item)
-          );
+        if (usernames)
+          usernames.forEach((item: string) => updatedValue.delete(item));
 
         if (updatedValue.size)
           updatedFilters[filterName] = Array.from(updatedValue);
         else delete updatedFilters[filterName];
-      } else delete updatedFilters[filterName];
+      }
     }
 
     setFilters(updatedFilters);
   };
 
-  // Add a username userId pair to the cache
-  const addUserId = (username: string, userId: BigInt) => {
-    const updatedUserIds = { ...userIds };
-    updatedUserIds[username] = userId;
-    setUserIds(updatedUserIds);
-  };
-
   return (
-    <TwipsContext.Provider
-      value={{ user, filters, addFilters, removeFilters, userIds, addUserId }}
-    >
+    <TwipsContext.Provider value={{ user, filters, addFilters, removeFilters }}>
       {children}
     </TwipsContext.Provider>
   );

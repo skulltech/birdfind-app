@@ -1,87 +1,48 @@
 import { Stack } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { Filters } from "../../utils/helpers";
-import { useTwips } from "../TwipsProvider";
+import { RemoveFiltersArg, useTwips } from "../TwipsProvider";
 import { FilterChip } from "./FilterChip";
 
 type Chip = {
   label: string;
-  filtersToRemove: Partial<Filters>;
+  filtersToRemove: RemoveFiltersArg[];
 };
 
-type RenderRangeFilterArgs = {
-  min: any;
-  max: any;
+type RenderRangeFilterArgs<T> = {
+  min: T;
+  max: T;
   label: string;
 };
 
 const formatDate = (date: Date) => dayjs(date).format("DD/MM/YYYY");
 
-const renderDateRangeFilter = ({ min, max, label }: RenderRangeFilterArgs) => {
-  const [minName, minValue] = Object.entries(min)[0];
-  const [maxName, maxValue] = Object.entries(max)[0];
-
-  if (minValue || maxValue) {
-    if (minValue && maxValue)
-      return {
-        label: `${label} on ${formatDate(minValue as Date)} to ${formatDate(
-          maxValue as Date
-        )}`,
-        filtersToRemove: {
-          [minName]: [minValue],
-          [maxName]: [maxValue],
-        },
-      };
-    else if (maxValue)
-      return {
-        label: `${label} before ${formatDate(maxValue as Date)}`,
-        filtersToRemove: { [maxName]: [maxValue] },
-      };
-    else if (minValue)
-      return {
-        label: `${label} after ${formatDate(minValue as Date)}`,
-        filtersToRemove: { [minName]: [minValue] },
-      };
-  }
+const renderDateRangeFilter = ({
+  min,
+  max,
+  label,
+}: RenderRangeFilterArgs<Date>) => {
+  if (min && max) return `${label} on ${formatDate(min)} to ${formatDate(max)}`;
+  else if (max) return `${label} before ${formatDate(max)}`;
+  else if (min) return `${label} after ${formatDate(min)}`;
 };
 
 const renderNumberRangeFilter = ({
   min,
   max,
   label,
-}: RenderRangeFilterArgs) => {
-  const [minName, minValue] = Object.entries(min)[0];
-  const [maxName, maxValue] = Object.entries(max)[0];
-
-  if (minValue || maxValue) {
-    if (minValue && maxValue)
-      return {
-        label: `${label} ${minValue} to ${maxValue}`,
-        filtersToRemove: {
-          [minName]: [minValue],
-          [maxName]: [maxValue],
-        },
-      };
-    else if (maxValue)
-      return {
-        label: `${label} 0 to ${maxValue}`,
-        filtersToRemove: { [maxName]: [maxValue] },
-      };
-    else if (minValue)
-      return {
-        label: `${label} ${minValue} to ∞`,
-        filtersToRemove: { [minName]: [minValue] },
-      };
-  }
+}: RenderRangeFilterArgs<number>) => {
+  if (min && max) return `${label} ${min} to ${max}`;
+  else if (max) return `${label} 0 to ${max}`;
+  else if (min) return `${label} ${min} to ∞`;
 };
 
 export const FilterChipGroup = (props) => {
-  const { filters, removeFilters } = useTwips();
+  const { filters, removeFilters, user } = useTwips();
   const [chips, setChips] = useState<Chip[]>([]);
 
   useEffect(() => {
-    const chips = [];
+    const chips: Chip[] = [];
 
     const {
       followedBy,
@@ -94,66 +55,88 @@ export const FilterChipGroup = (props) => {
       tweetCountLessThan,
       createdAfter,
       createdBefore,
-      mutedByUser,
-      blockedByUser,
+      mutedBy,
+      blockedBy,
     } = filters;
 
     followedBy?.forEach((x) => {
       chips.push({
         label: `Followed by @${x}`,
-        filtersToRemove: { followedBy: [x] },
+        filtersToRemove: [{ followedBy: [x] }],
       });
     });
     followerOf?.forEach((x) => {
       chips.push({
         label: `Follower of @${x}`,
-        filtersToRemove: { followerOf: [x] },
+        filtersToRemove: [{ followerOf: [x] }],
       });
     });
 
-    let chip: Chip;
+    let chipLabel: string;
 
-    chip = renderNumberRangeFilter({
-      min: { followersCountGreaterThan },
-      max: { followersCountLessThan },
+    chipLabel = renderNumberRangeFilter({
+      min: followersCountGreaterThan,
+      max: followersCountLessThan,
       label: "Followers count",
     });
-    if (chip) chips.push(chip);
+    if (chipLabel)
+      chips.push({
+        label: chipLabel,
+        filtersToRemove: [
+          "followersCountLessThan",
+          "followersCountGreaterThan",
+        ],
+      });
 
-    chip = renderNumberRangeFilter({
-      min: { followingCountGreaterThan },
-      max: { followingCountLessThan },
+    chipLabel = renderNumberRangeFilter({
+      min: followingCountGreaterThan,
+      max: followingCountLessThan,
       label: "Following count",
     });
-    if (chip) chips.push(chip);
+    if (chipLabel)
+      chips.push({
+        label: chipLabel,
+        filtersToRemove: [
+          "followingCountLessThan",
+          "followingCountGreaterThan",
+        ],
+      });
 
-    chip = renderNumberRangeFilter({
-      min: { tweetCountGreaterThan },
-      max: { tweetCountLessThan },
+    chipLabel = renderNumberRangeFilter({
+      min: tweetCountGreaterThan,
+      max: tweetCountLessThan,
       label: "Tweet count",
     });
-    if (chip) chips.push(chip);
+    if (chipLabel)
+      chips.push({
+        label: chipLabel,
+        filtersToRemove: ["tweetCountLessThan", "tweetCountGreaterThan"],
+      });
 
-    chip = renderDateRangeFilter({
-      min: { createdAfter },
-      max: { createdBefore },
+    chipLabel = renderDateRangeFilter({
+      min: createdAfter,
+      max: createdBefore,
       label: "Account created",
     });
-    if (chip) chips.push(chip);
+    if (chipLabel)
+      chips.push({
+        label: chipLabel,
+        filtersToRemove: ["createdAfter", "createdBefore"],
+      });
 
-    setChips(chips);
-
-    if (mutedByUser)
+    if (mutedBy && mutedBy.length)
       chips.push({
         label: "Muted by you",
-        filtersToRemove: { mutedByUser },
+        filtersToRemove: [{ mutedBy: [user.twitter.username] }],
       });
 
-    if (blockedByUser)
+    if (blockedBy && blockedBy.length)
       chips.push({
         label: "Blocked by you",
-        filtersToRemove: { blockedByUser },
+        filtersToRemove: [{ blockedBy: [user.twitter.username] }],
       });
+
+    setChips(chips);
   }, [filters]);
 
   return (
@@ -162,7 +145,7 @@ export const FilterChipGroup = (props) => {
         <FilterChip
           key={index}
           label={label}
-          onClose={() => removeFilters(filtersToRemove)}
+          onClose={() => removeFilters(...filtersToRemove)}
         />
       ))}
     </Stack>

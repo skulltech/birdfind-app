@@ -124,25 +124,33 @@ create policy "Twitter blocks are viewable by only source users."
     ));
 
 create or replace function search_twitter_profiles
-    (follower_of bigint[] default null, followed_by bigint[] default null, muted_by bigint[] default null, blocked_by bigint[] default null)
+    (follower_of text[] default null, followed_by text[] default null, muted_by text[] default null, blocked_by text[] default null)
     returns setof twitter_profile as $$
 begin
 return query select * from twitter_profile where
     ((follower_of is null) or
       id in (select source_id from twitter_follow group by source_id
-        having array_agg(target_id) @> follower_of))
+        having array_agg(target_id) @> array(
+          select id from twitter_profile where username = any(follower_of)
+        )))
     and
     ((followed_by is null) or
       id in (select target_id from twitter_follow group by target_id
-        having array_agg(source_id) @> followed_by))
+        having array_agg(source_id) @> array(
+          select id from twitter_profile where username = any(followed_by)
+        )))
     and
     ((muted_by is null) or
       id in (select target_id from twitter_mute group by target_id
-        having array_agg(source_id) @> muted_by))
+        having array_agg(source_id) @> array(
+          select id from twitter_profile where username = any(muted_by)
+        )))
     and
     ((blocked_by is null) or
       id in (select target_id from twitter_block group by target_id
-        having array_agg(source_id) @> blocked_by));
+        having array_agg(source_id) @> array(
+          select id from twitter_profile where username = any(blocked_by)
+        )));
 end
 $$ language plpgsql;
 

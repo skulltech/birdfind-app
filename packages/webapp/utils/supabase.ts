@@ -3,10 +3,10 @@ import { serializeTwitterUser } from "@twips/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 import {
-  SupabaseFilters,
   parseTwitterProfile,
   twitterProfileFields,
   TwitterProfile,
+  Filters,
 } from "./helpers";
 
 export const getServiceRoleSupabase = () =>
@@ -136,7 +136,7 @@ export const getUserDetails = async (
 
 export const searchTwitterProfiles = async (
   supabase: SupabaseClient,
-  filters: SupabaseFilters
+  filters: Filters
 ): Promise<TwitterProfile[]> => {
   const { followerOf, followedBy, blockedBy, mutedBy, ...otherFilters } =
     filters;

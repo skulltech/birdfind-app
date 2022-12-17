@@ -12,8 +12,10 @@ export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   const { filters, addFilters, removeFilters, user } = useTwips();
 
   const addFilter = () => {
-    if (relation == "blocked") addFilters({ blockedByUser: true });
-    else if (relation == "muted") addFilters({ mutedByUser: true });
+    if (relation == "blocked")
+      addFilters({ blockedBy: [user.twitter.username] });
+    else if (relation == "muted")
+      addFilters({ mutedBy: [user.twitter.username] });
     else if (relation == "follower")
       addFilters({ followerOf: [user.twitter.username] });
     else if (relation == "followed")
@@ -21,8 +23,10 @@ export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   };
 
   const removeFilter = () => {
-    if (relation == "blocked") removeFilters({ blockedByUser: true });
-    else if (relation == "muted") removeFilters({ mutedByUser: true });
+    if (relation == "blocked")
+      removeFilters({ blockedBy: [user.twitter.username] });
+    else if (relation == "muted")
+      removeFilters({ mutedBy: [user.twitter.username] });
     else if (relation == "follower")
       removeFilters({ followerOf: [user.twitter.username] });
     else if (relation == "followed")
@@ -30,8 +34,8 @@ export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   };
 
   useEffect(() => {
-    if (relation == "blocked") setChecked(filters.blockedByUser ?? false);
-    else if (relation == "muted") setChecked(filters.mutedByUser ?? false);
+    if (relation == "blocked") setChecked(Boolean(filters.blockedBy?.length));
+    else if (relation == "muted") setChecked(Boolean(filters.mutedBy?.length));
     else if (relation == "followed")
       setChecked(filters.followedBy?.includes(user.twitter.username) ?? false);
     else if (relation == "follower")

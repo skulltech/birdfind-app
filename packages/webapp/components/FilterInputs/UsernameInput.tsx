@@ -8,10 +8,15 @@ import {
 } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { IconArrowNarrowRight, IconAt } from "@tabler/icons";
+import {
+  IconAlertCircle,
+  IconArrowNarrowRight,
+  IconAt,
+  IconCircleCheck,
+} from "@tabler/icons";
 import { useEffect, useState } from "react";
-import { FilterInputProps, TwitterProfile } from "../../utils/helpers";
-import { lookupTwips, updateTwips } from "../../utils/twips";
+import { FilterInputProps } from "../../utils/helpers";
+import { lookupTwips } from "../../utils/twips";
 import { useTwips } from "../TwipsProvider";
 
 interface UsernameInputProps extends FilterInputProps {
@@ -20,11 +25,16 @@ interface UsernameInputProps extends FilterInputProps {
 
 export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   const [username, setUsername] = useState("");
-  const [valid, setValid] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { addFilters, addUserId } = useTwips();
+  const { addFilters } = useTwips();
   const supabase = useSupabaseClient();
   const [autocompleteOptions, setAutocompleteOptions] = useState([]);
+
+  // Checking if username exists
+  const [lookupLoading, setLookupLoading] = useState(false);
+  // Username is a valid username acc. to the rules
+  const [valid, setValid] = useState(false);
+  // Username actually exists
+  const [exists, setExists] = useState(false);
 
   // Get username autocomplete options from Supabase
   useEffect(() => {
@@ -32,70 +42,17 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
       const { data, error } = await supabase
         .from("twitter_profile")
         .select("username")
-        .like("username", `${username}%`);
+        .like("username", `${username}%`)
+        .limit(5);
       if (error) throw error;
 
       const options = data.map((x) => x.username);
-      setAutocompleteOptions(options);
+      if (options.length == 1) setAutocompleteOptions([]);
+      else setAutocompleteOptions(options);
     };
 
     getAutocompleteOptions();
   }, [username]);
-
-  // Lookup user on Twips, if required fetch network or schedule job to do so
-  const handleSubmit = async () => {
-    setLoading(true);
-
-    // Lookup user on Twips
-    let user: TwitterProfile;
-    try {
-      user = await lookupTwips(username);
-    } catch (error) {
-      console.log(error);
-      showNotification({
-        title: "Error",
-        message: "Some error ocurred",
-        color: "red",
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (!user) {
-      showNotification({
-        title: "Error",
-        message: "User doesn't exist",
-        color: "red",
-      });
-      setLoading(false);
-      return;
-    }
-
-    const networkUpdatedAt =
-      user[
-        direction === "followers" ? "followersUpdatedAt" : "followingUpdatedAt"
-      ];
-
-    if (networkUpdatedAt.getTime() === 0) {
-      const fetched = await updateTwips(user.id, direction);
-      if (!fetched) {
-        showNotification({
-          title: "Sorry",
-          message: `We don't have @${username}'s ${direction} fetched in our database yet. A job has been scheduled to do so. Please check again in some time.`,
-          color: "red",
-        });
-        setLoading(false);
-        return;
-      }
-    }
-    setLoading(false);
-
-    addUserId(username, user.id);
-    addFilters({
-      [direction == "followers" ? "followerOf" : "followedBy"]: [username],
-    });
-    setUsername("");
-  };
 
   // Regex check if the username is valid
   useEffect(() => {
@@ -107,27 +64,83 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
     )
       setValid(true);
     else setValid(false);
-    return;
   }, [username]);
+
+  // Check whether username exists
+  useEffect(() => {
+    const lookupUsername = async () => {
+      if (!valid || !Boolean(username.length)) {
+        setExists(false);
+        return;
+      }
+
+      setLookupLoading(true);
+      setExists(false);
+
+      // Lookup user on Twips
+      try {
+        const user = await lookupTwips(username);
+        if (user) setExists(true);
+      } catch (error) {
+        console.log(error);
+        showNotification({
+          title: "Error",
+          message: "Some error ocurred",
+          color: "red",
+        });
+        setExists(false);
+      }
+
+      setLookupLoading(false);
+    };
+
+    lookupUsername();
+  }, [username, valid]);
 
   return (
     <Stack spacing="xs">
       <Text>{label}</Text>
 
-      <Group spacing={6} position="apart">
+      <Group align="start" noWrap position="apart">
         <Autocomplete
           data={autocompleteOptions}
           value={username}
           icon={<IconAt size={14} />}
           onChange={setUsername}
-          error={!valid}
-          rightSection={loading && <Loader size="xs" />}
+          error={
+            Boolean(username.length)
+              ? lookupLoading
+                ? false
+                : valid
+                ? exists
+                  ? false
+                  : "User does not exist"
+                : "Username is not valid"
+              : false
+          }
+          rightSection={
+            lookupLoading ? (
+              <Loader size="xs" />
+            ) : valid ? (
+              exists ? (
+                <IconCircleCheck size={20} color="green" />
+              ) : (
+                <IconAlertCircle size={20} color="red" />
+              )
+            ) : null
+          }
         />
         <ActionIcon
           size="lg"
           variant="default"
+          disabled={!valid || !exists}
           onClick={() => {
-            if (valid) handleSubmit();
+            addFilters({
+              [direction == "followers" ? "followerOf" : "followedBy"]: [
+                username,
+              ],
+            });
+            setUsername("");
           }}
         >
           <IconArrowNarrowRight size={16} />
