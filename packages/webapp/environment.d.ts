@@ -14,5 +14,7 @@ declare namespace NodeJS {
 
     REDIS_HOST: string;
     REDIS_PORT: string;
+
+    OPENAI_API_KEY: string;
   }
 }
