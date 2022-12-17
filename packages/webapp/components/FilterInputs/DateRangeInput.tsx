@@ -18,7 +18,7 @@ export const DateRangeInput = ({ label }: DateRangeInputProps) => {
   const { addFilters } = useTwips();
 
   return (
-    <Stack spacing="xs">
+    <Stack spacing={2}>
       <Text>{label}</Text>
       <Group noWrap spacing={6}>
         <DatePicker

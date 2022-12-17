@@ -57,6 +57,7 @@ export const FilterChipGroup = (props) => {
       createdBefore,
       mutedBy,
       blockedBy,
+      searchText,
     } = filters;
 
     followedBy?.forEach((x) => {
@@ -134,6 +135,12 @@ export const FilterChipGroup = (props) => {
       chips.push({
         label: "Blocked by you",
         filtersToRemove: [{ blockedBy: [user.twitter.username] }],
+      });
+
+    if (searchText)
+      chips.push({
+        label: `Profile contains "${searchText}"`,
+        filtersToRemove: ["searchText"],
       });
 
     setChips(chips);

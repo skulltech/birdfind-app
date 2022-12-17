@@ -14,6 +14,7 @@ export type Filters = {
   createdAfter?: Date;
   blockedBy?: string[];
   mutedBy?: string[];
+  searchText?: string;
 };
 
 export interface FilterInputProps {

@@ -98,7 +98,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   }, [username, valid]);
 
   return (
-    <Stack spacing="xs">
+    <Stack spacing={2}>
       <Text>{label}</Text>
 
       <Group align="start" noWrap position="apart">

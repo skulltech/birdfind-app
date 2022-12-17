@@ -14,7 +14,7 @@ export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
   const { addFilters } = useTwips();
 
   return (
-    <Stack spacing="xs">
+    <Stack spacing={2}>
       <Text>{label}</Text>
       <Group spacing={6} noWrap position="center">
         <NumberInput

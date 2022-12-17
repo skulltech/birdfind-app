@@ -9,7 +9,6 @@ import {
   UnstyledButton,
   Center,
   ScrollArea,
-  TextInput,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -21,9 +20,6 @@ import {
   SortingState,
   useReactTable,
   getPaginationRowModel,
-  FilterFn,
-  getFilteredRowModel,
-  ColumnFiltersState,
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
 import { ActionButtonGroup } from "../ActionButtons/ActionButtonGroup";
@@ -159,8 +155,6 @@ export const UserTable = ({
 }: UserTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [searchText, setSearchText] = useDebouncedState("", 100);
   const [selectDisabled, setSelectDisabled] = useState(false);
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
@@ -176,18 +170,6 @@ export const UserTable = ({
     for (const i of indices) selectedUsers.push(users[i]);
     setSelectedUsers(selectedUsers);
   }, [rowSelection, users, setSelectedUsers]);
-
-  const profileFilter: FilterFn<TwitterProfile> = (
-    row,
-    columnId,
-    filterValue
-  ) => {
-    // Return if the item should be filtered in/out
-    const value = row.getValue<TwitterProfile>(columnId);
-    return (value.username + value.name)
-      .toLowerCase()
-      .includes(filterValue.toLowerCase());
-  };
 
   const columns = useMemo<ColumnDef<TwitterProfile>[]>(
     () => [
@@ -216,23 +198,12 @@ export const UserTable = ({
         enableSorting: false,
       },
       {
-        id: "profile",
         accessorFn: (row) => row,
-        header: () => (
-          <Group position="apart">
-            <Text>Profile</Text>
-            <TextInput
-              placeholder="search"
-              defaultValue={searchText}
-              onChange={(event) => setSearchText(event.currentTarget.value)}
-            />
-          </Group>
-        ),
+        header: "Profile",
         cell: (info) => (
           <UserProfileCard profile={info.getValue<TwitterProfile>()} />
         ),
         enableSorting: false,
-        filterFn: profileFilter,
         // size: 80,
       },
       {
@@ -269,20 +240,13 @@ export const UserTable = ({
     state: {
       sorting,
       rowSelection,
-      columnFilters,
     },
-    onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
   });
-
-  useEffect(() => {
-    table.getColumn("profile").setFilterValue(searchText);
-  }, [searchText, table]);
 
   // Set page size when component loads
   useEffect(() => {
@@ -306,7 +270,7 @@ export const UserTable = ({
     </tr>
   ));
 
-  const rows = table.getFilteredRowModel().rows.map((row) => {
+  const rows = table.getRowModel().rows.map((row) => {
     return (
       <Tr key={row.id} selected={row.getIsSelected()}>
         {row.getAllCells().map((cell) => {

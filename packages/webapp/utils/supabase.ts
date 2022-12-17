@@ -167,6 +167,8 @@ export const searchTwitterProfiles = async (
       query.lt("user_created_at", value.toISOString()),
     createdAfter: (query, value: Date) =>
       query.gt("user_created_at", value.toISOString()),
+    searchText: (query, value: string) =>
+      query.ilike("concat(username,name,description)", `%${value}%`),
   };
 
   for (const [key, value] of Object.entries(otherFilters))

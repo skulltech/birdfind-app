@@ -3,6 +3,7 @@ import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
 import { CheckboxInput } from "./FilterInputs/CheckboxInput";
 import { DateRangeInput } from "./FilterInputs/DateRangeInput";
 import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
+import { SearchTextInput } from "./FilterInputs/SearchTextInput";
 import { UsernameInput } from "./FilterInputs/UsernameInput";
 import { useTwips } from "./TwipsProvider";
 
@@ -24,6 +25,8 @@ export const AppNavbar = ({ ...props }) => {
                 </>
               )}
               <Title order={4}>Select Filters</Title>
+
+              <SearchTextInput />
 
               <CheckboxInput label="Blocked by you" relation="blocked" />
               <CheckboxInput label="Muted by you" relation="muted" />
