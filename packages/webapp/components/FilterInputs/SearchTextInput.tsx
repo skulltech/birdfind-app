@@ -18,7 +18,7 @@ export const SearchTextInput = () => {
 
   return (
     <Stack spacing={2}>
-      <Text>Profile contains</Text>
+      <Text>Profile contains text</Text>
       <TextInput
         value={searchText}
         onChange={(event) => setSearchText(event.currentTarget.value)}

@@ -1,5 +1,6 @@
-import { Kbd, Loader, Stack, Text, TextInput } from "@mantine/core";
+import { Kbd, Loader, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
+import { IconSearch } from "@tabler/icons";
 import axios from "axios";
 import { useState } from "react";
 import { Filters } from "../../utils/helpers";
@@ -33,15 +34,14 @@ export const PromptInput = () => {
   };
 
   return (
-    <Stack spacing={2}>
-      <Text>Prompt</Text>
-      <TextInput
-        value={prompt}
-        onChange={(event) => setPrompt(event.currentTarget.value)}
-        onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
-        rightSection={loading ? <Loader size="xs" /> : <Kbd>Enter</Kbd>}
-        rightSectionWidth={loading ? undefined : 60}
-      />
-    </Stack>
+    <TextInput
+      icon={<IconSearch size={14} />}
+      value={prompt}
+      placeholder="followed by elonmusk and me with at least 1000 followers"
+      onChange={(event) => setPrompt(event.currentTarget.value)}
+      onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
+      rightSection={loading ? <Loader size="xs" /> : <Kbd>Enter</Kbd>}
+      rightSectionWidth={loading ? undefined : 60}
+    />
   );
 };

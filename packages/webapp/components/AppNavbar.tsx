@@ -27,7 +27,6 @@ export const AppNavbar = ({ ...props }) => {
               )}
               <Title order={4}>Select Filters</Title>
 
-              <PromptInput />
               <SearchTextInput />
 
               <CheckboxInput label="Blocked by you" relation="blocked" />

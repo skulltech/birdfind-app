@@ -20,6 +20,7 @@ import {
   IconSun,
 } from "@tabler/icons";
 import { useRouter } from "next/router";
+import { PromptInput } from "./FilterInputs/PromptInput";
 import { useTwips } from "./TwipsProvider";
 
 export const AppHeader = ({ opened, setOpened }) => {
@@ -53,6 +54,10 @@ export const AppHeader = ({ opened, setOpened }) => {
             </Title>
           </UnstyledButton>
         </div>
+
+        <Group style={{ width: 500 }} grow>
+          <PromptInput />
+        </Group>
 
         <Group>
           {user && (
