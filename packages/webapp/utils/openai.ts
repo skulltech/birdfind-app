@@ -5,7 +5,7 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
-const getPrompt = (input: string) => `
+const getPrompt = (username: string, input: string) => `
 // Language: JSON
 
 // JSON schema which describes filters
@@ -66,11 +66,19 @@ const getPrompt = (input: string) => `
 }
 // end object
 
+// JSON object of schema Filters for: followed by me and follower of MangoZeus and account created after march 2018
+{
+    "followedBy": ["${username}"],
+    "followerOf": ["MangoZeus"],
+    "createdAfter": "2018-03-01"
+}
+// end object
+
 // JSON object of schema Filters for: ${input}
 `;
 
-export const getFiltersFromPrompt = async (input: string) => {
-  const prompt = getPrompt(input);
+export const getFiltersFromPrompt = async (username: string, input: string) => {
+  const prompt = getPrompt(username, input);
   const response = await openai.createCompletion({
     model: "code-davinci-002",
     prompt,

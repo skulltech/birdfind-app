@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { getFiltersFromPrompt } from "../../../utils/openai";
-import { insertUserEvent } from "../../../utils/supabase";
+import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 
 type SuccessData = {
   filters: any;
@@ -26,13 +26,18 @@ export default async function handler(
     return res.status(400).send({ error: "Bad request params" });
   const { prompt } = parsedQuery.data;
 
-  const filters = await getFiltersFromPrompt(prompt);
-
-  // Insert event in user_event table
   const supabase = createServerSupabaseClient({
     req,
     res,
   });
+  const userDetails = await getUserDetails(supabase);
+
+  const filters = await getFiltersFromPrompt(
+    userDetails.twitter.username,
+    prompt
+  );
+
+  // Insert event in user_event table
   await insertUserEvent(supabase, "prompt-to-filters", { prompt, filters });
 
   res.status(200).json({ filters });
