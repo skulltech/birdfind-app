@@ -56,6 +56,8 @@ export const parseTwitterProfile = (row: any): TwitterProfile => {
     updatedAt: new Date(x.updatedAt),
     followersUpdatedAt: new Date(x.followersUpdatedAt),
     followingUpdatedAt: new Date(x.followingUpdatedAt),
+    blockingUpdatedAt: new Date(x.blockingUpdatedAt),
+    mutingUpdatedAt: new Date(x.mutingUpdatedAt),
     userCreatedAt: new Date(x.userCreatedAt),
   };
 };
@@ -90,6 +92,8 @@ export type TwitterProfile = {
   updatedAt: Date;
   followersUpdatedAt: Date;
   followingUpdatedAt: Date;
+  blockingUpdatedAt: Date;
+  mutingUpdatedAt: Date;
   username: string;
   name: string;
   userCreatedAt: Date;
