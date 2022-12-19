@@ -174,8 +174,11 @@ export const searchTwitterProfiles = async (
   for (const [key, value] of Object.entries(otherFilters))
     query = appendFilterFunctions[key](query, value);
 
-  const { data, error } = await query;
-  if (error) throw error;
+  const { data, error: searchError } = await query;
+  if (searchError) throw searchError;
+
+  // Insert event in user_event table
+  await insertUserEvent(supabase, "search", filters);
 
   return data.map((x) => parseTwitterProfile(x));
 };
@@ -191,4 +194,18 @@ export const upsertTwitterProfile = async (
   if (error) throw error;
 
   return parseTwitterProfile(data[0]);
+};
+
+export const insertUserEvent = async (
+  supabase: SupabaseClient,
+  type: string,
+  data: object
+) => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { error: insertEventError } = await supabase
+    .from("user_event")
+    .insert({ user_id: user.id, type, data });
+  if (insertEventError) throw insertEventError;
 };

@@ -20,7 +20,6 @@ import {
   searchTwitterProfiles,
   UserDetails,
 } from "../utils/supabase";
-import { updateTwips } from "../utils/twips";
 
 export const usernameFilters = ["followerOf", "followedBy"];
 
@@ -102,7 +101,10 @@ const updateRelationIfNeeded = async (
       : null;
 
   if (relationUpdateAt.getTime() === 0) {
-    return await updateTwips(user.id, relation);
+    const response = await axios.get("/api/twips/update-relation", {
+      params: { userId: user.id, relation },
+    });
+    if (response.status != 200) throw Error(response.data.error);
   }
   return true;
 };

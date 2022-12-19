@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { zodBigint } from "../../../utils/helpers";
 import { queue } from "../../../utils/job-queue";
+import { insertUserEvent } from "../../../utils/supabase";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -33,7 +34,7 @@ export default async function handler(
     res,
   });
   const {
-    data: { user: user },
+    data: { user },
   } = await supabase.auth.getUser();
 
   // Add job
@@ -51,6 +52,9 @@ export default async function handler(
     },
     { jobId }
   );
+
+  // Insert event in user_event table
+  await insertUserEvent(supabase, "update-relation", { userId, relation });
 
   // Check if job is completed or failed in a loop
   while (true) {

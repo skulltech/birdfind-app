@@ -1,6 +1,8 @@
+import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { getFiltersFromPrompt } from "../../../utils/openai";
+import { insertUserEvent } from "../../../utils/supabase";
 
 type SuccessData = {
   filters: any;
@@ -24,6 +26,14 @@ export default async function handler(
     return res.status(400).send({ error: "Bad request params" });
   const { prompt } = parsedQuery.data;
 
-  const filtersJson = await getFiltersFromPrompt(prompt);
-  res.status(200).json({ filters: filtersJson });
+  const filters = await getFiltersFromPrompt(prompt);
+
+  // Insert event in user_event table
+  const supabase = createServerSupabaseClient({
+    req,
+    res,
+  });
+  await insertUserEvent(supabase, "prompt-to-filters", { prompt, filters });
+
+  res.status(200).json({ filters });
 }

@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import {
   getServiceRoleSupabase,
   getUserDetails,
+  insertUserEvent,
 } from "../../../utils/supabase";
 import { z } from "zod";
 import { getTwitterClient } from "@twips/common";
@@ -106,6 +107,13 @@ export default async function handler(
         .eq("target_id", targetUserId);
       if (error) throw error;
     }
+
+    // Insert user event
+    await insertUserEvent(supabase, "perform-action", {
+      action,
+      sourceUserId,
+      targetUserId,
+    });
 
     res.status(200).send(null);
   }

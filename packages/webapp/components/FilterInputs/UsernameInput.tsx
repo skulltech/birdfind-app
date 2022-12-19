@@ -15,13 +15,28 @@ import {
   IconCircleCheck,
 } from "@tabler/icons";
 import { useEffect, useState } from "react";
-import { FilterInputProps } from "../../utils/helpers";
-import { lookupTwips } from "../../utils/twips";
+import axios from "axios";
+import {
+  FilterInputProps,
+  parseTwitterProfile,
+  TwitterProfile,
+} from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
 
 interface UsernameInputProps extends FilterInputProps {
   direction: "followers" | "following";
 }
+
+const lookupUser = async (username: string): Promise<TwitterProfile> => {
+  const response = await axios.get("/api/twips/lookup-user", {
+    params: { username: username },
+  });
+  if (response.status != 200) throw Error(response.data.message);
+  // Check if user doesn't exist
+  if (!response.data.profile) return null;
+
+  return parseTwitterProfile(response.data.profile);
+};
 
 export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   const [username, setUsername] = useState("");
@@ -80,7 +95,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
 
       // Lookup user on Twips
       try {
-        const user = await lookupTwips(username);
+        const user = await lookupUser(username);
         if (user) setExists(true);
       } catch (error) {
         console.log(error);
