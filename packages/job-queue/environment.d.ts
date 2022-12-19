@@ -5,6 +5,7 @@ declare namespace NodeJS {
 
     REDIS_HOST: string;
     REDIS_PORT: string;
+    REDIS_PASSWORD: string;
 
     TWITTER_CLIENT_ID: string;
     TWITTER_CLIENT_SECRET: string;

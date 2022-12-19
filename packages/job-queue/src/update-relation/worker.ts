@@ -5,7 +5,7 @@ import {
   UpdateRelationJobInput,
   UpdateRelationResult,
 } from "@twips/common";
-import { Queue, Worker } from "bullmq";
+import { ConnectionOptions, Queue, Worker } from "bullmq";
 import * as dotenv from "dotenv";
 import { updateRelation } from "./core";
 import { logger } from "./utils";
@@ -14,9 +14,10 @@ dotenv.config();
 // To suppress warnings
 process.removeAllListeners("warning");
 
-const connection = {
+const connection: ConnectionOptions = {
   host: process.env.REDIS_HOST,
   port: parseInt(process.env.REDIS_PORT),
+  password: process.env.REDIS_PASSWORD,
 };
 
 const supabase = createClient(
