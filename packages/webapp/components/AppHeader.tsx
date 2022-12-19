@@ -55,9 +55,11 @@ export const AppHeader = ({ opened, setOpened }) => {
           </UnstyledButton>
         </div>
 
-        <Group style={{ width: 500 }} grow>
-          <PromptInput />
-        </Group>
+        {user?.twitter && (
+          <Group style={{ width: 500 }} grow>
+            <PromptInput />
+          </Group>
+        )}
 
         <Group>
           {user && (
