@@ -27,7 +27,7 @@ export const usernameFilters = ["followerOf", "followedBy"];
 const TwipsContext = createContext<{
   user: UserDetails;
   filters: Filters;
-  addFilters: (arg: Partial<Filters>) => void;
+  addFilters: (arg: Partial<Filters>) => Promise<void>;
   removeFilters: (...args: RemoveFiltersArg[]) => void;
   searchLoading: boolean;
   filtersInvalid: boolean;
@@ -35,7 +35,7 @@ const TwipsContext = createContext<{
 }>({
   user: null,
   filters: {},
-  addFilters: () => {},
+  addFilters: async () => {},
   removeFilters: () => {},
   searchLoading: false,
   filtersInvalid: false,
@@ -139,18 +139,22 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
           filters[filterName].forEach((item: string) => updatedValue.add(item));
 
         if (filterValue)
-          (filterValue as string[]).forEach((item: string) => {
+          for (const item of filterValue as string[]) {
             const relation =
               filterName == "followerOf"
-                ? "following"
-                : filterName == "followedBy"
                 ? "followers"
+                : filterName == "followedBy"
+                ? "following"
                 : filterName == "blockedBy"
                 ? "blocking"
                 : filterName == "mutedBy"
                 ? "muting"
                 : null;
-            const success = updateRelationIfNeeded(supabase, item, relation);
+            const success = await updateRelationIfNeeded(
+              supabase,
+              item,
+              relation
+            );
             if (success) updatedValue.add(item);
             else
               showNotification({
@@ -158,7 +162,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
                 message: `It will take some time to fetch @${item}'s ${relation}. Please check in some time`,
                 color: "red",
               });
-          });
+          }
 
         if (updatedValue.size)
           updatedFilters[filterName] = Array.from(updatedValue);

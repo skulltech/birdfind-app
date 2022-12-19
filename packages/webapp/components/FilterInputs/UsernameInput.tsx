@@ -28,6 +28,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   const { addFilters } = useTwips();
   const supabase = useSupabaseClient();
   const [autocompleteOptions, setAutocompleteOptions] = useState([]);
+  const [addFiltersLoading, setAddFiltersLoading] = useState(false);
 
   // Checking if username exists
   const [lookupLoading, setLookupLoading] = useState(false);
@@ -97,6 +98,15 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
     lookupUsername();
   }, [username, valid]);
 
+  const handleSubmit = async () => {
+    setAddFiltersLoading(true);
+    await addFilters({
+      [direction == "followers" ? "followerOf" : "followedBy"]: [username],
+    });
+    setUsername("");
+    setAddFiltersLoading(false);
+  };
+
   return (
     <Stack spacing={2}>
       <Text>{label}</Text>
@@ -130,21 +140,18 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
             ) : null
           }
         />
-        <ActionIcon
-          size="lg"
-          variant="default"
-          disabled={!valid || !exists}
-          onClick={() => {
-            addFilters({
-              [direction == "followers" ? "followerOf" : "followedBy"]: [
-                username,
-              ],
-            });
-            setUsername("");
-          }}
-        >
-          <IconArrowNarrowRight size={16} />
-        </ActionIcon>
+        {addFiltersLoading ? (
+          <Loader size="md" />
+        ) : (
+          <ActionIcon
+            size="lg"
+            variant="default"
+            disabled={!valid || !exists}
+            onClick={handleSubmit}
+          >
+            <IconArrowNarrowRight size={16} />
+          </ActionIcon>
+        )}
       </Group>
     </Stack>
   );

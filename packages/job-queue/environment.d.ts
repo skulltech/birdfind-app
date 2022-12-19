@@ -8,5 +8,8 @@ declare namespace NodeJS {
 
     TWITTER_CLIENT_ID: string;
     TWITTER_CLIENT_SECRET: string;
+
+    TELEGRAM_API_KEY: string;
+    TELEGRAM_CHAT_ID: string;
   }
 }

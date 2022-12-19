@@ -1,12 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import {
   getTwitterClient,
+  getUpdateRelationJobParams,
   UpdateRelationJobInput,
   UpdateRelationResult,
 } from "@twips/common";
 import { Queue, Worker } from "bullmq";
 import * as dotenv from "dotenv";
 import { updateRelation } from "./core";
+import { logger } from "./utils";
 dotenv.config();
 
 // To suppress warnings
@@ -59,10 +61,6 @@ const worker = new Worker<UpdateRelationJobInput, UpdateRelationResult>(
   { connection }
 );
 
-worker.on("drained", () => {
-  console.log("Queue is drained, no jobs available for processing");
-});
-
 worker.on("completed", async (job) => {
   const { rateLimitResetsAt, paginationToken, updatedCount } = job.returnvalue;
   const { userId, signedInUserId, relation } = job.data;
@@ -72,31 +70,39 @@ worker.on("completed", async (job) => {
     const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
 
     // Add a new job to the queue with delay
+    const { jobId, jobName } = await getUpdateRelationJobParams({
+      supabase,
+      relation,
+      userId,
+      paginationToken,
+    });
     const queue = new Queue<UpdateRelationJobInput, UpdateRelationResult>(
       "update-relation",
       { connection }
     );
-    const jobId = `${relation}:${userId}:${paginationToken ?? null}`;
     await queue.add(
-      jobId,
+      jobName,
       { signedInUserId, userId, paginationToken, relation },
       { delay, jobId }
     );
+
     const delayMinutes =
       (job.returnvalue.rateLimitResetsAt.getTime() - Date.now()) / (1000 * 60);
-    console.log(
-      `Job "${job.name}" has completed! Updated ${updatedCount} users.${
-        job.returnvalue.rateLimitResetsAt
-          ? ` Scheduled another job after ${delayMinutes} minutes to get around rate limit.`
-          : ""
-      }`
+    logger.log(
+      "info",
+      `${
+        job.name
+      } has completed! Updated ${updatedCount} users. Scheduled another job after ${delayMinutes.toFixed(
+        1
+      )} minutes to get around rate limit.`
     );
   } else
-    console.log(
-      `Job "${job.name}" has completed! Updated ${updatedCount} users.`
+    logger.log(
+      "info",
+      `${job.name} has completed! Updated ${updatedCount} users.`
     );
 });
 
 worker.on("failed", (job, err) => {
-  console.log(`$Job "${job.id}" has failed with ${err.message}`);
+  logger.log("error", `${job.name} has failed with ${err.message}.`);
 });
