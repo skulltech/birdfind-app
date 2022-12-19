@@ -1,4 +1,4 @@
-import { Checkbox } from "@mantine/core";
+import { Checkbox, Loader, CheckIcon, Group } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { FilterInputProps } from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
@@ -9,17 +9,20 @@ interface CheckboxInputProps extends FilterInputProps {
 
 export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   const [checked, setChecked] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { filters, addFilters, removeFilters, user } = useTwips();
 
-  const addFilter = () => {
+  const addFilter = async () => {
+    setLoading(true);
     if (relation == "blocked")
-      addFilters({ blockedBy: [user.twitter.username] });
+      await addFilters({ blockedBy: [user.twitter.username] });
     else if (relation == "muted")
-      addFilters({ mutedBy: [user.twitter.username] });
+      await addFilters({ mutedBy: [user.twitter.username] });
     else if (relation == "follower")
-      addFilters({ followerOf: [user.twitter.username] });
+      await addFilters({ followerOf: [user.twitter.username] });
     else if (relation == "followed")
-      addFilters({ followedBy: [user.twitter.username] });
+      await addFilters({ followedBy: [user.twitter.username] });
+    setLoading(false);
   };
 
   const removeFilter = () => {
@@ -44,8 +47,18 @@ export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
 
   return (
     <Checkbox
-      label={label}
+      label={
+        loading ? (
+          <Group align="center" spacing="xs">
+            {label}
+            <Loader variant="dots" />
+          </Group>
+        ) : (
+          label
+        )
+      }
       checked={checked}
+      indeterminate={loading}
       onChange={(event) =>
         event.currentTarget.checked ? addFilter() : removeFilter()
       }

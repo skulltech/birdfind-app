@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useTwips } from "../components/TwipsProvider";
 import { Center, Container, LoadingOverlay, Stack, Text } from "@mantine/core";
@@ -6,11 +6,17 @@ import { Center, Container, LoadingOverlay, Stack, Text } from "@mantine/core";
 const Home = () => {
   const { user, addFilters, searchResults, searchLoading, filtersInvalid } =
     useTwips();
+  const [initialFiltersLoading, setInitialFiltersLoading] = useState(false);
 
   // Add user's following on first load of page
   useEffect(() => {
-    if (user?.twitter?.username)
-      addFilters({ followedBy: [user.twitter.username] });
+    const addInitialFilters = async () => {
+      setInitialFiltersLoading(true);
+      await addFilters({ followedBy: [user.twitter.username] });
+      setInitialFiltersLoading(false);
+    };
+
+    if (user?.twitter?.username) addInitialFilters();
   }, [user]);
 
   return filtersInvalid ? (
@@ -27,7 +33,10 @@ const Home = () => {
     </Container>
   ) : (
     <div style={{ position: "relative" }}>
-      <LoadingOverlay visible={searchLoading} overlayBlur={2} />
+      <LoadingOverlay
+        visible={searchLoading || initialFiltersLoading}
+        overlayBlur={2}
+      />
       <UserTable users={searchResults} />
     </div>
   );
