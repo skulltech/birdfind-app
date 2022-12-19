@@ -9,6 +9,7 @@ const TwitterAuth = () => {
   const router = useRouter();
   const supabase = useSupabaseClient();
   const [user, setUser] = useState<UserDetails>(null);
+  const [loading, setLoading] = useState(false);
 
   // Load user details
   useEffect(() => {
@@ -27,8 +28,12 @@ const TwitterAuth = () => {
             <Text>Currently connected to @{user?.twitter?.username}</Text>
           )}
           <Button
-            onClick={() => router.push("/api/auth/twitter/signin")}
+            onClick={() => {
+              setLoading(true);
+              router.push("/api/auth/twitter/signin");
+            }}
             leftIcon={<IconBrandTwitter />}
+            loading={loading}
           >
             {user?.twitter
               ? "Connect to a different Twitter account"
