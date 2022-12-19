@@ -98,7 +98,6 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
         const user = await lookupUser(username);
         if (user) setExists(true);
       } catch (error) {
-        console.log(error);
         showNotification({
           title: "Error",
           message: "Some error ocurred",

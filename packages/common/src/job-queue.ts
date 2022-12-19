@@ -41,7 +41,7 @@ export const getUpdateRelationJobParams = async ({
 
   return {
     jobId: `${userId}:${relation}:${paginationToken ?? null}`,
-    jobName: `Update ${relation} of @${username}${
+    jobName: `Update ${relation} of ${username}${
       paginationToken ? ` with pagination token ${paginationToken}` : ""
     }`,
   };

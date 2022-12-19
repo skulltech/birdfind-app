@@ -6,7 +6,7 @@ import { getUserDetails, UserDetails } from "../../../utils/supabase";
 
 const addCron = async (relation: Relation, userDetails: UserDetails) => {
   await queue.add(
-    `Cron for updating ${relation} of @${userDetails.twitter.username}`,
+    `Cron for updating ${relation} of ${userDetails.twitter.username}`,
     {
       signedInUserId: userDetails.id,
       userId: userDetails.twitter.id,

@@ -1,6 +1,7 @@
-import { Kbd, Loader, TextInput } from "@mantine/core";
+import { Group, Kbd, Loader, Popover, Text, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
-import { IconSearch } from "@tabler/icons";
+import { showNotification } from "@mantine/notifications";
+import { IconAlertCircle, IconSearch } from "@tabler/icons";
 import axios from "axios";
 import { useState } from "react";
 import { Filters } from "../../utils/helpers";
@@ -14,6 +15,8 @@ const parseFiltersJson = (obj: any): Filters => {
 
 export const PromptInput = () => {
   const [prompt, setPrompt] = useState("");
+  const [popoverOpened, setPopoverOpened] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const { addFilters } = useTwips();
 
@@ -24,9 +27,16 @@ export const PromptInput = () => {
       const res = await axios.get("/api/twips/prompt-to-filters", {
         params: { prompt },
       });
-      const filters = parseFiltersJson(res.data.filters);
-      console.log(filters);
-      addFilters(filters);
+      if (res.status != 200)
+        showNotification({
+          title: "Sorry",
+          message: "Failed to parse prompt",
+          color: "red",
+        });
+      else {
+        const filters = parseFiltersJson(res.data.filters);
+        addFilters(filters);
+      }
 
       setPrompt("");
       setLoading(false);
@@ -34,14 +44,39 @@ export const PromptInput = () => {
   };
 
   return (
-    <TextInput
-      icon={<IconSearch size={14} />}
-      value={prompt}
-      placeholder="followed by elonmusk and me with at least 1000 followers"
-      onChange={(event) => setPrompt(event.currentTarget.value)}
-      onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
-      rightSection={loading ? <Loader size="xs" /> : <Kbd>Enter</Kbd>}
-      rightSectionWidth={loading ? undefined : 60}
-    />
+    <Popover
+      opened={popoverOpened}
+      position="bottom"
+      width="target"
+      transition="pop"
+    >
+      <Popover.Target>
+        <div
+          onFocusCapture={() => setPopoverOpened(true)}
+          onBlurCapture={() => setPopoverOpened(false)}
+        >
+          <TextInput
+            icon={<IconSearch size={14} />}
+            value={prompt}
+            placeholder="my mutuals with less than 100 tweets"
+            onChange={(event) => setPrompt(event.currentTarget.value)}
+            onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
+            rightSection={loading ? <Loader size="xs" /> : <Kbd>Enter</Kbd>}
+            rightSectionWidth={loading ? undefined : 60}
+          />
+        </div>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Text size="sm">
+          Type your query in english and let an AI deduce the required filters.
+        </Text>
+        <Group spacing={4}>
+          <IconAlertCircle size={16} color="red" />
+          <Text size="sm" c="dimmed">
+            This feature is highly experimental.
+          </Text>
+        </Group>
+      </Popover.Dropdown>
+    </Popover>
   );
 };

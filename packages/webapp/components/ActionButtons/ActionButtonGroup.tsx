@@ -1,4 +1,5 @@
 import { Divider, Group, Modal, Progress, Text } from "@mantine/core";
+import { showNotification } from "@mantine/notifications";
 import {
   IconCircleCheck,
   IconCircleOff,
@@ -19,17 +20,37 @@ type ActionButtonGroupProps = {
 export const ActionButtonGroup = ({ userIds }: ActionButtonGroupProps) => {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [label, setLabel] = useState("null");
 
   const performAction = async (action: Action) => {
     setProgress(0);
     setLoading(true);
 
+    const labels: Record<Action, string> = {
+      follow: "Following",
+      unfollow: "Unfollowing",
+      block: "Blocking",
+      unblock: "Unblocking",
+      mute: "Muting",
+      unmute: "Unmuting",
+    };
+    setLabel(labels[action]);
+
     for (const [index, userId] of userIds.entries()) {
-      await axios.get("/api/twips/perform-action", {
+      const res = await axios.get("/api/twips/perform-action", {
         params: { userId, action },
       });
+      if (res.status != 200) {
+        showNotification({
+          title: "Error",
+          message:
+            "Some error ocurred. You may have been rate limited. Please try again later.",
+          color: "red",
+        });
+        break;
+      }
       // Set progress in loader bar
-      setProgress(((index + 1) / userIds.length) * 100);
+      else setProgress(((index + 1) / userIds.length) * 100);
     }
     setLoading(false);
   };
@@ -39,12 +60,11 @@ export const ActionButtonGroup = ({ userIds }: ActionButtonGroupProps) => {
       <Modal
         opened={loading}
         onClose={() => setLoading(false)}
-        title="Performing action"
+        title={`${label} ${userIds.length} users`}
         withCloseButton={false}
         closeOnClickOutside={false}
         closeOnEscape={false}
       >
-        <Text c="dimmed">Progress</Text>
         <Progress value={progress} />
       </Modal>
 

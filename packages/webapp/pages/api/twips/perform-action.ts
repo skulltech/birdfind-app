@@ -90,17 +90,17 @@ export default async function handler(
     res.status(500).send({ error: errors[0].detail });
   else {
     // Update relation on Supabase
-    const supabase = getServiceRoleSupabase();
+    const serviceRoleSupabase = getServiceRoleSupabase();
     const [table, add] = params[action].updateRelationArgs;
     if (add) {
-      const { error } = await supabase.from(table).upsert({
+      const { error } = await serviceRoleSupabase.from(table).upsert({
         source_id: sourceUserId,
         target_id: targetUserId,
         updated_at: new Date().toISOString(),
       });
       if (error) throw error;
     } else {
-      const { error } = await supabase
+      const { error } = await serviceRoleSupabase
         .from(table)
         .delete()
         .eq("source_id", sourceUserId)

@@ -34,7 +34,6 @@ const getPrompt = (username: string, input: string) => `
 },
         "additionalProperties": false
 }
-// end object
 
 // JSON object of schema Filters for: follow summitkg and simranster, followed by simranster, and have at least 30 tweets
 {
@@ -44,7 +43,7 @@ const getPrompt = (username: string, input: string) => `
 }
 // end object
 
-// JSON object of schema Filters for: followed by ghuubear, follower of simranster, and have less than 100 followers
+// JSON object of schema Filters for: followed by ghuubear, follower of MangoZeus, and have less than 100 followers
 {
     "followedBy": ["ghuubear"],
     "followerOf": ["simranster"],
@@ -52,25 +51,39 @@ const getPrompt = (username: string, input: string) => `
 }
 // end object
 
-// JSON object of schema Filters for: follower of indiesumit, created after 2016
+// JSON object of schema Filters for: created after 2016
 {
-    "followerOf": ["indiesumit"],
     "createdAfter": "2016-01-01"
 }
 // end object
 
-// JSON object of schema Filters for: followed by elonmusk, account created before 2012
+// JSON object of schema Filters for: followed by elonmusk, account created before 2012 october 3rd
 {
     "followedBy": ["elonmusk"],
-    "createdBefore": "2012-01-01"
+    "createdBefore": "2012-10-03"
 }
 // end object
 
-// JSON object of schema Filters for: followed by me and follower of MangoZeus and account created after march 2018
+// JSON object of schema Filters for: followed by me and follower of philomathamit and account created after march 2018
 {
     "followedBy": ["${username}"],
     "followerOf": ["MangoZeus"],
     "createdAfter": "2018-03-01"
+}
+// end object
+
+// JSON object of schema Filters for: my follower who follows more than 1000 people
+{
+    "followerOf": ["${username}"],
+    "followingCountGreaterThan": 1000
+}
+// end object
+
+// JSON object of schema Filters for: my mutuals with less than 10 tweets
+{
+    "followerOf": ["${username}"],
+    "followedBy": ["${username}"],
+    "tweetCountLessThan": 10
 }
 // end object
 
