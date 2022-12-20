@@ -3,7 +3,6 @@ import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
 import { CheckboxInput } from "./FilterInputs/CheckboxInput";
 import { DateRangeInput } from "./FilterInputs/DateRangeInput";
 import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
-import { PromptInput } from "./FilterInputs/PromptInput";
 import { SearchTextInput } from "./FilterInputs/SearchTextInput";
 import { UsernameInput } from "./FilterInputs/UsernameInput";
 import { useTwips } from "./TwipsProvider";

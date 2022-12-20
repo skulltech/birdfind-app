@@ -26,6 +26,7 @@ const TwipsContext = createContext<{
   searchLoading: boolean;
   filtersInvalid: boolean;
   searchResults: TwitterProfile[];
+  userLoading: boolean;
 }>({
   user: null,
   filters: {},
@@ -34,6 +35,7 @@ const TwipsContext = createContext<{
   searchLoading: false,
   filtersInvalid: false,
   searchResults: [],
+  userLoading: false,
 });
 
 interface TwipsProviderProps {
@@ -107,6 +109,7 @@ const updateRelationIfNeeded = async (
 export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   const [user, setUser] = useState<UserDetails>(null);
   const [filters, setFilters] = useState<Filters>({});
+  const [userLoading, setUserLoading] = useState(false);
 
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<TwitterProfile[]>([]);
@@ -116,9 +119,10 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   // Load user details
   useEffect(() => {
     const loadUserDetails = async () => {
+      setUserLoading(true);
       const user = await getUserDetails(supabase);
       setUser(user);
-      // if (user && user.twitter) await axios.get("/api/twips/add-crons");
+      setUserLoading(false);
     };
     loadUserDetails();
   }, [supabase]);
@@ -194,31 +198,6 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
     setFilters(updatedFilters);
   };
 
-  // Check if filters are valid
-  useEffect(() => {
-    if (
-      // None of the essential filters exist
-      !(
-        filters.followedBy ||
-        filters.followerOf ||
-        filters.blockedBy ||
-        filters.mutedBy
-      ) ||
-      // Blocked by exists
-      (filters.blockedBy &&
-        // And it's either more than 1 users or is not logged in one
-        (filters.blockedBy.length > 1 ||
-          filters.blockedBy[0] != user.twitter.username)) ||
-      // Muted by exists
-      (filters.mutedBy &&
-        // And it's either more than 1 users or is not logged in one
-        (filters.mutedBy.length > 1 ||
-          filters.mutedBy[0] != user.twitter.username))
-    )
-      setFiltersInvalid(true);
-    else setFiltersInvalid(false);
-  }, [filters, user?.twitter?.username]);
-
   // Search Twitter profiles
   useEffect(() => {
     // Perform search on Supabase
@@ -240,7 +219,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
     }
 
     handleSearch();
-  }, [filters, user?.twitter?.username]);
+  }, [filters, user?.twitter?.username, supabase]);
 
   return (
     <TwipsContext.Provider
@@ -252,6 +231,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
         searchLoading,
         filtersInvalid,
         searchResults,
+        userLoading,
       }}
     >
       {children}

@@ -1,14 +1,26 @@
 import { useEffect, useState } from "react";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useTwips } from "../components/TwipsProvider";
-import { Center, Container, LoadingOverlay, Stack, Text } from "@mantine/core";
+import {
+  Center,
+  Container,
+  Loader,
+  LoadingOverlay,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { getUserProfile } from "../utils/supabase";
 import { useRouter } from "next/router";
 
 const Home = () => {
-  const { user, addFilters, searchResults, searchLoading, filtersInvalid } =
-    useTwips();
+  const {
+    user,
+    userLoading,
+    addFilters,
+    searchResults,
+    searchLoading,
+    filtersInvalid,
+  } = useTwips();
   const [initialFiltersLoading, setInitialFiltersLoading] = useState(false);
   const supabase = useSupabaseClient();
   const router = useRouter();
@@ -37,7 +49,7 @@ const Home = () => {
     loadUser();
   }, [router, supabase]);
 
-  return filtersInvalid ? (
+  return filtersInvalid && !userLoading ? (
     <Container mt={100}>
       <Center>
         <Stack align="center" spacing="xs">
@@ -52,7 +64,7 @@ const Home = () => {
   ) : (
     <div style={{ position: "relative" }}>
       <LoadingOverlay
-        visible={searchLoading || initialFiltersLoading}
+        visible={searchLoading || initialFiltersLoading || userLoading}
         overlayBlur={2}
       />
       <UserTable users={searchResults} />
