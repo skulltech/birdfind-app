@@ -7,7 +7,7 @@
   "scripts": {
     "job-queue": "yarn workspace @twips/job-queue",
     "webapp": "yarn workspace @twips/webapp",
-    "script": "ts-node script.ts"
+    "admin": "yarn workspace @twips/admin"
   },
   "devDependencies": {
     "dotenv": "^16.0.3",

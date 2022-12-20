@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "paths": { "@twips/common": ["../common/src"] },
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*", "environment.d.ts"],
+  "references": [{ "path": "../common" }]
+}

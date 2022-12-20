@@ -38,7 +38,7 @@ export default async function handler(
   } = await supabase.auth.getUser();
 
   // Add job
-  const { jobId, jobName } = await getUpdateRelationJobParams({
+  const { jobName, opts } = await getUpdateRelationJobParams({
     supabase,
     relation,
     userId,
@@ -50,7 +50,7 @@ export default async function handler(
       userId,
       relation,
     },
-    { jobId }
+    opts
   );
 
   // Insert event in user_event table

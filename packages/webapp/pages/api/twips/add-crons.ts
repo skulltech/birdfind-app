@@ -12,8 +12,16 @@ const addCron = async (relation: Relation, userDetails: UserDetails) => {
       userId: userDetails.twitter.id,
       relation,
     },
-    // Repeat every 2 minutes
-    { repeat: { every: 2 * 60 * 1000 } }
+    {
+      // Repeat every 2 minutes
+      repeat: { every: 2 * 60 * 1000 },
+      removeOnComplete: true,
+      // Keep up to 48 hours and 1000 jobs
+      removeOnFail: {
+        age: 48 * 3600,
+        count: 1000,
+      },
+    }
   );
 };
 

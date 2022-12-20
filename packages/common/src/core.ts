@@ -27,6 +27,32 @@ export const twitterUserFields: TwitterParams<findUserByUsername>["user.fields"]
     "withheld",
   ];
 
+export const twitterProfileFields = [
+  "id::text",
+  "created_at",
+  "updated_at",
+  "followers_updated_at",
+  "following_updated_at",
+  "muting_updated_at",
+  "blocking_updated_at",
+  "username",
+  "name",
+  "user_created_at",
+  "description",
+  "entities",
+  "location",
+  "pinned_tweet_id",
+  "profile_image_url",
+  "protected",
+  "followers_count",
+  "following_count",
+  "tweet_count",
+  "listed_count",
+  "url",
+  "verified",
+  "withheld",
+];
+
 export const serializeTwitterUser = (
   user: TwitterResponse<findUserByUsername>["data"]
 ) => {

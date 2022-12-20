@@ -71,7 +71,7 @@ worker.on("completed", async (job) => {
     const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
 
     // Add a new job to the queue with delay
-    const { jobId, jobName } = await getUpdateRelationJobParams({
+    const { jobName, opts } = await getUpdateRelationJobParams({
       supabase,
       relation,
       userId,
@@ -84,7 +84,7 @@ worker.on("completed", async (job) => {
     await queue.add(
       jobName,
       { signedInUserId, userId, paginationToken, relation },
-      { delay, jobId }
+      { ...opts, delay }
     );
 
     const delayMinutes =

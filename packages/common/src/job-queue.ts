@@ -17,13 +17,14 @@ export type UpdateRelationResult = {
 type GetUpdateRelationJobParamsArgs = {
   relation: Relation;
   userId: BigInt;
+  username?: string;
   supabase: SupabaseClient;
   paginationToken?: string;
 };
 
 type GetUpdateRelationJobParamsResult = {
-  jobId: string;
   jobName: string;
+  opts: any;
 };
 
 export const getUpdateRelationJobParams = async ({
@@ -31,18 +32,30 @@ export const getUpdateRelationJobParams = async ({
   userId,
   paginationToken,
   supabase,
+  username,
 }: GetUpdateRelationJobParamsArgs): Promise<GetUpdateRelationJobParamsResult> => {
-  const { data, error } = await supabase
-    .from("twitter_profile")
-    .select("username")
-    .eq("id", userId);
-  if (error) throw error;
-  const username = data[0].username;
+  // Get username from Supabase if not provided
+  if (!username) {
+    const { data, error } = await supabase
+      .from("twitter_profile")
+      .select("username")
+      .eq("id", userId);
+    if (error) throw error;
+    username = data[0].username;
+  }
 
   return {
-    jobId: `${userId}:${relation}:${paginationToken ?? null}`,
     jobName: `Update ${relation} of ${username}${
       paginationToken ? ` with pagination token ${paginationToken}` : ""
     }`,
+    opts: {
+      jobId: `${userId}:${relation}:${paginationToken ?? null}`,
+      removeOnComplete: true,
+      // Keep up to 48 hours and 1000 jobs
+      removeOnFail: {
+        age: 48 * 3600,
+        count: 1000,
+      },
+    },
   };
 };

@@ -1,0 +1,21 @@
+{
+  "name": "@twips/admin",
+  "version": "1.0.0",
+  "scripts": {
+    "script": "ts-node src/main.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.1.1",
+    "@twips/common": "^1.0.0",
+    "bullmq": "^3.4.2",
+    "cli-progress": "^3.11.2",
+    "dotenv": "^16.0.3",
+    "twitter-api-sdk": "^1.2.1",
+    "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "@types/cli-progress": "^3.11.0",
+    "@types/node": "^18.11.10",
+    "@types/yargs": "^17.0.17"
+  }
+}

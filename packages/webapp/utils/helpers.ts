@@ -62,30 +62,6 @@ export const parseTwitterProfile = (row: any): TwitterProfile => {
   };
 };
 
-export const twitterProfileFields = [
-  "id::text",
-  "created_at",
-  "updated_at",
-  "followers_updated_at",
-  "following_updated_at",
-  "username",
-  "name",
-  "user_created_at",
-  "description",
-  "entities",
-  "location",
-  "pinned_tweet_id",
-  "profile_image_url",
-  "protected",
-  "followers_count",
-  "following_count",
-  "tweet_count",
-  "listed_count",
-  "url",
-  "verified",
-  "withheld",
-];
-
 export type TwitterProfile = {
   id: BigInt;
   createdAt: Date;

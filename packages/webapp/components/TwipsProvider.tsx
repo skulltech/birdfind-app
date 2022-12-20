@@ -1,6 +1,6 @@
 import { showNotification } from "@mantine/notifications";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Relation } from "@twips/common";
+import { Relation, twitterProfileFields } from "@twips/common";
 import axios from "axios";
 import {
   createContext,
@@ -9,12 +9,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import {
-  Filters,
-  parseTwitterProfile,
-  TwitterProfile,
-  twitterProfileFields,
-} from "../utils/helpers";
+import { Filters, parseTwitterProfile, TwitterProfile } from "../utils/helpers";
 import {
   getUserDetails,
   searchTwitterProfiles,

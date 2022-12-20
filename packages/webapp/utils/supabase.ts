@@ -1,13 +1,8 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { serializeTwitterUser } from "@twips/common";
+import { serializeTwitterUser, twitterProfileFields } from "@twips/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
-import {
-  parseTwitterProfile,
-  twitterProfileFields,
-  TwitterProfile,
-  Filters,
-} from "./helpers";
+import { parseTwitterProfile, TwitterProfile, Filters } from "./helpers";
 
 export const getServiceRoleSupabase = () =>
   createClient(
