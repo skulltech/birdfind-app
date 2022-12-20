@@ -50,7 +50,11 @@ export const getUpdateRelationJobParams = async ({
     }`,
     opts: {
       jobId: `${userId}:${relation}:${paginationToken ?? null}`,
-      removeOnComplete: true,
+      // Keep up to 1 hour and 100 jobs
+      removeOnComplete: {
+        age: 1 * 3600,
+        count: 100,
+      },
       // Keep up to 48 hours and 1000 jobs
       removeOnFail: {
         age: 48 * 3600,
