@@ -118,7 +118,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
     const loadUserDetails = async () => {
       const user = await getUserDetails(supabase);
       setUser(user);
-      if (user && user.twitter) await axios.get("/api/twips/add-crons");
+      // if (user && user.twitter) await axios.get("/api/twips/add-crons");
     };
     loadUserDetails();
   }, [supabase]);
