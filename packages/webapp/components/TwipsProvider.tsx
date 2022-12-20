@@ -218,6 +218,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
       return;
     }
 
+    setFiltersInvalid(false);
     handleSearch();
   }, [filters, user?.twitter?.username, supabase]);
 

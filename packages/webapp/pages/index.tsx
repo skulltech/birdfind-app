@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useTwips } from "../components/TwipsProvider";
-import {
-  Center,
-  Container,
-  Loader,
-  LoadingOverlay,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Center, Container, LoadingOverlay, Stack, Text } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
 
