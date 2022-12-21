@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Autocomplete,
+  Avatar,
   Group,
   Loader,
   Stack,
@@ -22,6 +23,7 @@ import {
   TwitterProfile,
 } from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
+import { useDebouncedValue } from "@mantine/hooks";
 
 interface UsernameInputProps extends FilterInputProps {
   direction: "followers" | "following";
@@ -44,13 +46,14 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   const supabase = useSupabaseClient();
   const [autocompleteOptions, setAutocompleteOptions] = useState([]);
   const [addFiltersLoading, setAddFiltersLoading] = useState(false);
+  const [debouncedUsername] = useDebouncedValue(username, 300);
 
   // Checking if username exists
   const [lookupLoading, setLookupLoading] = useState(false);
   // Username is a valid username acc. to the rules
   const [valid, setValid] = useState(false);
   // Username actually exists
-  const [exists, setExists] = useState(false);
+  const [user, setUser] = useState<TwitterProfile>(null);
 
   // Get username autocomplete options from Supabase
   useEffect(() => {
@@ -85,32 +88,26 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   // Check whether username exists
   useEffect(() => {
     const lookupUsername = async () => {
-      if (!valid || !Boolean(username.length)) {
-        setExists(false);
-        return;
-      }
-
-      setLookupLoading(true);
-      setExists(false);
+      setUser(null);
+      if (!valid || !Boolean(debouncedUsername.length)) return;
 
       // Lookup user on Twips
+      setLookupLoading(true);
       try {
-        const user = await lookupUser(username);
-        if (user) setExists(true);
+        const user = await lookupUser(debouncedUsername);
+        if (user) setUser(user);
       } catch (error) {
         showNotification({
           title: "Error",
           message: "Some error ocurred",
           color: "red",
         });
-        setExists(false);
       }
-
       setLookupLoading(false);
     };
 
     lookupUsername();
-  }, [username, valid]);
+  }, [debouncedUsername, valid]);
 
   const handleSubmit = async () => {
     setAddFiltersLoading(true);
@@ -136,7 +133,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
               ? lookupLoading
                 ? false
                 : valid
-                ? exists
+                ? user
                   ? false
                   : "User does not exist"
                 : "Username is not valid"
@@ -146,7 +143,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
             lookupLoading ? (
               <Loader size="xs" />
             ) : valid ? (
-              exists ? (
+              user ? (
                 <IconCircleCheck size={20} color="green" />
               ) : (
                 <IconAlertCircle size={20} color="red" />
@@ -154,13 +151,14 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
             ) : null
           }
         />
+        {valid && user && <Avatar src={user.profileImageUrl} radius="xl" />}
         {addFiltersLoading ? (
           <Loader size="md" />
         ) : (
           <ActionIcon
             size="lg"
             variant="default"
-            disabled={!valid || !exists}
+            disabled={!valid || !user}
             onClick={handleSubmit}
           >
             <IconArrowNarrowRight size={16} />

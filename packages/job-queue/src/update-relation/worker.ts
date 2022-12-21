@@ -7,7 +7,7 @@ import { logger, connection } from "./utils";
 const worker = new Worker<UpdateRelationJobInput, UpdateRelationResult>(
   "update-relation",
   updateRelation,
-  { connection, concurrency: 3 }
+  { connection, concurrency: 10 }
 );
 
 worker.on("error", async (error) => {

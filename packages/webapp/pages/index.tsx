@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useTwips } from "../components/TwipsProvider";
-import { Center, Container, LoadingOverlay, Stack, Text } from "@mantine/core";
+import {
+  Center,
+  Container,
+  Group,
+  LoadingOverlay,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
+import { IconAlertCircle } from "@tabler/icons";
 
 const Home = () => {
   const {
@@ -46,10 +54,18 @@ const Home = () => {
     <Container mt={100}>
       <Center>
         <Stack align="center" spacing="xs">
-          <Text weight="bold">Insufficient Filters</Text>
+          <Group>
+            <IconAlertCircle color="red" />
+            <Text weight="bold">Insufficient Filters</Text>
+          </Group>
           <Text>
-            Please select filters from the left panel or type it in natural
-            language above
+            You have to select at least one{" "}
+            <span style={{ fontFamily: "monospace" }}>followed by</span> or{" "}
+            <span style={{ fontFamily: "monospace" }}>follower of</span> filters
+          </Text>
+          <Text>
+            Please select filters from the left panel or type it in english
+            above
           </Text>
         </Stack>
       </Center>
