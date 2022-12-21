@@ -14,6 +14,7 @@ import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { AppNavbar } from "../components/AppNavbar";
 import { TwipsProvider } from "../components/TwipsProvider";
 import { ModalsProvider } from "@mantine/modals";
+import { GoogleAnalytics } from "nextjs-google-analytics";
 
 // Monkeypatching BigInt
 BigInt.prototype["toJSON"] = function () {
@@ -33,43 +34,48 @@ export default function App({
   const [opened, setOpened] = useState(false);
 
   return (
-    <SessionContextProvider
-      supabaseClient={supabase}
-      initialSession={pageProps.initialSession}
-    >
-      <ColorSchemeProvider
-        colorScheme={colorScheme}
-        toggleColorScheme={toggleColorScheme}
+    <>
+      <GoogleAnalytics trackPageViews />
+      <SessionContextProvider
+        supabaseClient={supabase}
+        initialSession={pageProps.initialSession}
       >
-        <MantineProvider
-          theme={{ colorScheme }}
-          withGlobalStyles
-          withNormalizeCSS
+        <ColorSchemeProvider
+          colorScheme={colorScheme}
+          toggleColorScheme={toggleColorScheme}
         >
-          <NotificationsProvider position="top-center">
-            <ModalsProvider>
-              <TwipsProvider supabase={supabase}>
-                <AppShell
-                  padding="xs"
-                  navbar={<AppNavbar hiddenBreakpoint="sm" hidden={!opened} />}
-                  header={<AppHeader opened={opened} setOpened={setOpened} />}
-                  navbarOffsetBreakpoint="sm"
-                  styles={(theme) => ({
-                    main: {
-                      backgroundColor:
-                        theme.colorScheme === "dark"
-                          ? theme.colors.dark[8]
-                          : theme.colors.gray[0],
-                    },
-                  })}
-                >
-                  <Component {...pageProps} />
-                </AppShell>
-              </TwipsProvider>
-            </ModalsProvider>
-          </NotificationsProvider>
-        </MantineProvider>
-      </ColorSchemeProvider>
-    </SessionContextProvider>
+          <MantineProvider
+            theme={{ colorScheme }}
+            withGlobalStyles
+            withNormalizeCSS
+          >
+            <NotificationsProvider position="top-center">
+              <ModalsProvider>
+                <TwipsProvider supabase={supabase}>
+                  <AppShell
+                    padding="xs"
+                    navbar={
+                      <AppNavbar hiddenBreakpoint="sm" hidden={!opened} />
+                    }
+                    header={<AppHeader opened={opened} setOpened={setOpened} />}
+                    navbarOffsetBreakpoint="sm"
+                    styles={(theme) => ({
+                      main: {
+                        backgroundColor:
+                          theme.colorScheme === "dark"
+                            ? theme.colors.dark[8]
+                            : theme.colors.gray[0],
+                      },
+                    })}
+                  >
+                    <Component {...pageProps} />
+                  </AppShell>
+                </TwipsProvider>
+              </ModalsProvider>
+            </NotificationsProvider>
+          </MantineProvider>
+        </ColorSchemeProvider>
+      </SessionContextProvider>
+    </>
   );
 }

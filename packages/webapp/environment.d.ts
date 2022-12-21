@@ -17,5 +17,7 @@ declare namespace NodeJS {
     REDIS_PASSWORD: string;
 
     OPENAI_API_KEY: string;
+
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: string;
   }
 }
