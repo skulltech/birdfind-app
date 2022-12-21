@@ -9,8 +9,7 @@ import {
 } from "@twips/common";
 import { Job } from "bullmq";
 import { Client } from "twitter-api-sdk";
-import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
-import { dedupeUsers, logger, queue, supabase } from "./utils";
+import { dedupeUsers, queue, supabase } from "./utils";
 
 // 10 seconds
 const bufferMs = 10 * 1000;
@@ -109,16 +108,37 @@ export const updateRelation = async (
   );
 
   // Loop through paginated response and get all users
-  const users: TwitterResponse<usersIdFollowers>["data"] = [];
   let rateLimitResetsAt: Date;
+  let updatedCount: number = 0;
   try {
     for await (const page of response) {
-      users.push(...page.data);
       paginationToken = page.meta.next_token;
+
+      // Remove duplicates and save count
+      const dedupedUsers = dedupeUsers(page.data);
+      updatedCount = updatedCount + dedupedUsers.length;
+
+      // Upsert users to database
+      const { error: insertProfilesError } = await supabase
+        .from("twitter_profile")
+        .upsert(dedupedUsers.map(serializeTwitterUser));
+      if (insertProfilesError) throw insertProfilesError;
+
+      // Upsert relations to database
+      const { error: insertEdgesError } = await supabase.from(table).upsert(
+        dedupedUsers.map((x) => {
+          return {
+            ...getRow(userId, x.id),
+            updated_at: new Date().toISOString(),
+          };
+        })
+      );
+      if (insertEdgesError) throw insertEdgesError;
+
       // Update job progress
       await job.updateProgress({
-        message: "Fetched users from Twitter",
-        data: { count: users.length },
+        message: "Fetched users from Twitter and upserted to Supabase",
+        data: { count: updatedCount },
       });
     }
   } catch (error) {
@@ -135,26 +155,8 @@ export const updateRelation = async (
   // Update job progress
   await job.updateProgress({
     message: "Done fetching users from Twitter",
-    data: { count: users.length },
+    data: { count: updatedCount },
   });
-
-  // Remove duplicates and Upsert followers to database
-  const dedupedUsers = dedupeUsers(users);
-  const { error: insertProfilesError } = await supabase
-    .from("twitter_profile")
-    .upsert(dedupedUsers.map(serializeTwitterUser));
-  if (insertProfilesError) throw insertProfilesError;
-
-  // Upsert relations to database
-  const { error: insertEdgesError } = await supabase.from(table).upsert(
-    dedupedUsers.map((x) => {
-      return {
-        ...getRow(userId, x.id),
-        updated_at: new Date().toISOString(),
-      };
-    })
-  );
-  if (insertEdgesError) throw insertEdgesError;
 
   // If no more pagination remaining, and if not rate-limited
   if (paginationToken === undefined && rateLimitResetsAt === undefined) {
@@ -165,14 +167,6 @@ export const updateRelation = async (
       .eq("id", userId.toString());
     if (updateUserError) throw updateUserError;
   }
-
-  const updatedCount = dedupedUsers.length;
-
-  // Update job progress
-  await job.updateProgress({
-    message: "Upserted data to Supabase",
-    data: { count: updatedCount },
-  });
 
   // If it got rate limited, schedule another job
   if (rateLimitResetsAt !== undefined) {
