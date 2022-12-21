@@ -2,14 +2,13 @@
   "name": "@twips/job-queue",
   "version": "1.0.0",
   "scripts": {
-    "start": "ts-node src/update-relation/worker.ts",
-    "dashboard": "yarn run bullmq-dashboard-runnable update-relation --port 4000"
+    "worker": "ts-node src/update-relation/worker.ts",
+    "event-listener": "ts-node src/update-relation/event-listener.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",
     "@twips/common": "^1.0.0",
     "bullmq": "^3.2.4",
-    "bullmq-dashboard-runnable": "^0.0.6",
     "dotenv": "^16.0.3",
     "twitter-api-sdk": "^1.2.1",
     "winston": "^3.8.2",

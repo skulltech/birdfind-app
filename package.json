@@ -7,9 +7,11 @@
   "scripts": {
     "job-queue": "yarn workspace @twips/job-queue",
     "webapp": "yarn workspace @twips/webapp",
-    "admin": "yarn workspace @twips/admin"
+    "admin": "yarn workspace @twips/admin",
+    "bullmq-dashboard": "yarn run bullmq-dashboard-runnable update-relation --port 4000"
   },
   "devDependencies": {
+    "bullmq-dashboard-runnable": "^0.0.6",
     "dotenv": "^16.0.3",
     "lerna": "^6.1.0",
     "typescript": "^4.9.3"

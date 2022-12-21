@@ -6,6 +6,9 @@ import { ConnectionOptions, Queue } from "bullmq";
 import { UpdateRelationJobInput, UpdateRelationResult } from "@twips/common";
 dotenv.config();
 
+// To suppress warnings
+process.removeAllListeners("warning");
+
 export const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
   const dedupedUsers = new Set<string>();
 
