@@ -1,109 +1,76 @@
-import { createClient } from "@supabase/supabase-js";
-import {
-  getTwitterClient,
-  getUpdateRelationJobParams,
-  UpdateRelationJobInput,
-  UpdateRelationResult,
-} from "@twips/common";
-import { ConnectionOptions, Queue, Worker } from "bullmq";
+import { UpdateRelationJobInput, UpdateRelationResult } from "@twips/common";
+import { QueueEvents, Worker } from "bullmq";
 import * as dotenv from "dotenv";
 import { updateRelation } from "./core";
-import { logger } from "./utils";
+import { logger, connection, queue } from "./utils";
 dotenv.config();
 
 // To suppress warnings
 process.removeAllListeners("warning");
 
-const connection: ConnectionOptions = {
-  host: process.env.REDIS_HOST,
-  port: parseInt(process.env.REDIS_PORT),
-  password: process.env.REDIS_PASSWORD,
-};
-
-const supabase = createClient(
-  process.env.SUPABASE_API_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
-// 2 seconds
-const bufferMs = 2 * 1000;
-
+// Start worker
 const worker = new Worker<UpdateRelationJobInput, UpdateRelationResult>(
   "update-relation",
-  async (job) => {
-    const { userId, signedInUserId, relation } = job.data;
-
-    // Get user's oauth token from Supabase
-    const { data, error } = await supabase
-      .from("user_profile")
-      .select("twitter_oauth_token")
-      .eq("id", signedInUserId);
-    if (error) throw error;
-    if (!data.length) throw Error("User not found");
-    const oauthToken = data[0].twitter_oauth_token;
-
-    // Get twitter client of user
-    const twitter = await getTwitterClient({
-      clientId: process.env.TWITTER_CLIENT_ID,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET,
-      supabase,
-      userId: signedInUserId,
-      oauthToken,
-    });
-
-    // Update relation
-    return await updateRelation({
-      userId,
-      relation,
-      supabase,
-      twitter,
-    });
-  },
-  { connection }
+  updateRelation,
+  // Concurrency is 5
+  { connection, concurrency: 5 }
 );
 
-worker.on("completed", async (job) => {
-  const { rateLimitResetsAt, paginationToken, updatedCount } = job.returnvalue;
-  const { userId, signedInUserId, relation } = job.data;
-
-  // If it got rate limited, schedule another job
-  if (rateLimitResetsAt !== undefined) {
-    const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
-
-    // Add a new job to the queue with delay
-    const { jobName, opts } = await getUpdateRelationJobParams({
-      supabase,
-      relation,
-      userId,
-      paginationToken,
-    });
-    const queue = new Queue<UpdateRelationJobInput, UpdateRelationResult>(
-      "update-relation",
-      { connection }
-    );
-    await queue.add(
-      jobName,
-      { signedInUserId, userId, paginationToken, relation },
-      { ...opts, delay }
-    );
-
-    const delayMinutes =
-      (job.returnvalue.rateLimitResetsAt.getTime() - Date.now()) / (1000 * 60);
-    logger.log(
-      "info",
-      `${
-        job.name
-      } has completed! Updated ${updatedCount} users. Scheduled another job after ${delayMinutes.toFixed(
-        1
-      )} minutes to get around rate limit.`
-    );
-  } else
-    logger.log(
-      "info",
-      `${job.name} has completed! Updated ${updatedCount} users.`
-    );
+worker.on("error", async (error) => {
+  logger.error(error.message);
 });
 
-worker.on("failed", (job, err) => {
-  logger.log("error", `${job.name} has failed with ${err.message}.`);
+const queueEvents = new QueueEvents("update-relation", { connection });
+
+queueEvents.on("added", async ({ jobId, name }) => {
+  logger.info("Job added to queue", {
+    metadata: {
+      jobId,
+      jobName: name,
+    },
+  });
+});
+
+queueEvents.on("active", async ({ jobId }) => {
+  const job = await queue.getJob(jobId);
+  logger.info("Job has started", {
+    metadata: { jobId, jobName: job.name },
+  });
+});
+
+queueEvents.on("progress", async ({ jobId, data }) => {
+  const job = await queue.getJob(jobId);
+  logger.info("Job has progressed", {
+    metadata: {
+      jobId,
+      jobName: job.name,
+      progress: data,
+    },
+  });
+});
+
+queueEvents.on("completed", async ({ jobId, returnvalue }) => {
+  const job = await queue.getJob(jobId);
+  logger.info("Job has completed", {
+    metadata: {
+      jobId,
+      jobName: job.name,
+      result: returnvalue,
+    },
+  });
+});
+
+queueEvents.on("failed", async ({ jobId, failedReason }) => {
+  const job = await queue.getJob(jobId);
+  logger.info("Job has failed", {
+    metadata: {
+      jobId,
+      jobName: job.name,
+      failedReason,
+    },
+  });
+});
+
+queueEvents.on("error", async (error) => {
+  logger.error(error.message);
 });

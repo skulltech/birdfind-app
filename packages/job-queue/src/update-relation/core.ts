@@ -1,21 +1,19 @@
-import { SupabaseClient } from "@supabase/supabase-js";
 import {
+  getTwitterClient,
+  getUpdateRelationJobParams,
   Relation,
   serializeTwitterUser,
   twitterUserFields,
+  UpdateRelationJobInput,
   UpdateRelationResult,
 } from "@twips/common";
+import { Job } from "bullmq";
 import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
-import { dedupeUsers } from "./utils";
+import { dedupeUsers, logger, queue, supabase } from "./utils";
 
-export type UpdateRelationArgs = {
-  userId: BigInt;
-  relation: Relation;
-  supabase: SupabaseClient;
-  twitter: Client;
-  paginationToken?: string;
-};
+// 10 seconds
+const bufferMs = 10 * 1000;
 
 type Params = {
   table: string;
@@ -74,13 +72,31 @@ const params: Record<Relation, Params> = {
   },
 };
 
-export const updateRelation = async ({
-  userId,
-  relation,
-  supabase,
-  twitter,
-  paginationToken,
-}: UpdateRelationArgs): Promise<UpdateRelationResult> => {
+export const updateRelation = async (
+  job: Job<UpdateRelationJobInput, UpdateRelationResult>
+): Promise<UpdateRelationResult> => {
+  // Job inputs
+  let { userId, relation, paginationToken, signedInUserId } = job.data;
+
+  // Get user's oauth token from Supabase
+  const { data, error: getTokenError } = await supabase
+    .from("user_profile")
+    .select("twitter_oauth_token")
+    .eq("id", signedInUserId);
+  if (getTokenError) throw getTokenError;
+  if (!data.length) throw Error("User not found");
+  const oauthToken = data[0].twitter_oauth_token;
+
+  // Get twitter client of user
+  const twitter = await getTwitterClient({
+    clientId: process.env.TWITTER_CLIENT_ID,
+    clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    supabase,
+    userId: signedInUserId,
+    oauthToken,
+  });
+
+  // Get relation specific logic params
   const { table, updatedAtColumn, getTwitterMethod, getRow } = params[relation];
 
   const response = getTwitterMethod(twitter)(
@@ -99,6 +115,11 @@ export const updateRelation = async ({
     for await (const page of response) {
       users.push(...page.data);
       paginationToken = page.meta.next_token;
+      // Update job progress
+      await job.updateProgress({
+        message: "Fetched users from Twitter",
+        data: { count: users.length },
+      });
     }
   } catch (error) {
     // If rate-limited, save the rateLimitReset timestamp and continue
@@ -111,12 +132,18 @@ export const updateRelation = async ({
     }
   }
 
+  // Update job progress
+  await job.updateProgress({
+    message: "Done fetching users from Twitter",
+    data: { count: users.length },
+  });
+
   // Remove duplicates and Upsert followers to database
   const dedupedUsers = dedupeUsers(users);
-  const { error } = await supabase
+  const { error: insertProfilesError } = await supabase
     .from("twitter_profile")
     .upsert(dedupedUsers.map(serializeTwitterUser));
-  if (error) throw error;
+  if (insertProfilesError) throw insertProfilesError;
 
   // Upsert relations to database
   const { error: insertEdgesError } = await supabase.from(table).upsert(
@@ -139,9 +166,38 @@ export const updateRelation = async ({
     if (updateUserError) throw updateUserError;
   }
 
-  return {
-    updatedCount: dedupedUsers.length,
-    paginationToken,
-    rateLimitResetsAt,
-  };
+  const updatedCount = dedupedUsers.length;
+
+  // Update job progress
+  await job.updateProgress({
+    message: "Upserted data to Supabase",
+    data: { count: updatedCount },
+  });
+
+  // If it got rate limited, schedule another job
+  if (rateLimitResetsAt !== undefined) {
+    const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
+
+    // Add a new job to the queue with delay
+    const { jobName, opts } = await getUpdateRelationJobParams({
+      supabase,
+      relation,
+      userId,
+      paginationToken,
+    });
+    await queue.add(
+      jobName,
+      { signedInUserId, userId, paginationToken, relation },
+      { ...opts, delay }
+    );
+
+    // Update job progress
+    const delayMins = (rateLimitResetsAt.getTime() - Date.now()) / (1000 * 60);
+    await job.updateProgress({
+      message: "Scheduled another job to get around rate limit",
+      data: { delayMins },
+    });
+  }
+
+  return { updatedCount, rateLimitResetsAt, paginationToken };
 };

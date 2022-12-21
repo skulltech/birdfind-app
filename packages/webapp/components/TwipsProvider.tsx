@@ -97,13 +97,10 @@ const updateRelationIfNeeded = async (
       ? user.mutingUpdatedAt
       : null;
 
-  if (relationUpdateAt.getTime() === 0) {
-    const response = await axios.get("/api/twips/update-relation", {
+  if (relationUpdateAt.getTime() === 0)
+    await axios.get("/api/twips/update-relation", {
       params: { userId: user.id, relation },
     });
-    if (response.status != 200) throw Error(response.data.error);
-  }
-  return true;
 };
 
 export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
@@ -151,18 +148,18 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
                 : filterName == "mutedBy"
                 ? "muting"
                 : null;
-            const success = await updateRelationIfNeeded(
-              supabase,
-              item,
-              relation
-            );
-            if (success) updatedValue.add(item);
-            else
+
+            try {
+              await updateRelationIfNeeded(supabase, item, relation);
+              updatedValue.add(item);
+            } catch (error) {
+              console.log(error);
               showNotification({
                 title: "Sorry",
                 message: `It will take some time to fetch @${item}'s ${relation}. Please check in some time`,
                 color: "red",
               });
+            }
           }
 
         if (updatedValue.size)

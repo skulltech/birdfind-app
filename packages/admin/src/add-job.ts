@@ -46,12 +46,14 @@ export const addJob = async ({ email, relation, username }: AddJobArgs) => {
   if (error2) throw error2;
   const signedInUserId = signedInUserIds[0].id;
 
-  // Add job
   const { jobName, opts } = await getUpdateRelationJobParams({
     relation,
     supabase,
     username,
     userId,
   });
+  // Remove existing job if there's any
+  await queue.remove(opts.jobId);
+  // Add job
   return await queue.add(jobName, { signedInUserId, relation, userId }, opts);
 };
