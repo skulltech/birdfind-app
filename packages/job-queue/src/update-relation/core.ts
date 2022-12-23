@@ -1,11 +1,11 @@
 import {
   getTwitterClient,
-  getUpdateRelationJobParams,
   Relation,
   serializeTwitterUser,
   twitterUserFields,
-  UpdateRelationJobInput,
-  UpdateRelationResult,
+  UpdateRelationJobResult,
+  UpdateRelationJobData,
+  updateRelationJobOpts,
 } from "@twips/common";
 import { Job } from "bullmq";
 import { Client } from "twitter-api-sdk";
@@ -72,19 +72,46 @@ const params: Record<Relation, Params> = {
 };
 
 export const updateRelation = async (
-  job: Job<UpdateRelationJobInput, UpdateRelationResult>
-): Promise<UpdateRelationResult> => {
+  job: Job<UpdateRelationJobData, UpdateRelationJobResult>
+) => {
   // Job inputs
-  let { userId, relation, paginationToken, signedInUserId } = job.data;
+  const { userId, relation, continuationParams, signedInUserId } = job.data;
+  let paginationToken = continuationParams?.paginationToken;
 
-  // Get user's oauth token from Supabase
-  const { data, error: getTokenError } = await supabase
+  // Populate human readable data
+  const { data: signedInUser, error: selectEmailError } = await supabase
     .from("user_profile")
-    .select("twitter_oauth_token")
-    .eq("id", signedInUserId);
-  if (getTokenError) throw getTokenError;
-  if (!data.length) throw Error("User not found");
-  const oauthToken = data[0].twitter_oauth_token;
+    .select("email,twitter_id::text,twitter_oauth_token")
+    .eq("id", signedInUserId)
+    .single();
+  if (selectEmailError) throw selectEmailError;
+
+  const { data: usernames, error: selectUsernamesError } = await supabase
+    .from("twitter_profile")
+    .select("id::text,username")
+    // @ts-ignore
+    .in("id", [userId, signedInUser.twitter_id]);
+  if (selectUsernamesError) throw selectUsernamesError;
+  const usernamesMap: Record<string, string> = usernames.reduce(
+    (prev, curr) => {
+      // @ts-ignore
+      return { ...prev, [curr.id]: curr.username };
+    },
+    {}
+  );
+
+  await job.update({
+    ...job.data,
+    humanReadable: {
+      signedInUser: {
+        // @ts-ignore
+        email: signedInUser.email,
+        // @ts-ignore
+        username: usernamesMap[signedInUser.twitter_id],
+      },
+      username: usernamesMap[userId.toString()],
+    },
+  });
 
   // Get twitter client of user
   const twitter = await getTwitterClient({
@@ -92,12 +119,14 @@ export const updateRelation = async (
     clientSecret: process.env.TWITTER_CLIENT_SECRET,
     supabase,
     userId: signedInUserId,
-    oauthToken,
+    // @ts-ignore
+    oauthToken: signedInUser.twitter_oauth_token,
   });
 
   // Get relation specific logic params
   const { table, updatedAtColumn, getTwitterMethod, getRow } = params[relation];
 
+  // Call twitter API method
   const response = getTwitterMethod(twitter)(
     userId.toString(),
     {
@@ -110,6 +139,7 @@ export const updateRelation = async (
   // Loop through paginated response and get all users
   let rateLimitResetsAt: Date;
   let updatedCount: number = 0;
+  let totalUpdatedCount: number = continuationParams?.totalUpdatedCount ?? 0;
   try {
     for await (const page of response) {
       paginationToken = page.meta.next_token;
@@ -117,6 +147,7 @@ export const updateRelation = async (
       // Remove duplicates and save count
       const dedupedUsers = dedupeUsers(page.data);
       updatedCount = updatedCount + dedupedUsers.length;
+      totalUpdatedCount = totalUpdatedCount + dedupedUsers.length;
 
       // Upsert users to database
       const { error: insertProfilesError } = await supabase
@@ -136,10 +167,7 @@ export const updateRelation = async (
       if (insertEdgesError) throw insertEdgesError;
 
       // Update job progress
-      await job.updateProgress({
-        message: "Fetched users from Twitter and upserted to Supabase",
-        data: { count: updatedCount },
-      });
+      await job.updateProgress({ updatedCount, totalUpdatedCount });
     }
   } catch (error) {
     // If rate-limited, save the rateLimitReset timestamp and continue
@@ -152,13 +180,7 @@ export const updateRelation = async (
     }
   }
 
-  // Update job progress
-  await job.updateProgress({
-    message: "Done fetching users from Twitter",
-    data: { count: updatedCount },
-  });
-
-  // If no more pagination remaining, and if not rate-limited
+  // Completed fetching all users of the batch
   if (paginationToken === undefined && rateLimitResetsAt === undefined) {
     // Upsert user's followersUpdatedAt field in database
     const { error: updateUserError } = await supabase
@@ -169,29 +191,34 @@ export const updateRelation = async (
   }
 
   // If it got rate limited, schedule another job
+  console.log(typeof continuationParams?.initialProcessedAt);
   if (rateLimitResetsAt !== undefined) {
     const delay = rateLimitResetsAt.getTime() - Date.now() + bufferMs;
+    const newContinuationParams = {
+      paginationToken,
+      iterationCount: (continuationParams?.iterationCount ?? 0) + 1,
+      totalUpdatedCount:
+        (continuationParams?.totalUpdatedCount ?? 0) + updatedCount,
+      initialProcessedAt:
+        continuationParams?.initialProcessedAt ?? new Date(job.processedOn),
+    };
 
     // Add a new job to the queue with delay
-    const { jobName, opts } = await getUpdateRelationJobParams({
-      supabase,
-      relation,
-      userId,
-      paginationToken,
-    });
     await queue.add(
-      jobName,
-      { signedInUserId, userId, paginationToken, relation },
-      { ...opts, delay }
+      "Update relation",
+      {
+        signedInUserId,
+        userId,
+        relation,
+        continuationParams: newContinuationParams,
+      },
+      { ...updateRelationJobOpts, delay }
     );
-
-    // Update job progress
-    const delayMins = (rateLimitResetsAt.getTime() - Date.now()) / (1000 * 60);
-    await job.updateProgress({
-      message: "Scheduled another job to get around rate limit",
-      data: { delayMins },
-    });
   }
 
-  return { updatedCount, rateLimitResetsAt, paginationToken };
+  // Return result
+  return {
+    totalUpdatedCount,
+    rateLimitResetsAt: rateLimitResetsAt.toISOString(),
+  };
 };

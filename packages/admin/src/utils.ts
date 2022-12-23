@@ -1,14 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 import { Queue } from "bullmq";
 import { Client } from "twitter-api-sdk";
-import { UpdateRelationJobInput, UpdateRelationResult } from "@twips/common";
+import { UpdateRelationJobResult, UpdateRelationJobData } from "@twips/common";
 
 export const supabase = createClient(
   process.env.SUPABASE_API_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export const queue = new Queue<UpdateRelationJobInput, UpdateRelationResult>(
+export const queue = new Queue<UpdateRelationJobData, UpdateRelationJobResult>(
   "update-relation",
   {
     connection: {

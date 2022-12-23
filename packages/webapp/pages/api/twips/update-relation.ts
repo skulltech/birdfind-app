@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { getUpdateRelationJobParams, relations } from "@twips/common";
+import { relations, updateRelationJobOpts } from "@twips/common";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { zodBigint } from "../../../utils/helpers";
@@ -38,19 +38,14 @@ export default async function handler(
   } = await supabase.auth.getUser();
 
   // Add job
-  const { jobName, opts } = await getUpdateRelationJobParams({
-    supabase,
-    relation,
-    userId,
-  });
   const job = await queue.add(
-    jobName,
+    "Update relation",
     {
       signedInUserId: user.id,
       userId,
       relation,
     },
-    opts
+    updateRelationJobOpts
   );
 
   // Insert event in user_event table

@@ -3,7 +3,7 @@ import TelegramLogger from "winston-telegram";
 import * as dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { ConnectionOptions, Queue } from "bullmq";
-import { UpdateRelationJobInput, UpdateRelationResult } from "@twips/common";
+import { UpdateRelationJobResult, UpdateRelationJobData } from "@twips/common";
 dotenv.config();
 
 // To suppress warnings
@@ -21,14 +21,25 @@ export const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
 
 const formatTelegramMessage = ({ level, message, metadata }) => `
 <strong>[${level}]</strong> ${message}
-<pre>${JSON.stringify(metadata, null, 2)
-  .replaceAll("{", "")
-  .replaceAll("}", "")
-  .replaceAll('"', "")
-  .replaceAll(",", "")
-  .split("\n")
-  .map((x) => x.slice(2, x.length))
-  .join("\n")}</pre>
+
+<pre>${
+  metadata
+    ? JSON.stringify(metadata, null, 2)
+        // Remove JSON delimiters
+        .replaceAll("{", "")
+        .replaceAll("}", "")
+        .replaceAll('"', "")
+        .replaceAll(",", "")
+        // Get array of lines
+        .split("\n")
+        // Remove first level of indentation
+        .map((x) => x.slice(2, x.length))
+        // Get rid of empty lines
+        .filter((x) => x.replace(/\s/g, "").length)
+        // Join to a single string
+        .join("\n")
+    : "null"
+}</pre>
 `;
 
 export const logger = winston.createLogger({
@@ -54,7 +65,7 @@ export const connection: ConnectionOptions = {
   password: process.env.REDIS_PASSWORD,
 };
 
-export const queue = new Queue<UpdateRelationJobInput, UpdateRelationResult>(
+export const queue = new Queue<UpdateRelationJobData, UpdateRelationJobResult>(
   "update-relation",
   { connection }
 );

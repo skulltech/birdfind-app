@@ -1,7 +1,7 @@
-import { UpdateRelationJobInput, UpdateRelationResult } from "@twips/common";
+import { UpdateRelationJobResult, UpdateRelationJobData } from "@twips/common";
 import { Queue } from "bullmq";
 
-export const queue = new Queue<UpdateRelationJobInput, UpdateRelationResult>(
+export const queue = new Queue<UpdateRelationJobData, UpdateRelationJobResult>(
   "update-relation",
   {
     connection: {

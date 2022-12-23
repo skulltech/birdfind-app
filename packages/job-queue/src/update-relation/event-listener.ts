@@ -1,13 +1,15 @@
 import { QueueEvents } from "bullmq";
 import { logger, connection, queue } from "./utils";
+import ms from "ms";
 
 const queueEvents = new QueueEvents("update-relation", { connection });
 
 queueEvents.on("added", async ({ jobId, name }) => {
+  const job = await queue.getJob(jobId);
   logger.info("Job added to queue", {
     metadata: {
       jobId,
-      jobName: name,
+      jobData: job.data,
     },
   });
 });
@@ -15,7 +17,10 @@ queueEvents.on("added", async ({ jobId, name }) => {
 queueEvents.on("active", async ({ jobId }) => {
   const job = await queue.getJob(jobId);
   logger.info("Job has started", {
-    metadata: { jobId, jobName: job.name },
+    metadata: {
+      jobId,
+      jobData: job.data,
+    },
   });
 });
 
@@ -24,21 +29,53 @@ queueEvents.on("progress", async ({ jobId, data }) => {
   logger.info("Job has progressed", {
     metadata: {
       jobId,
-      jobName: job.name,
+      jobData: job.data,
       progress: data,
     },
   });
 });
 
-queueEvents.on("completed", async ({ jobId, returnvalue }) => {
+queueEvents.on("completed", async ({ jobId }) => {
   const job = await queue.getJob(jobId);
-  logger.info("Job has completed", {
-    metadata: {
-      jobId,
-      jobName: job.name,
-      result: returnvalue,
-    },
-  });
+
+  try {
+    logger.info("Job has completed", {
+      metadata: {
+        jobId,
+        jobData: job.data,
+        result: {
+          message: job.returnvalue.rateLimitResetsAt
+            ? "Scheduled another job after getting rate limited"
+            : "Completed fetching all users",
+          totalUpdatedCount: job.returnvalue.totalUpdatedCount,
+          iterationCompletedIn: ms(Date.now() - job.processedOn),
+          batchCompletedIn: job.returnvalue.rateLimitResetsAt
+            ? null
+            : ms(
+                Date.now() -
+                  (job.data.continuationParams
+                    ? job.data.continuationParams.initialProcessedAt.getTime()
+                    : job.processedOn)
+              ),
+          totalIterations: job.data.continuationParams
+            ? job.data.continuationParams.iterationCount + 1
+            : 1,
+          nextJobIn: job.returnvalue.rateLimitResetsAt
+            ? ms(
+                new Date(job.returnvalue.rateLimitResetsAt).getTime() -
+                  Date.now()
+              )
+            : null,
+        },
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    console.log(
+      job.returnvalue.rateLimitResetsAt,
+      typeof job.returnvalue.rateLimitResetsAt
+    );
+  }
 });
 
 queueEvents.on("failed", async ({ jobId, failedReason }) => {
@@ -46,7 +83,7 @@ queueEvents.on("failed", async ({ jobId, failedReason }) => {
   logger.info("Job has failed", {
     metadata: {
       jobId,
-      jobName: job.name,
+      jobData: job.data,
       failedReason,
     },
   });

@@ -1,10 +1,10 @@
-import { UpdateRelationJobInput, UpdateRelationResult } from "@twips/common";
+import { UpdateRelationJobResult, UpdateRelationJobData } from "@twips/common";
 import { Worker } from "bullmq";
 import { updateRelation } from "./core";
 import { logger, connection } from "./utils";
 
 // Start worker
-const worker = new Worker<UpdateRelationJobInput, UpdateRelationResult>(
+const worker = new Worker<UpdateRelationJobData, UpdateRelationJobResult>(
   "update-relation",
   updateRelation,
   { connection, concurrency: 10 }
