@@ -3,6 +3,7 @@ import {
   serializeTwitterUser,
   twitterUserFields,
   updateRelationJobOpts,
+  UpdateRelationJobStep,
 } from "@twips/common";
 import { queue, supabase, twitter } from "./utils";
 
@@ -49,7 +50,14 @@ export const addJob = async ({ email, relation, username }: AddJobArgs) => {
   // Add job
   return await queue.add(
     "Update relation",
-    { signedInUserId, relation, userId },
+    {
+      signedInUserId,
+      relation,
+      twitterId: userId,
+      step: UpdateRelationJobStep.Execute,
+      updatedCount: 0,
+      iterationCount: 0,
+    },
     updateRelationJobOpts
   );
 };

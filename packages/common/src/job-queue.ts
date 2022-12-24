@@ -1,33 +1,26 @@
 import { Relation } from "./core";
 
-export type UpdateRelationJobResult = {
-  totalUpdatedCount: number;
-  rateLimitResetsAt: string;
-};
+export enum UpdateRelationJobStep {
+  Execute,
+  Finalize,
+  Finish,
+}
 
 export type UpdateRelationJobData = {
+  // Actual inputs
   signedInUserId: string;
+  twitterId: BigInt;
   relation: Relation;
-  userId: BigInt;
-  // Exists means it's a continuation job in a batch
-  continuationParams?: {
-    // Pagination token this job is starts with
-    paginationToken: string;
-    // Total no. of completed iterations in the batch so far
-    iterationCount: number;
-    // No. of updated users so far in past jobs of this batch
-    totalUpdatedCount: number;
-    // Timestamp of when the first job of this batch was added
-    initialProcessedAt: Date;
-  };
-  // Human readable data for better logging
-  humanReadable?: {
-    signedInUser: {
-      email: string;
-      username: string;
-    };
-    username: string;
-  };
+
+  // Step
+  step: UpdateRelationJobStep;
+
+  // Pagination token
+  paginationToken?: string;
+
+  // Stats
+  iterationCount: number;
+  updatedCount: number;
 };
 
 export const updateRelationJobOpts = {

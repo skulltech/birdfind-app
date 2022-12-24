@@ -3,7 +3,7 @@ import TelegramLogger from "winston-telegram";
 import * as dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { ConnectionOptions, Queue } from "bullmq";
-import { UpdateRelationJobResult, UpdateRelationJobData } from "@twips/common";
+import { UpdateRelationJobData } from "@twips/common";
 dotenv.config();
 
 // To suppress warnings
@@ -65,7 +65,6 @@ export const connection: ConnectionOptions = {
   password: process.env.REDIS_PASSWORD,
 };
 
-export const queue = new Queue<UpdateRelationJobData, UpdateRelationJobResult>(
-  "update-relation",
-  { connection }
-);
+export const queue = new Queue<UpdateRelationJobData>("update-relation", {
+  connection,
+});

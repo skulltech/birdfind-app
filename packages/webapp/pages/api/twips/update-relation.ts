@@ -1,5 +1,9 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { relations, updateRelationJobOpts } from "@twips/common";
+import {
+  relations,
+  updateRelationJobOpts,
+  UpdateRelationJobStep,
+} from "@twips/common";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { zodBigint } from "../../../utils/helpers";
@@ -42,8 +46,11 @@ export default async function handler(
     "Update relation",
     {
       signedInUserId: user.id,
-      userId,
+      twitterId: userId,
       relation,
+      step: UpdateRelationJobStep.Execute,
+      updatedCount: 0,
+      iterationCount: 0,
     },
     updateRelationJobOpts
   );
