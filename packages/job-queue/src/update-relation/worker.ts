@@ -11,5 +11,5 @@ const worker = new Worker<UpdateRelationJobData>(
 );
 
 worker.on("error", (error) => {
-  logger.error("Worker error", { metadata: { error: error.message } });
+  logger.error("Worker error", { metadata: { error } });
 });

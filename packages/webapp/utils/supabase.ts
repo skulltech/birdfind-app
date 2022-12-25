@@ -169,7 +169,7 @@ export const searchTwitterProfiles = async (
   for (const [key, value] of Object.entries(otherFilters))
     query = appendFilterFunctions[key](query, value);
 
-  const { data, error: searchError } = await query;
+  const { data, error: searchError } = await query.limit(1000);
   if (searchError) throw searchError;
 
   // Insert event in user_event table

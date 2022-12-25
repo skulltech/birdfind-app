@@ -56,5 +56,5 @@ queueEvents.on("failed", async ({ jobId, failedReason }) => {
 });
 
 queueEvents.on("error", async (error) => {
-  logger.error("Queue events error", { metadata: { error: error.message } });
+  logger.error("Queue events error", { metadata: { error } });
 });
