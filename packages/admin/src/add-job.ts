@@ -2,10 +2,8 @@ import {
   Relation,
   serializeTwitterUser,
   twitterUserFields,
-  updateRelationJobOpts,
-  UpdateRelationJobStep,
 } from "@twips/common";
-import { queue, supabase, twitter } from "./utils";
+import { supabase, twitter } from "./utils";
 
 type AddJobArgs = {
   email: string;
@@ -48,16 +46,17 @@ export const addJob = async ({ email, relation, username }: AddJobArgs) => {
   const signedInUserId = signedInUserIds[0].id;
 
   // Add job
-  return await queue.add(
-    "Update relation",
-    {
-      signedInUserId,
+  const { data, error: insertJobError } = await supabase
+    .from("update_relation_job")
+    .insert({
+      user_id: signedInUserId,
+      target_twitter_id: userId,
       relation,
-      twitterId: userId,
-      step: UpdateRelationJobStep.Execute,
-      updatedCount: 0,
-      iterationCount: 0,
-    },
-    updateRelationJobOpts
-  );
+      // Higher priority if it was never updated
+      priority: 200000,
+    })
+    .select("id")
+    .single();
+  if (insertJobError) throw insertJobError;
+  return data.id;
 };

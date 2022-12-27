@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "scripts": {
     "worker": "ts-node src/update-relation/worker.ts",
+    "add-jobs": "ts-node src/update-relation/add-jobs.ts",
     "event-listener": "ts-node src/update-relation/event-listener.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",
     "@twips/common": "^1.0.0",
-    "bullmq": "^3.2.4",
+    "bullmq": "^3.5.1",
     "dotenv": "^16.0.3",
     "ms": "^2.1.3",
     "twitter-api-sdk": "^1.2.1",

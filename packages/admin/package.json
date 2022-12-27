@@ -2,12 +2,12 @@
   "name": "@twips/admin",
   "version": "1.0.0",
   "scripts": {
-    "script": "ts-node src/main.ts"
+    "script": "ts-node src/main.ts",
+    "test": "ts-node src/test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",
     "@twips/common": "^1.0.0",
-    "bullmq": "^3.4.2",
     "cli-progress": "^3.11.2",
     "dotenv": "^16.0.3",
     "twitter-api-sdk": "^1.2.1",

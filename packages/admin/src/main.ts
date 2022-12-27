@@ -1,9 +1,6 @@
 import { relations } from "@twips/common";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import * as dotenv from "dotenv";
-dotenv.config();
-
 import { addJob } from "./add-job";
 import { removeEvents } from "./remove-events";
 
@@ -44,8 +41,8 @@ yargs(hideBin(process.argv))
       console.info(
         `Adding job to update ${relation} of @${username} using ${email}'s tokens.`
       );
-      const job = await addJob({ email, relation, username });
-      console.info("Added job with ID", job.id);
+      const jobId = await addJob({ email, relation, username });
+      console.info("Added job with ID", jobId);
       // Because it might hang
       process.exit();
     },

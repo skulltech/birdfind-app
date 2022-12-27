@@ -1,7 +1,6 @@
 import { showNotification } from "@mantine/notifications";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Relation, twitterProfileFields } from "@twips/common";
-import axios from "axios";
 import {
   createContext,
   ReactNode,
@@ -78,29 +77,41 @@ const updateRelationIfNeeded = async (
   username: string,
   relation: Relation
 ) => {
-  const { data, error } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data, error: selectProfileError } = await supabase
     .from("twitter_profile")
     .select(twitterProfileFields.join(","))
     .eq("username", username);
-  if (error) throw error;
+  if (selectProfileError) throw selectProfileError;
 
-  const user = parseTwitterProfile(data[0]);
+  const twitterProfile = parseTwitterProfile(data[0]);
 
   const relationUpdateAt =
     relation == "followers"
-      ? user.followersUpdatedAt
+      ? twitterProfile.followersUpdatedAt
       : relation == "following"
-      ? user.followingUpdatedAt
+      ? twitterProfile.followingUpdatedAt
       : relation == "blocking"
-      ? user.blockingUpdatedAt
+      ? twitterProfile.blockingUpdatedAt
       : relation == "muting"
-      ? user.mutingUpdatedAt
+      ? twitterProfile.mutingUpdatedAt
       : null;
 
-  if (relationUpdateAt.getTime() === 0)
-    await axios.get("/api/twips/update-relation", {
-      params: { userId: user.id, relation },
-    });
+  // Relation was updated more than 24 hours ago
+  if (Date.now() - relationUpdateAt.getTime() > 24 * 3600 * 1000) {
+    const { error: insertJobError } = await supabase
+      .from("update_relation_job")
+      .insert({
+        user_id: user.id,
+        target_twitter_id: twitterProfile.id,
+        relation,
+        // Higher priority if it was never updated
+        priority: relationUpdateAt.getTime() === 0 ? 200000 : 100000,
+      });
+    if (insertJobError) throw insertJobError;
+  }
 };
 
 export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {

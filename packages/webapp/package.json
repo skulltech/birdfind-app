@@ -23,7 +23,6 @@
     "@tanstack/react-table": "^8.7.0",
     "@twips/common": "^1.0.0",
     "axios": "^1.2.0",
-    "bullmq": "^3.4.1",
     "camelcase": "^7.0.1",
     "dayjs": "^1.11.6",
     "next": "^13.0.6",

@@ -1,13 +1,16 @@
-import { UpdateRelationJobData } from "@twips/common";
 import { Worker } from "bullmq";
 import { updateRelation } from "./core";
 import { logger, connection } from "./utils";
 
 // Start worker
-const worker = new Worker<UpdateRelationJobData>(
+const worker = new Worker<string>(
   "update-relation",
-  updateRelation,
-  { connection, concurrency: 10, maxStalledCount: 10 }
+  (job) => updateRelation(job.data),
+  {
+    connection,
+    concurrency: 10,
+    maxStalledCount: 10,
+  }
 );
 
 worker.on("error", (error) => {
