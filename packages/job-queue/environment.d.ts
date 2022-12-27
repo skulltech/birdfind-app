@@ -3,6 +3,8 @@ declare namespace NodeJS {
     SUPABASE_API_URL: string;
     SUPABASE_SERVICE_ROLE_KEY: string;
 
+    PG_CONNECTION: string;
+
     REDIS_HOST: string;
     REDIS_PORT: string;
     REDIS_PASSWORD: string;
