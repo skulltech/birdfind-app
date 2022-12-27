@@ -10,6 +10,7 @@ import {
   Center,
   ScrollArea,
   HoverCard,
+  ActionIcon,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
@@ -26,10 +27,12 @@ import { UserProfileCard } from "./UserProfileCard";
 import { ActionButtonGroup } from "../ActionButtons/ActionButtonGroup";
 import {
   IconArrowsSort,
+  IconRefresh,
   IconSortAscending,
   IconSortDescending,
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
+import { useTwips } from "../TwipsProvider";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -140,16 +143,13 @@ export const Tr = ({ children, selected, ...others }: TrProps) => {
   );
 };
 
-export type UserTableProps = {
-  users: TwitterProfile[];
-};
-
-export const UserTable = ({ users }: UserTableProps) => {
+export const UserTable = () => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
   const selectedIndices = Object.keys(rowSelection).map((x) => parseInt(x));
+  const { searchResults: users, refresh } = useTwips();
 
   // Custom handler for the check all button
   const checkAllToggleHandler = () => {
@@ -296,12 +296,17 @@ export const UserTable = ({ users }: UserTableProps) => {
               .map((x) => x.id)}
           />
         </Group>
-        <Pagination
-          size="sm"
-          page={table.getState().pagination.pageIndex + 1}
-          onChange={(page) => table.setPageIndex(page - 1)}
-          total={table.getPageCount()}
-        />
+        <Group>
+          <ActionIcon size="sm" color="blue" onClick={refresh}>
+            <IconRefresh />
+          </ActionIcon>
+          <Pagination
+            size="sm"
+            page={table.getState().pagination.pageIndex + 1}
+            onChange={(page) => table.setPageIndex(page - 1)}
+            total={table.getPageCount()}
+          />
+        </Group>
       </Group>
       <ScrollArea
         sx={{ height: "80vh" }}

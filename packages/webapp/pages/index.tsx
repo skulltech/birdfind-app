@@ -14,14 +14,8 @@ import { useRouter } from "next/router";
 import { IconAlertCircle } from "@tabler/icons";
 
 const Home = () => {
-  const {
-    user,
-    userLoading,
-    addFilters,
-    searchResults,
-    searchLoading,
-    filtersInvalid,
-  } = useTwips();
+  const { user, userLoading, addFilters, searchLoading, filtersInvalid } =
+    useTwips();
   const [initialFiltersLoading, setInitialFiltersLoading] = useState(false);
   const supabase = useSupabaseClient();
   const router = useRouter();
@@ -76,7 +70,7 @@ const Home = () => {
         visible={searchLoading || initialFiltersLoading || userLoading}
         overlayBlur={2}
       />
-      <UserTable users={searchResults} />
+      <UserTable />
     </div>
   );
 };

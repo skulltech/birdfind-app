@@ -26,6 +26,7 @@ const TwipsContext = createContext<{
   filtersInvalid: boolean;
   searchResults: TwitterProfile[];
   userLoading: boolean;
+  refresh: () => void;
 }>({
   user: null,
   filters: {},
@@ -35,6 +36,7 @@ const TwipsContext = createContext<{
   filtersInvalid: false,
   searchResults: [],
   userLoading: false,
+  refresh: () => {},
 });
 
 interface TwipsProviderProps {
@@ -118,6 +120,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   const [user, setUser] = useState<UserDetails>(null);
   const [filters, setFilters] = useState<Filters>({});
   const [userLoading, setUserLoading] = useState(false);
+  const [randomFloat, setRandomFloat] = useState(0);
 
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<TwitterProfile[]>([]);
@@ -228,7 +231,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
 
     setFiltersInvalid(false);
     handleSearch();
-  }, [filters, user?.twitter?.username, supabase]);
+  }, [filters, user?.twitter?.username, supabase, randomFloat]);
 
   return (
     <TwipsContext.Provider
@@ -241,6 +244,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
         filtersInvalid,
         searchResults,
         userLoading,
+        refresh: () => setRandomFloat(Math.random()),
       }}
     >
       {children}
