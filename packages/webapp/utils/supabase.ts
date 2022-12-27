@@ -121,7 +121,7 @@ export const getUserDetails = async (
   supabase: SupabaseClient
 ): Promise<UserDetails> => {
   const { data, error } = await supabase
-    .from("user_details")
+    .rpc("get_user_details")
     .select(userDetailsFields.join(","));
   if (error) throw error;
 

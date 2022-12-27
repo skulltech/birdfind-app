@@ -4,6 +4,7 @@ import * as dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
+import ms from "ms";
 dotenv.config();
 
 // To suppress warnings
@@ -83,3 +84,42 @@ export const updateRelationColumns = [
 ];
 
 export const pgClient = new Client(process.env.PG_CONNECTION);
+
+export const prettifyLog = async (log: any) => {
+  const { data: userDetails, error: getUserDetailsError } = await supabase
+    .rpc("get_user_details", {
+      id: log.user_id,
+    })
+    .select("email,twitter_username")
+    .single();
+  if (getUserDetailsError) throw getUserDetailsError;
+
+  const { data: targetDetails, error: getTwitterProfileError } = await supabase
+    .from("twitter_profile")
+    .select("username")
+    .eq("id", log.target_twitter_id)
+    .single();
+  if (getTwitterProfileError) throw getTwitterProfileError;
+
+  return {
+    id: log.id,
+    user: {
+      user_id: log.user_id,
+      email: userDetails.email,
+      twitter_username: "@" + userDetails.twitter_username,
+    },
+    target: {
+      twitter_username: "@" + targetDetails.username,
+      twitter_id: log.target_twitter_id,
+    },
+    relation: log.relation,
+    created_at: new Date(log.created_at).toLocaleString("en-IN"),
+    updated_at: new Date(log.updated_at).toLocaleString("en-IN"),
+    time_elapsed: ms(
+      new Date(log.updated_at).getTime() - new Date(log.created_at).getTime()
+    ),
+    updated_count: log.updated_count,
+    pagination_token: log.pagination_token,
+    priority: log.priority,
+  };
+};

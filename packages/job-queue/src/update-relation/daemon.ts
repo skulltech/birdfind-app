@@ -1,4 +1,4 @@
-import { logger, pgClient, queue, supabase } from "./utils";
+import { logger, pgClient, prettifyLog, queue, supabase } from "./utils";
 
 const addJobs = async () => {
   // Connect to postgres
@@ -47,20 +47,14 @@ supabase
       schema: "public",
       table: "update_relation_job",
     },
-    (payload) => {
+    async (payload) => {
       if (payload.eventType === "INSERT")
         logger.info("Job added", {
-          metadata: {
-            ...payload.new,
-            commit_timestamp: payload.commit_timestamp,
-          },
+          metadata: await prettifyLog(payload.new),
         });
       if (payload.eventType === "UPDATE")
         logger.info(payload.new.finished ? "Job finished" : "Job progressed", {
-          metadata: {
-            ...payload.new,
-            commit_timestamp: payload.commit_timestamp,
-          },
+          metadata: await prettifyLog(payload.new),
         });
     }
   )
