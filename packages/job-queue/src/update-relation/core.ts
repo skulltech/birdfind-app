@@ -6,7 +6,7 @@ import {
 } from "@twips/common";
 import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
-import { dedupeUsers, supabase, updateRelationColumns } from "./utils";
+import { dedupeUsers, supabase, updateRelationJobColumns } from "./utils";
 
 type Params = {
   table: string;
@@ -69,7 +69,7 @@ export const updateRelation = async (jobId: string) => {
   // Get job from Supabase
   const { data: jobData, error: selectJobsError } = await supabase
     .from("update_relation_job")
-    .select(updateRelationColumns.join(","))
+    .select(updateRelationJobColumns.join(","))
     .eq("id", jobId)
     .single();
   if (selectJobsError) throw selectJobsError;

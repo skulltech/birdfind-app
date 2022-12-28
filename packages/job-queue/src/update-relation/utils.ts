@@ -70,7 +70,7 @@ export const queue = new Queue<number>("update-relation", {
   connection,
 });
 
-export const updateRelationColumns = [
+export const updateRelationJobColumns = [
   "id",
   "created_at",
   "updated_at",
@@ -81,6 +81,7 @@ export const updateRelationColumns = [
   "finished",
   "pagination_token",
   "updated_count",
+  "paused",
 ];
 
 export const pgClient = new Client(process.env.PG_CONNECTION);
@@ -92,7 +93,7 @@ export const getLog = async (jobId: number) => {
   // Get job details
   const { data: jobData, error: getJobError } = await supabase
     .from("update_relation_job")
-    .select(updateRelationColumns.join(","))
+    .select(updateRelationJobColumns.join(","))
     .eq("id", jobId)
     .single();
   if (getJobError) throw getJobError;

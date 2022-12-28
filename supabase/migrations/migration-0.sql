@@ -205,6 +205,7 @@ create table if not exists update_relation_job (
     priority integer not null,
 
     -- To track progress
+    paused boolean default false not null,
     finished boolean default false not null,
     pagination_token text,
     updated_count integer default 0 not null
@@ -215,6 +216,15 @@ alter table update_relation_job enable row level security;
 create policy "Users can create jobs that will use their own tokens"
   on update_relation_job for insert
   with check ( auth.uid() = user_id );
+
+create policy "Jobs are viewable by users who created them"
+  on update_relation_job for select
+  using ( auth.uid() = user_id );
+
+create policy "Users can update jobs they created"
+  on update_relation_job for update
+  using ( auth.uid() = user_id );
+
 
 create table if not exists twitter_api_rate_limit (
   user_twitter_id bigint references twitter_profile not null,
@@ -246,8 +256,9 @@ from update_relation_job
       when update_relation_job.relation = 'muting' then twitter_api_rate_limit.endpoint = 'get-muting'
       else false
     end
-where update_relation_job.finished = false and
-  (twitter_api_rate_limit.resets_at is null or twitter_api_rate_limit.resets_at < now())
+where update_relation_job.finished = false
+  and update_relation_job.paused = false
+  and (twitter_api_rate_limit.resets_at is null or twitter_api_rate_limit.resets_at < now())
   and update_relation_job.user_id not in (
     select user_id from update_relation_job where id = any(active_jobs)
   )
