@@ -1,4 +1,8 @@
-import { logger, pgClient, prettifyLog, queue, supabase } from "./utils";
+import {
+  RealtimePostgresInsertPayload,
+  RealtimePostgresUpdatePayload,
+} from "@supabase/supabase-js";
+import { logger, pgClient, getLog, queue, supabase } from "./utils";
 
 const addJobs = async () => {
   // Connect to postgres
@@ -34,28 +38,36 @@ const addJobs = async () => {
 
 // Run main loop
 addJobs().catch((error) =>
-  logger.error("Error at add-jobs", { metadata: { error } })
+  logger.error("Error at daemon while adding jobs", { metadata: { error } })
 );
+
+const handleEvent = async (
+  payload:
+    | RealtimePostgresInsertPayload<{ [key: string]: any }>
+    | RealtimePostgresUpdatePayload<{ [key: string]: any }>
+) => {
+  try {
+    logger.info(payload.new.finished ? "Job finished" : "Job progressed", {
+      metadata: await getLog(payload.new.id),
+    });
+  } catch (error) {
+    logger.error("Error at daemon while logging event", {
+      metadata: { error },
+    });
+  }
+};
 
 // Add event-listener for changes in database
 supabase
-  .channel("*")
+  .channel("public:update_relation_job")
   .on(
     "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "update_relation_job",
-    },
-    async (payload) => {
-      if (payload.eventType === "INSERT")
-        logger.info("Job added", {
-          metadata: await prettifyLog(payload.new),
-        });
-      if (payload.eventType === "UPDATE")
-        logger.info(payload.new.finished ? "Job finished" : "Job progressed", {
-          metadata: await prettifyLog(payload.new),
-        });
-    }
+    { event: "INSERT", schema: "public", table: "update_relation_job" },
+    handleEvent
+  )
+  .on(
+    "postgres_changes",
+    { event: "UPDATE", schema: "public", table: "update_relation_job" },
+    handleEvent
   )
   .subscribe();

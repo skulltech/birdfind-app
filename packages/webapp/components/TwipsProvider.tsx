@@ -101,8 +101,10 @@ const updateRelationIfNeeded = async (
       ? twitterProfile.mutingUpdatedAt
       : null;
 
-  // Relation was updated more than 24 hours ago
-  if (Date.now() - relationUpdateAt.getTime() > 24 * 3600 * 1000) {
+  // 24 hours ago
+  const cacheTimeout = 24 * 3600 * 1000;
+  // Relation was updated more than cacheTimeout times ago
+  if (Date.now() - relationUpdateAt.getTime() > cacheTimeout) {
     const { error: insertJobError } = await supabase
       .from("update_relation_job")
       .insert({
