@@ -77,3 +77,17 @@ export const serializeTwitterUser = (
     withheld: user.withheld ?? null,
   };
 };
+
+export const updateRelationJobColumns = [
+  "id",
+  "created_at",
+  "updated_at",
+  "user_id",
+  "relation",
+  "target_twitter_id::text",
+  "priority",
+  "finished",
+  "pagination_token",
+  "updated_count",
+  "paused",
+];

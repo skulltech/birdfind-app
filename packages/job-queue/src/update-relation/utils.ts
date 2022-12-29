@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
 import ms from "ms";
+import { updateRelationJobColumns } from "@twips/common";
 dotenv.config();
 
 // To suppress warnings
@@ -69,20 +70,6 @@ export const connection: ConnectionOptions = {
 export const queue = new Queue<number>("update-relation", {
   connection,
 });
-
-export const updateRelationJobColumns = [
-  "id",
-  "created_at",
-  "updated_at",
-  "user_id",
-  "relation",
-  "target_twitter_id::text",
-  "priority",
-  "finished",
-  "pagination_token",
-  "updated_count",
-  "paused",
-];
 
 export const pgClient = new Client(process.env.PG_CONNECTION);
 

@@ -1,6 +1,10 @@
 import { showNotification } from "@mantine/notifications";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Relation, twitterProfileFields } from "@twips/common";
+import {
+  addUpdateRelationJob,
+  Relation,
+  twitterProfileFields,
+} from "@twips/common";
 import {
   createContext,
   ReactNode,
@@ -104,18 +108,15 @@ const updateRelationIfNeeded = async (
   // 24 hours ago
   const cacheTimeout = 24 * 3600 * 1000;
   // Relation was updated more than cacheTimeout times ago
-  if (Date.now() - relationUpdateAt.getTime() > cacheTimeout) {
-    const { error: insertJobError } = await supabase
-      .from("update_relation_job")
-      .insert({
-        user_id: user.id,
-        target_twitter_id: twitterProfile.id,
-        relation,
-        // Higher priority if it was never updated
-        priority: relationUpdateAt.getTime() === 0 ? 200000 : 100000,
-      });
-    if (insertJobError) throw insertJobError;
-  }
+  if (Date.now() - relationUpdateAt.getTime() > cacheTimeout)
+    await addUpdateRelationJob({
+      supabase,
+      userId: user.id,
+      targetTwitterId: twitterProfile.id,
+      relation,
+      // Higher priority if it was never updated
+      priority: relationUpdateAt.getTime() === 0 ? 200000 : 100000,
+    });
 };
 
 export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {

@@ -3,10 +3,11 @@ import {
   Relation,
   serializeTwitterUser,
   twitterUserFields,
+  updateRelationJobColumns,
 } from "@twips/common";
 import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
-import { dedupeUsers, supabase, updateRelationJobColumns } from "./utils";
+import { dedupeUsers, supabase } from "./utils";
 
 type Params = {
   table: string;

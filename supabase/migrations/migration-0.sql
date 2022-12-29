@@ -225,6 +225,9 @@ create policy "Users can update jobs they created"
   on update_relation_job for update
   using ( auth.uid() = user_id );
 
+create policy "Users can delete jobs they created"
+  on update_relation_job for delete
+  using ( auth.uid() = user_id );
 
 create table if not exists twitter_api_rate_limit (
   user_twitter_id bigint references twitter_profile not null,
