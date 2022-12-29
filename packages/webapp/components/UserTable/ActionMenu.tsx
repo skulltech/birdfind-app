@@ -1,23 +1,15 @@
-import { Divider, Group, Modal, Progress, Text } from "@mantine/core";
+import { Button, Group, Menu, Modal, Progress } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
-import {
-  IconCircleCheck,
-  IconCircleOff,
-  IconUserMinus,
-  IconUserPlus,
-  IconVolume,
-  IconVolumeOff,
-} from "@tabler/icons";
+import { IconChevronDown, IconSettings } from "@tabler/icons";
 import axios from "axios";
 import { useState } from "react";
-import { Action } from "../../../utils/helpers";
-import { ActionButton } from "./ActionButton";
+import { Action } from "../../utils/helpers";
 
-type ActionButtonGroupProps = {
+type ActionMenuProps = {
   userIds: BigInt[];
 };
 
-export const ActionButtonGroup = ({ userIds }: ActionButtonGroupProps) => {
+export const ActionMenu = ({ userIds }: ActionMenuProps) => {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [label, setLabel] = useState("null");
@@ -67,51 +59,64 @@ export const ActionButtonGroup = ({ userIds }: ActionButtonGroupProps) => {
       >
         <Progress value={progress} />
       </Modal>
+      <Menu shadow="md" width={200}>
+        <Menu.Target>
+          <Button compact variant="default">
+            <Group spacing="xs">
+              Actions
+              <IconChevronDown size={14} />
+            </Group>
+          </Button>
+        </Menu.Target>
 
-      {Boolean(userIds.length) && (
-        <Group spacing="lg">
-          <ActionButton
-            label="Follow"
+        <Menu.Dropdown>
+          <Menu.Item
+            icon={<IconSettings size={14} />}
             onClick={() => performAction("follow")}
-            Icon={IconUserPlus}
-            color="default"
-          />
-          <ActionButton
-            label="Unfollow"
+          >
+            Follow
+          </Menu.Item>
+          <Menu.Item
+            icon={<IconSettings size={14} />}
             onClick={() => performAction("unfollow")}
-            Icon={IconUserMinus}
-            color="red"
-          />
-          <Divider orientation="vertical" />
+          >
+            Unfollow
+          </Menu.Item>
+          <Menu.Divider />
 
-          <ActionButton
-            label="Block"
+          <Menu.Item
+            icon={<IconSettings size={14} />}
             onClick={() => performAction("block")}
-            Icon={IconCircleOff}
-            color="red"
-          />
-          <ActionButton
-            label="Unblock"
+          >
+            Block
+          </Menu.Item>
+          <Menu.Item
+            icon={<IconSettings size={14} />}
             onClick={() => performAction("unblock")}
-            Icon={IconCircleCheck}
-            color="green"
-          />
-          <Divider orientation="vertical" />
+          >
+            Unblock
+          </Menu.Item>
+          <Menu.Divider />
 
-          <ActionButton
-            label="Mute"
+          <Menu.Item
+            icon={<IconSettings size={14} />}
             onClick={() => performAction("mute")}
-            Icon={IconVolumeOff}
-            color="red"
-          />
-          <ActionButton
-            label="Unmute"
+          >
+            Mute
+          </Menu.Item>
+          <Menu.Item
+            icon={<IconSettings size={14} />}
             onClick={() => performAction("unmute")}
-            Icon={IconVolume}
-            color="green"
-          />
-        </Group>
-      )}
+          >
+            Unmute
+          </Menu.Item>
+          <Menu.Divider />
+
+          <Menu.Item icon={<IconSettings size={14} />} onClick={() => {}}>
+            Create list
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </>
   );
 };

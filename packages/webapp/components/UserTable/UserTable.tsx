@@ -24,7 +24,6 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
-import { ActionButtonGroup } from "./ActionButtons/ActionButtonGroup";
 import {
   IconArrowsSort,
   IconRefresh,
@@ -33,6 +32,7 @@ import {
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
+import { ActionMenu } from "./ActionMenu";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -290,7 +290,7 @@ export const UserTable = () => {
           <Text size={14}>
             {Object.keys(rowSelection).length} of {users.length} users selected
           </Text>
-          <ActionButtonGroup
+          <ActionMenu
             userIds={users
               .filter((x, i) => selectedIndices.includes(i))
               .map((x) => x.id)}
