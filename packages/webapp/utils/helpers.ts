@@ -1,3 +1,11 @@
+import {
+  IconBell,
+  IconBrandTwitter,
+  IconReceipt2,
+  IconSubtask,
+  IconUserCircle,
+  TablerIcon,
+} from "@tabler/icons";
 import camelcase from "camelcase";
 import { z } from "zod";
 
@@ -87,3 +95,33 @@ export type TwitterProfile = {
   verified: boolean;
   withheld?: object;
 };
+
+type AccountMenuItem = {
+  page: string;
+  label: string;
+  icon: TablerIcon;
+};
+
+export const accountMenuItems: AccountMenuItem[] = [
+  { page: "overview", label: "Overview", icon: IconUserCircle },
+  {
+    page: "jobs",
+    label: "Background Jobs",
+    icon: IconSubtask,
+  },
+  {
+    page: "subscription",
+    label: "Billing and Subscription",
+    icon: IconReceipt2,
+  },
+  {
+    page: "notifications",
+    label: "Notifications",
+    icon: IconBell,
+  },
+  {
+    page: "twitter",
+    label: "Connect to Twitter",
+    icon: IconBrandTwitter,
+  },
+];

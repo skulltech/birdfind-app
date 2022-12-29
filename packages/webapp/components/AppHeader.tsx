@@ -21,6 +21,7 @@ import {
 } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { accountMenuItems } from "../utils/helpers";
 import { useTwips } from "./TwipsProvider";
 
 type AppHeaderProps = {
@@ -66,9 +67,7 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
               <Menu.Target>
                 <UnstyledButton>
                   <Group>
-                    <Avatar src={user.twitter?.profileImageUrl} radius="xl">
-                      {user.email[0].toUpperCase()}
-                    </Avatar>
+                    <Avatar src={user.twitter?.profileImageUrl} radius="xl" />
                     <div>
                       <Text size="sm" weight={500}>
                         @{user.twitter?.username ?? "username"}
@@ -82,14 +81,23 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
               </Menu.Target>
 
               <Menu.Dropdown>
-                <Menu.Item
-                  icon={<IconBrandTwitter size={14} />}
-                  onClick={() => router.push("/auth/twitter")}
-                >
-                  {user.twitter
-                    ? "Connect to a different Twitter account"
-                    : "Connect to Twitter"}
-                </Menu.Item>
+                {accountMenuItems.map((item) => (
+                  <Menu.Item
+                    key={item.page}
+                    component="a"
+                    href={"/account/" + item.page}
+                    icon={<item.icon size={16} stroke={1.5} />}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      router.push("/account/" + item.page);
+                    }}
+                  >
+                    {item.label}
+                  </Menu.Item>
+                ))}
+
+                <Menu.Divider />
+
                 <Menu.Item
                   color="red"
                   icon={<IconLogout size={14} />}

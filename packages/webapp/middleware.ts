@@ -36,14 +36,14 @@ export const middleware = async (req: NextRequest) => {
   // Sign in page
   if (path.startsWith("/auth/signin")) {
     if (user && !userTwitter)
-      return NextResponse.redirect(new URL("/auth/twitter", req.url));
+      return NextResponse.redirect(new URL("/account/twitter", req.url));
     if (user && userTwitter)
       return NextResponse.redirect(new URL("/", req.url));
     return;
   }
 
   // Twitter linking page
-  if (path.startsWith("/auth/twitter")) {
+  if (path.startsWith("/account/twitter")) {
     if (user) return;
     return NextResponse.redirect(new URL("/auth/signin", req.url));
   }
@@ -51,5 +51,5 @@ export const middleware = async (req: NextRequest) => {
   // For all the rest
   if (!user) return NextResponse.redirect(new URL("/auth/signin", req.url));
   if (user && !userTwitter)
-    return NextResponse.redirect(new URL("/auth/twitter", req.url));
+    return NextResponse.redirect(new URL("/account/twitter", req.url));
 };
