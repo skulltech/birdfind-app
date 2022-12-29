@@ -211,7 +211,7 @@ const Jobs = () => {
           <Text>No jobs</Text>
         </Center>
       ) : (
-        <ScrollArea style={{ height: "80vh", width: "80hw", flex: 1 }}>
+        <ScrollArea style={{ height: "80vh", flex: 1 }}>
           <Stack>
             {jobs.map((job) => (
               <JobChip
