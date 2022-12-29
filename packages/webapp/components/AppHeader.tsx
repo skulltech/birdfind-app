@@ -20,20 +20,25 @@ import {
   IconSun,
 } from "@tabler/icons";
 import { useRouter } from "next/router";
-import { PromptInput } from "./FilterInputs/PromptInput";
+import { useState } from "react";
 import { useTwips } from "./TwipsProvider";
 
-export const AppHeader = ({ opened, setOpened }) => {
+type AppHeaderProps = {
+  [x: string]: any;
+};
+
+export const AppHeader = ({ ...others }: AppHeaderProps) => {
   const supabase = useSupabaseClient();
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { user } = useTwips();
   const theme = useMantineTheme();
+  const [opened, setOpened] = useState(false);
 
   const dark = colorScheme === "dark";
 
   return (
-    <Header height={60} p="xs">
+    <Header height={60} {...others}>
       <Group position="apart">
         <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
           <MediaQuery largerThan="sm" styles={{ display: "none" }}>
@@ -54,12 +59,6 @@ export const AppHeader = ({ opened, setOpened }) => {
             </Title>
           </UnstyledButton>
         </div>
-
-        {user?.twitter && (
-          <Group style={{ width: 500 }} grow>
-            <PromptInput />
-          </Group>
-        )}
 
         <Group>
           {user && (

@@ -1,8 +1,8 @@
 import {
-  AppShell,
   ColorScheme,
   ColorSchemeProvider,
   MantineProvider,
+  Stack,
 } from "@mantine/core";
 import { NotificationsProvider } from "@mantine/notifications";
 import type { AppProps } from "next/app";
@@ -11,7 +11,6 @@ import { Session } from "@supabase/supabase-js";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { useState } from "react";
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { AppNavbar } from "../components/AppNavbar";
 import { TwipsProvider } from "../components/TwipsProvider";
 import { ModalsProvider } from "@mantine/modals";
 import { GoogleAnalytics } from "nextjs-google-analytics";
@@ -31,7 +30,7 @@ export default function App({
   const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
   const toggleColorScheme = (value?: ColorScheme) =>
     setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
-  const [opened, setOpened] = useState(false);
+  const horizontalPadding = 100;
 
   return (
     <>
@@ -52,24 +51,17 @@ export default function App({
             <NotificationsProvider position="top-center">
               <ModalsProvider>
                 <TwipsProvider supabase={supabase}>
-                  <AppShell
-                    padding="xs"
-                    navbar={
-                      <AppNavbar hiddenBreakpoint="sm" hidden={!opened} />
-                    }
-                    header={<AppHeader opened={opened} setOpened={setOpened} />}
-                    navbarOffsetBreakpoint="sm"
-                    styles={(theme) => ({
-                      main: {
-                        backgroundColor:
-                          theme.colorScheme === "dark"
-                            ? theme.colors.dark[8]
-                            : theme.colors.gray[0],
-                      },
-                    })}
-                  >
-                    <Component {...pageProps} />
-                  </AppShell>
+                  <Stack>
+                    <AppHeader px={horizontalPadding} py="xs" />
+                    <main
+                      style={{
+                        paddingLeft: horizontalPadding,
+                        paddingRight: horizontalPadding,
+                      }}
+                    >
+                      <Component {...pageProps} />
+                    </main>
+                  </Stack>
                 </TwipsProvider>
               </ModalsProvider>
             </NotificationsProvider>

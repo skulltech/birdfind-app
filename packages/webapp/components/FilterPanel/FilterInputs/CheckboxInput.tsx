@@ -1,7 +1,7 @@
 import { Checkbox, Loader, CheckIcon, Group } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { FilterInputProps } from "../../utils/helpers";
-import { useTwips } from "../TwipsProvider";
+import { FilterInputProps } from "../../../utils/helpers";
+import { useTwips } from "../../TwipsProvider";
 
 interface CheckboxInputProps extends FilterInputProps {
   relation: "blocked" | "muted" | "follower" | "followed";

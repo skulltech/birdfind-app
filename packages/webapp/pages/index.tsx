@@ -1,17 +1,11 @@
 import { useEffect, useState } from "react";
 import { UserTable } from "../components/UserTable/UserTable";
 import { useTwips } from "../components/TwipsProvider";
-import {
-  Center,
-  Container,
-  Group,
-  LoadingOverlay,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Group, LoadingOverlay, Stack, Text } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
 import { IconAlertCircle } from "@tabler/icons";
+import { FilterPanel } from "../components/FilterPanel/FilterPanel";
 
 const Home = () => {
   const { user, userLoading, addFilters, searchLoading, filtersInvalid } =
@@ -44,9 +38,10 @@ const Home = () => {
     loadUser();
   }, [router, supabase]);
 
-  return filtersInvalid && !userLoading ? (
-    <Container mt={100}>
-      <Center>
+  return (
+    <Group>
+      <FilterPanel />
+      {filtersInvalid && !userLoading ? (
         <Stack align="center" spacing="xs">
           <Group>
             <IconAlertCircle color="red" />
@@ -62,16 +57,16 @@ const Home = () => {
             above
           </Text>
         </Stack>
-      </Center>
-    </Container>
-  ) : (
-    <div style={{ position: "relative" }}>
-      <LoadingOverlay
-        visible={searchLoading || initialFiltersLoading || userLoading}
-        overlayBlur={2}
-      />
-      <UserTable />
-    </div>
+      ) : (
+        <div style={{ position: "relative" }}>
+          <LoadingOverlay
+            visible={searchLoading || initialFiltersLoading || userLoading}
+            overlayBlur={2}
+          />
+          <UserTable />
+        </div>
+      )}
+    </Group>
   );
 };
 

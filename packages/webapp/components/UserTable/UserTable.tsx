@@ -24,7 +24,7 @@ import {
   getPaginationRowModel,
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
-import { ActionButtonGroup } from "../ActionButtons/ActionButtonGroup";
+import { ActionButtonGroup } from "./ActionButtons/ActionButtonGroup";
 import {
   IconArrowsSort,
   IconRefresh,

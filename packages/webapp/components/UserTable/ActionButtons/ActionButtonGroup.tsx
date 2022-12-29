@@ -10,7 +10,7 @@ import {
 } from "@tabler/icons";
 import axios from "axios";
 import { useState } from "react";
-import { Action } from "../../utils/helpers";
+import { Action } from "../../../utils/helpers";
 import { ActionButton } from "./ActionButton";
 
 type ActionButtonGroupProps = {

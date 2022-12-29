@@ -1,8 +1,8 @@
 import { ActionIcon, Group, NumberInput, Stack, Text } from "@mantine/core";
 import { IconArrowNarrowRight } from "@tabler/icons";
 import { useState } from "react";
-import { FilterInputProps } from "../../utils/helpers";
-import { useTwips } from "../TwipsProvider";
+import { FilterInputProps } from "../../../utils/helpers";
+import { useTwips } from "../../TwipsProvider";
 
 interface NumberRangeInputProps extends FilterInputProps {
   metric: "tweet" | "followers" | "following";

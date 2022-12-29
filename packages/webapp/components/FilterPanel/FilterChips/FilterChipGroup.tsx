@@ -1,7 +1,7 @@
 import { Stack } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { RemoveFiltersArg, useTwips } from "../TwipsProvider";
+import { RemoveFiltersArg, useTwips } from "../../TwipsProvider";
 import { FilterChip } from "./FilterChip";
 
 type Chip = {

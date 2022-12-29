@@ -1,7 +1,7 @@
 import { Kbd, Stack, Text, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { useEffect, useState } from "react";
-import { useTwips } from "../TwipsProvider";
+import { useTwips } from "../../TwipsProvider";
 
 export const SearchTextInput = () => {
   const [searchText, setSearchText] = useState("");

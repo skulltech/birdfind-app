@@ -21,8 +21,8 @@ import {
   FilterInputProps,
   parseTwitterProfile,
   TwitterProfile,
-} from "../../utils/helpers";
-import { useTwips } from "../TwipsProvider";
+} from "../../../utils/helpers";
+import { useTwips } from "../../TwipsProvider";
 import { useDebouncedValue } from "@mantine/hooks";
 
 interface UsernameInputProps extends FilterInputProps {

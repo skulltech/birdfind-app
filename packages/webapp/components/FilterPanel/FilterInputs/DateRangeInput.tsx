@@ -2,8 +2,8 @@ import { ActionIcon, Group, Stack, Text } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
 import { IconArrowNarrowRight } from "@tabler/icons";
 import { useState } from "react";
-import { FilterInputProps } from "../../utils/helpers";
-import { useTwips } from "../TwipsProvider";
+import { FilterInputProps } from "../../../utils/helpers";
+import { useTwips } from "../../TwipsProvider";
 
 interface DateRangeInputProps extends FilterInputProps {}
 
