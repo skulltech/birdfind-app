@@ -9,7 +9,6 @@ import {
   UnstyledButton,
   Center,
   ScrollArea,
-  HoverCard,
   ActionIcon,
 } from "@mantine/core";
 import dayjs from "dayjs";
@@ -32,7 +31,6 @@ import {
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
-import { ActionMenu } from "./ActionMenu";
 import { AddToListMenu } from "./AddToListMenu";
 
 const useStyles = createStyles((theme) => ({
@@ -149,41 +147,20 @@ export const UserTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const selectedIndices = Object.keys(rowSelection).map((x) => parseInt(x));
   const { searchResults: users, refresh } = useTwips();
-
-  // Custom handler for the check all button
-  const checkAllToggleHandler = () => {
-    if (selectedIndices.length) setRowSelection({});
-    else
-      setRowSelection(
-        [...Array(10)].reduce((prev, curr, currIndex) => {
-          return { ...prev, [currIndex]: true };
-        }, {})
-      );
-  };
 
   const columns = useMemo<ColumnDef<TwitterProfile>[]>(
     () => [
       {
         id: "select",
         header: ({ table }) => (
-          <HoverCard shadow="md">
-            <HoverCard.Target>
-              <Checkbox
-                size="sm"
-                checked={selectedIndices.length > 0}
-                onChange={checkAllToggleHandler}
-                transitionDuration={0}
-                indeterminate={
-                  selectedIndices.length < 10 && selectedIndices.length > 0
-                }
-              />
-            </HoverCard.Target>
-            <HoverCard.Dropdown>
-              <Text>Select the first 10 users</Text>
-            </HoverCard.Dropdown>
-          </HoverCard>
+          <Checkbox
+            size="sm"
+            checked={table.getIsAllRowsSelected()}
+            onChange={table.getToggleAllRowsSelectedHandler()}
+            transitionDuration={0}
+            indeterminate={table.getIsSomeRowsSelected()}
+          />
         ),
         cell: ({ row }) => (
           <Checkbox
@@ -191,7 +168,6 @@ export const UserTable = () => {
             checked={row.getIsSelected()}
             onChange={row.getToggleSelectedHandler()}
             transitionDuration={0}
-            disabled={!row.getIsSelected() && selectedIndices.length >= 10}
           />
         ),
         size: 10,
@@ -231,7 +207,7 @@ export const UserTable = () => {
         size: 170,
       },
     ],
-    [selectedIndices.length]
+    []
   );
 
   const table = useReactTable<TwitterProfile>({
@@ -291,15 +267,8 @@ export const UserTable = () => {
           <Text size={14}>
             {Object.keys(rowSelection).length} of {users.length} users selected
           </Text>
-          <ActionMenu
-            userIds={users
-              .filter((x, i) => selectedIndices.includes(i))
-              .map((x) => x.id)}
-          />
           <AddToListMenu
-            userIds={users
-              .filter((x, i) => selectedIndices.includes(i))
-              .map((x) => x.id)}
+            userIds={users.filter((x, i) => rowSelection[i]).map((x) => x.id)}
           />
         </Group>
         <Group>
