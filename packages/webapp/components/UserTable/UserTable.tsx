@@ -33,6 +33,7 @@ import {
 import { TwitterProfile } from "../../utils/helpers";
 import { useTwips } from "../TwipsProvider";
 import { ActionMenu } from "./ActionMenu";
+import { AddToListMenu } from "./AddToListMenu";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -291,6 +292,11 @@ export const UserTable = () => {
             {Object.keys(rowSelection).length} of {users.length} users selected
           </Text>
           <ActionMenu
+            userIds={users
+              .filter((x, i) => selectedIndices.includes(i))
+              .map((x) => x.id)}
+          />
+          <AddToListMenu
             userIds={users
               .filter((x, i) => selectedIndices.includes(i))
               .map((x) => x.id)}

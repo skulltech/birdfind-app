@@ -29,6 +29,8 @@ export const getTwitterAuthClient = ({
       "block.read",
       "block.write",
       "offline.access",
+      "list.read",
+      "list.write",
     ],
     token: oauthToken,
   });

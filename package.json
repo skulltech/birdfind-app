@@ -8,7 +8,7 @@
     "job-queue": "yarn workspace @twips/job-queue",
     "webapp": "yarn workspace @twips/webapp",
     "admin": "yarn workspace @twips/admin",
-    "bullmq-dashboard": "yarn run bullmq-dashboard-runnable update-relation --port 4000"
+    "bullmq-dashboard": "yarn run bullmq-dashboard-runnable twips-jobs --port 4000"
   },
   "devDependencies": {
     "bullmq-dashboard-runnable": "^0.0.6",

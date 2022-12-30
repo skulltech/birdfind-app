@@ -7,7 +7,8 @@ import {
 } from "@twips/common";
 import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
-import { dedupeUsers, supabase } from "./utils";
+import { supabase } from "../utils";
+import { dedupeUsers } from "./utils";
 
 type Params = {
   table: string;
@@ -66,7 +67,7 @@ const params: Record<Relation, Params> = {
   },
 };
 
-export const updateRelation = async (jobId: string) => {
+export const updateRelation = async (jobId: number) => {
   // Get job from Supabase
   const { data: jobData, error: selectJobsError } = await supabase
     .from("update_relation_job")
@@ -78,9 +79,6 @@ export const updateRelation = async (jobId: string) => {
 
   // Return immediately if job is finished
   if (job.finished) return;
-
-  // Get parent job and data
-  let paginationToken = job.pagination_token;
 
   // Get relation specific logic params
   const { table, updatedAtColumn, getTwitterMethod, getRow } =
@@ -104,6 +102,8 @@ export const updateRelation = async (jobId: string) => {
   });
 
   let users: TwitterResponse<usersIdFollowing>["data"];
+  let paginationToken = job.pagination_token;
+
   try {
     const page = await getTwitterMethod(twitter)(job.target_twitter_id, {
       max_results: 1000,

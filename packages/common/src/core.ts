@@ -91,3 +91,16 @@ export const updateRelationJobColumns = [
   "updated_count",
   "paused",
 ];
+
+export const addListMembersJobColumns = [
+  "id",
+  "created_at",
+  "updated_at",
+  "user_id",
+  "list_id::text",
+  "priority",
+  "paused",
+  "finished",
+  "member_ids_added_text",
+  "member_ids_text",
+];

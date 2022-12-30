@@ -26,6 +26,11 @@ const userDetailsFields = [
   "twitter_profile_image_url",
 ];
 
+export type List = {
+  id: BigInt;
+  name: string;
+};
+
 export type UserDetails = {
   id: string;
   email: string;

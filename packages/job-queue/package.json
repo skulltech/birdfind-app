@@ -2,8 +2,8 @@
   "name": "@twips/job-queue",
   "version": "1.0.0",
   "scripts": {
-    "worker": "ts-node src/update-relation/worker.ts",
-    "daemon": "ts-node src/update-relation/daemon.ts"
+    "worker": "ts-node src/worker.ts",
+    "daemon": "ts-node src/daemon.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.1.1",

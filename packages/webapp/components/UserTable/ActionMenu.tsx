@@ -1,6 +1,14 @@
 import { Button, Group, Menu, Modal, Progress } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
-import { IconChevronDown, IconSettings } from "@tabler/icons";
+import {
+  IconChevronDown,
+  IconCircleCheck,
+  IconForbid2,
+  IconUserMinus,
+  IconUserPlus,
+  IconVolume,
+  IconVolume3,
+} from "@tabler/icons";
 import axios from "axios";
 import { useState } from "react";
 import { Action } from "../../utils/helpers";
@@ -71,13 +79,13 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
 
         <Menu.Dropdown>
           <Menu.Item
-            icon={<IconSettings size={14} />}
+            icon={<IconUserPlus size={14} />}
             onClick={() => performAction("follow")}
           >
             Follow
           </Menu.Item>
           <Menu.Item
-            icon={<IconSettings size={14} />}
+            icon={<IconUserMinus size={14} />}
             onClick={() => performAction("unfollow")}
           >
             Unfollow
@@ -85,13 +93,13 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
           <Menu.Divider />
 
           <Menu.Item
-            icon={<IconSettings size={14} />}
+            icon={<IconForbid2 size={14} />}
             onClick={() => performAction("block")}
           >
             Block
           </Menu.Item>
           <Menu.Item
-            icon={<IconSettings size={14} />}
+            icon={<IconCircleCheck size={14} />}
             onClick={() => performAction("unblock")}
           >
             Unblock
@@ -99,21 +107,16 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
           <Menu.Divider />
 
           <Menu.Item
-            icon={<IconSettings size={14} />}
+            icon={<IconVolume3 size={14} />}
             onClick={() => performAction("mute")}
           >
             Mute
           </Menu.Item>
           <Menu.Item
-            icon={<IconSettings size={14} />}
+            icon={<IconVolume size={14} />}
             onClick={() => performAction("unmute")}
           >
             Unmute
-          </Menu.Item>
-          <Menu.Divider />
-
-          <Menu.Item icon={<IconSettings size={14} />} onClick={() => {}}>
-            Create list
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>

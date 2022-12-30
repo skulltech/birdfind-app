@@ -125,3 +125,11 @@ export const accountMenuItems: AccountMenuItem[] = [
     icon: IconBrandTwitter,
   },
 ];
+
+export const twitterListFields = [
+  "created_at",
+  "description",
+  "follower_count",
+  "member_count",
+  "private",
+];

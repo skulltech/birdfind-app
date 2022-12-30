@@ -134,6 +134,8 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   useEffect(() => {
     const loadUserDetails = async () => {
       setUserLoading(true);
+
+      // Get user details from database
       const user = await getUserDetails(supabase);
       setUser(user);
       setUserLoading(false);
