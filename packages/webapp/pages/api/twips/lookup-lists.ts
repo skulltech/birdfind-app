@@ -48,12 +48,12 @@ export default async function handler(
   );
   for await (const page of response) userOwnedLists.push(...page.data);
 
-  // Mark columns for delete
-  const { error: markForDeleteError } = await supabase
+  // Mark rows for delete
+  await supabase
     .from("twitter_list")
     .update({ to_delete: true })
-    .eq("owner_id", userDetails.twitter.id);
-  if (markForDeleteError) throw markForDeleteError;
+    .eq("owner_id", userDetails.twitter.id)
+    .throwOnError();
 
   // Insert to supabase
   const { data: lists, error: upsertListsError } = await supabase

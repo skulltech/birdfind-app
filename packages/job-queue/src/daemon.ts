@@ -13,7 +13,7 @@ const addUpdateRelationJobs = async () => {
 
   while (true) {
     // Get active jobs
-    const activeJobs = (await queue.getActive()).filter(
+    const activeJobs = (await queue.getJobs(["active", "waiting"])).filter(
       (x) => x.name == "update-relation"
     );
 
@@ -45,7 +45,7 @@ const addAddListMembersJob = async () => {
 
   while (true) {
     // Get active jobs
-    const activeJobs = (await queue.getActive()).filter(
+    const activeJobs = (await queue.getJobs(["active", "waiting"])).filter(
       (x) => x.name == "add-list-members"
     );
 
