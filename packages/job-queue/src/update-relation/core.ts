@@ -84,6 +84,18 @@ export const updateRelation = async (jobId: number) => {
   const { table, updatedAtColumn, getTwitterMethod, getRow } =
     params[job.relation];
 
+  // If this is the first iteration, set to_delete flags to true
+  if (job.updated_count === 0) {
+    const { error: setDeleteFlagError } = await supabase
+      .from(table)
+      .update({ to_delete: true })
+      .eq(
+        job.relation == "followers" ? "target_id" : "source_id",
+        job.target_twitter_id
+      );
+    if (setDeleteFlagError) throw setDeleteFlagError;
+  }
+
   // Get twitter client of user
   const { data: userProfileData, error: getTokenError } = await supabase
     .from("user_profile")
@@ -130,6 +142,14 @@ export const updateRelation = async (jobId: number) => {
     } else throw error;
   }
 
+  // Delete rate limit
+  const { error: deleteRateLimit } = await supabase
+    .from("twitter_api_rate_limit")
+    .delete()
+    .eq("endpoint", "get-" + job.relation)
+    .eq("user_twitter_id", userProfile.twitter_id);
+  if (deleteRateLimit) throw deleteRateLimit;
+
   // Remove duplicates
   users = dedupeUsers(users);
 
@@ -145,13 +165,27 @@ export const updateRelation = async (jobId: number) => {
       return {
         ...getRow(job.target_twitter_id, x.id),
         updated_at: new Date().toISOString(),
+        to_delete: false,
       };
     })
   );
   if (insertEdgesError) throw insertEdgesError;
 
   // When no more pagination remaining
-  if (paginationToken === null) {
+  const finished = paginationToken === null;
+
+  if (finished) {
+    // delete old relations with delete flag
+    const { error: deleteOldRelations } = await supabase
+      .from(table)
+      .delete()
+      .eq(
+        job.relation == "followers" ? "target_id" : "source_id",
+        job.target_twitter_id
+      )
+      .eq("to_delete", true);
+    if (deleteOldRelations) throw deleteOldRelations;
+
     // Upsert user's relationUpdatedAt field in database
     const { error: updateUserError } = await supabase
       .from("twitter_profile")
@@ -167,17 +201,9 @@ export const updateRelation = async (jobId: number) => {
       pagination_token: paginationToken,
       updated_count: job.updated_count + users.length,
       priority: job.priority - 1,
-      finished: paginationToken === null,
+      finished,
       updated_at: new Date().toISOString(),
     })
     .eq("id", jobId);
   if (updateJobError) throw updateJobError;
-
-  // Delete rate limit
-  const { error: deleteRateLimit } = await supabase
-    .from("twitter_api_rate_limit")
-    .delete()
-    .eq("endpoint", "get-" + job.relation)
-    .eq("user_twitter_id", userProfile.twitter_id);
-  if (deleteRateLimit) throw deleteRateLimit;
 };

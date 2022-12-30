@@ -60,6 +60,14 @@ export const addListMembers = async (jobId: number) => {
     } else throw error;
   }
 
+  // Delete rate limit
+  const { error: deleteRateLimit } = await supabase
+    .from("twitter_api_rate_limit")
+    .delete()
+    .eq("endpoint", "add-list-member")
+    .eq("user_twitter_id", userProfile.twitter_id);
+  if (deleteRateLimit) throw deleteRateLimit;
+
   memberIdsAdded.push(...membersToAdd);
 
   // Update job
@@ -72,12 +80,4 @@ export const addListMembers = async (jobId: number) => {
     })
     .eq("id", jobId);
   if (updateJobError) throw updateJobError;
-
-  // Delete rate limit
-  const { error: deleteRateLimit } = await supabase
-    .from("twitter_api_rate_limit")
-    .delete()
-    .eq("endpoint", "add-list-member")
-    .eq("user_twitter_id", userProfile.twitter_id);
-  if (deleteRateLimit) throw deleteRateLimit;
 };

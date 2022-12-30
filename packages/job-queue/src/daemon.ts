@@ -5,6 +5,8 @@ import {
 import { getLog } from "./update-relation/utils";
 import { getPgClient, logger, queue, supabase } from "./utils";
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const addUpdateRelationJobs = async () => {
   // Connect to postgres
   const pgClient = await getPgClient();
@@ -24,6 +26,9 @@ const addUpdateRelationJobs = async () => {
 
     // Add jobs
     for (const jobId of jobIds) await queue.add("update-relation", jobId);
+
+    // Sleep for 2 seconds
+    await sleep(2 * 1000);
   }
 };
 
@@ -34,7 +39,7 @@ addUpdateRelationJobs().catch((error) =>
   })
 );
 
-const addAddListMemberJob = async () => {
+const addAddListMembersJob = async () => {
   // Connect to postgres
   const pgClient = await getPgClient();
 
@@ -53,11 +58,14 @@ const addAddListMemberJob = async () => {
 
     // Add jobs
     for (const jobId of jobIds) await queue.add("add-list-members", jobId);
+
+    // Sleep for 2 seconds
+    await sleep(2 * 1000);
   }
 };
 
 // Run loop for adding add-list-members jobs
-addAddListMemberJob().catch((error) =>
+addAddListMembersJob().catch((error) =>
   logger.error("Error at daemon while adding add-list-members jobs", {
     metadata: { error },
   })
