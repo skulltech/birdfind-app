@@ -92,7 +92,6 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { user } = useTwipsUser();
   const theme = useMantineTheme();
-  const [opened, setOpened] = useState(false);
 
   const { jobs } = useTwipsJobs();
 
@@ -101,16 +100,7 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
   return (
     <Header height={60} {...others}>
       <Group position="apart">
-        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
-          <MediaQuery largerThan="sm" styles={{ display: "none" }}>
-            <Burger
-              opened={opened}
-              onClick={() => setOpened((o) => !o)}
-              size="sm"
-              color={theme.colors.gray[6]}
-              mr="xl"
-            />
-          </MediaQuery>
+        <Group>
           <UnstyledButton onClick={() => router.push("/")}>
             <Title order={2}>
               <Group>
@@ -119,7 +109,8 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
               </Group>
             </Title>
           </UnstyledButton>
-        </div>
+          <Button onClick={() => router.push("/search")}>Search</Button>
+        </Group>
 
         <Group>
           {user && (
