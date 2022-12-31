@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Avatar,
   Burger,
+  Button,
   Group,
   Header,
   MediaQuery,
@@ -15,6 +16,7 @@ import {
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
   IconBrandTwitter,
+  IconChevronDown,
   IconLogout,
   IconMoonStars,
   IconSun,
@@ -63,53 +65,63 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
 
         <Group>
           {user && (
-            <Menu shadow="md">
-              <Menu.Target>
-                <UnstyledButton>
-                  <Group>
-                    <Avatar src={user.twitter?.profileImageUrl} radius="xl" />
-                    <div>
-                      <Text size="sm" weight={500}>
-                        @{user.twitter?.username ?? "username"}
-                      </Text>
-                      <Text color="dimmed" size="xs">
-                        {user.email}
-                      </Text>
-                    </div>
-                  </Group>
-                </UnstyledButton>
-              </Menu.Target>
+            <>
+              <Menu shadow="md">
+                <Menu.Target>
+                  <Button>Background jobs</Button>
+                </Menu.Target>
 
-              <Menu.Dropdown>
-                {accountMenuItems.map((item) => (
+                <Menu.Dropdown></Menu.Dropdown>
+              </Menu>
+              <Menu shadow="md">
+                <Menu.Target>
+                  <UnstyledButton>
+                    <Group spacing="xs">
+                      <Avatar src={user.twitter?.profileImageUrl} radius="xl" />
+                      <div>
+                        <Text size="sm" weight={500}>
+                          @{user.twitter?.username ?? "username"}
+                        </Text>
+                        <Text color="dimmed" size="xs">
+                          {user.email}
+                        </Text>
+                      </div>
+                      <IconChevronDown size={14} />
+                    </Group>
+                  </UnstyledButton>
+                </Menu.Target>
+
+                <Menu.Dropdown>
+                  {accountMenuItems.map((item) => (
+                    <Menu.Item
+                      key={item.page}
+                      component="a"
+                      href={"/account/" + item.page}
+                      icon={<item.icon size={16} stroke={1.5} />}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        router.push("/account/" + item.page);
+                      }}
+                    >
+                      {item.label}
+                    </Menu.Item>
+                  ))}
+
+                  <Menu.Divider />
+
                   <Menu.Item
-                    key={item.page}
-                    component="a"
-                    href={"/account/" + item.page}
-                    icon={<item.icon size={16} stroke={1.5} />}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      router.push("/account/" + item.page);
+                    color="red"
+                    icon={<IconLogout size={14} />}
+                    onClick={() => {
+                      supabase.auth.signOut();
+                      window.location.replace("/auth/signin");
                     }}
                   >
-                    {item.label}
+                    Sign out
                   </Menu.Item>
-                ))}
-
-                <Menu.Divider />
-
-                <Menu.Item
-                  color="red"
-                  icon={<IconLogout size={14} />}
-                  onClick={() => {
-                    supabase.auth.signOut();
-                    window.location.replace("/auth/signin");
-                  }}
-                >
-                  Sign out
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
+                </Menu.Dropdown>
+              </Menu>
+            </>
           )}
 
           <ActionIcon

@@ -2,6 +2,7 @@ import {
   IconBell,
   IconBrandTwitter,
   IconReceipt2,
+  IconSettings,
   IconSubtask,
   IconUserCircle,
   TablerIcon,
@@ -103,7 +104,7 @@ type AccountMenuItem = {
 };
 
 export const accountMenuItems: AccountMenuItem[] = [
-  { page: "overview", label: "Overview", icon: IconUserCircle },
+  { page: "settings", label: "Account Settings", icon: IconSettings },
   {
     page: "jobs",
     label: "Background Jobs",
@@ -113,16 +114,6 @@ export const accountMenuItems: AccountMenuItem[] = [
     page: "subscription",
     label: "Billing and Subscription",
     icon: IconReceipt2,
-  },
-  {
-    page: "notifications",
-    label: "Notifications",
-    icon: IconBell,
-  },
-  {
-    page: "twitter",
-    label: "Connect to Twitter",
-    icon: IconBrandTwitter,
   },
 ];
 
