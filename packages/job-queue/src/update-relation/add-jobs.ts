@@ -5,15 +5,19 @@ export const addUpdateRelationJobs = async () => {
   const pgClient = await getPgClient();
 
   while (true) {
-    // Get active jobs
-    const activeJobs = (await queue.getJobs()).filter(
-      (x) => x.name == "update-relation"
-    );
+    // Get jobs from queue
+    const activeJobs = (await queue.getJobs(["active", "waiting"]))
+      .filter((x) => x.name == "update-relation")
+      .map((x) => x.data);
+
+    const failedJobs = (await queue.getFailed())
+      .filter((x) => x.name == "update-relation")
+      .map((x) => x.data);
 
     // Get jobs which can be added
     const result = await pgClient.query({
-      text: "select id from get_update_relation_jobs_to_add($1)",
-      values: [activeJobs.map((x) => x.data)],
+      text: "select id from get_update_relation_jobs_to_add($1, $2)",
+      values: [activeJobs, failedJobs],
     });
     const jobIds = result.rows.map((x) => x.id);
 

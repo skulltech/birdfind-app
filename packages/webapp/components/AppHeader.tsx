@@ -38,7 +38,7 @@ type AppHeaderProps = {
   [x: string]: any;
 };
 
-const numJobsToShowInMenu = 1;
+const numJobsToShowInMenu = 3;
 
 const JobMenuItem = ({ id, name, label, progress, paused }: Job) => {
   const [pauseLoading, setPauseLoading] = useState(false);

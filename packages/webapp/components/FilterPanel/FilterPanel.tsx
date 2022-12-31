@@ -24,7 +24,6 @@ export const FilterPanel = ({ ...props }) => {
               </>
             )}
             <Title order={4}>Select Filters</Title>
-            <PromptInput />
 
             <SearchTextInput />
 

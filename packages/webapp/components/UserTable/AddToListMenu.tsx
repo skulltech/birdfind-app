@@ -4,6 +4,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconChevronDown, IconRefresh, IconSquarePlus } from "@tabler/icons";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { useTwipsJobs } from "../../providers/TwipsJobsProvider";
 import { useTwipsUser } from "../../providers/TwipsUserProvider";
 import { openCreateListModal } from "./CreateListModal";
 
@@ -17,6 +18,8 @@ export const AddToListMenu = ({ userIds }: AddToListMenuProps) => {
   const [refreshListsLoading, setRefreshListsLoading] = useState(false);
   const supabase = useSupabaseClient();
   const { user } = useTwipsUser();
+
+  const { refresh } = useTwipsJobs();
 
   // Refresh lists
   const refreshLists = async () => {
@@ -56,7 +59,7 @@ export const AddToListMenu = ({ userIds }: AddToListMenuProps) => {
         message: "Some error ocurred",
         color: "red",
       });
-    }
+    } else refresh();
 
     setAddMembersLoading(true);
   };

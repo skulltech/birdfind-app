@@ -94,7 +94,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
     return {
       id: parseInt(x.id),
       name: "add-list-members",
-      label: `Add ${x.member_ids.length} users to list "${x.twitter_list.name}`,
+      label: `Add ${x.member_ids.length} users to list "${x.twitter_list.name}"`,
       createdAt: new Date(x.created_at),
       paused: x.paused,
       progress: (x.member_ids_added.length / x.member_ids.length) * 100,

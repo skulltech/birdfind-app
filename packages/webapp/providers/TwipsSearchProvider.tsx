@@ -14,6 +14,7 @@ import {
 } from "react";
 import { Filters, parseTwitterProfile, TwitterProfile } from "../utils/helpers";
 import { searchTwitterProfiles } from "../utils/supabase";
+import { useTwipsJobs } from "./TwipsJobsProvider";
 import { useTwipsUser } from "./TwipsUserProvider";
 
 export const usernameFilters = ["followerOf", "followedBy"];
@@ -101,7 +102,7 @@ const updateRelationIfNeeded = async (
   // 24 hours ago
   const cacheTimeout = 24 * 3600 * 1000;
   // Relation was updated more than cacheTimeout times ago
-  if (Date.now() - relationUpdateAt.getTime() > cacheTimeout)
+  if (Date.now() - relationUpdateAt.getTime() > cacheTimeout) {
     await addUpdateRelationJob({
       supabase,
       userId: user.id,
@@ -110,6 +111,9 @@ const updateRelationIfNeeded = async (
       // Higher priority if it was never updated
       priority: relationUpdateAt.getTime() === 0 ? 200000 : 100000,
     });
+    return true;
+  }
+  return false;
 };
 
 export const TwipsSearchProvider = ({
@@ -117,7 +121,8 @@ export const TwipsSearchProvider = ({
   children,
 }: TwipsSearchProviderProps) => {
   // Get user details from user provider
-  const { user, loading: userLoading } = useTwipsUser();
+  const { user } = useTwipsUser();
+  const { refresh } = useTwipsJobs();
 
   const [filters, setFilters] = useState<Filters>({});
   const [randomFloat, setRandomFloat] = useState(0);
@@ -153,7 +158,12 @@ export const TwipsSearchProvider = ({
                 : null;
 
             try {
-              await updateRelationIfNeeded(supabase, item, relation);
+              const jobAdded = await updateRelationIfNeeded(
+                supabase,
+                item,
+                relation
+              );
+              if (jobAdded) refresh();
               updatedValue.add(item);
             } catch (error) {
               console.log(error);
