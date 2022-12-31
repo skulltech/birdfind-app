@@ -12,10 +12,10 @@ import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { useState } from "react";
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { TwipsSearchProvider } from "../providers/TwipsSearchProvider";
-
 import { ModalsProvider } from "@mantine/modals";
 import { GoogleAnalytics } from "nextjs-google-analytics";
 import { TwipsUserProvider } from "../providers/TwipsUserProvider";
+import { TwipsJobsProvider } from "../providers/TwipsJobsProvider";
 
 // Monkeypatching BigInt
 BigInt.prototype["toJSON"] = function () {
@@ -53,19 +53,21 @@ export default function App({
             <NotificationsProvider position="top-center">
               <ModalsProvider>
                 <TwipsUserProvider supabase={supabase}>
-                  <TwipsSearchProvider supabase={supabase}>
-                    <Stack>
-                      <AppHeader px={horizontalPadding} py="xs" />
-                      <main
-                        style={{
-                          paddingLeft: horizontalPadding,
-                          paddingRight: horizontalPadding,
-                        }}
-                      >
-                        <Component {...pageProps} />
-                      </main>
-                    </Stack>
-                  </TwipsSearchProvider>
+                  <TwipsJobsProvider supabase={supabase}>
+                    <TwipsSearchProvider supabase={supabase}>
+                      <Stack>
+                        <AppHeader px={horizontalPadding} py="xs" />
+                        <main
+                          style={{
+                            paddingLeft: horizontalPadding,
+                            paddingRight: horizontalPadding,
+                          }}
+                        >
+                          <Component {...pageProps} />
+                        </main>
+                      </Stack>
+                    </TwipsSearchProvider>
+                  </TwipsJobsProvider>
                 </TwipsUserProvider>
               </ModalsProvider>
             </NotificationsProvider>
