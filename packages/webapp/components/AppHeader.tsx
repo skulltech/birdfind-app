@@ -3,10 +3,14 @@ import {
   Avatar,
   Burger,
   Button,
+  Center,
+  CloseButton,
   Group,
   Header,
   MediaQuery,
   Menu,
+  Progress,
+  Stack,
   Text,
   Title,
   UnstyledButton,
@@ -19,15 +23,73 @@ import {
   IconChevronDown,
   IconLogout,
   IconMoonStars,
+  IconPlayerPause,
+  IconPlayerPlay,
+  IconSubtask,
   IconSun,
 } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { accountMenuItems } from "../utils/helpers";
 import { useTwipsUser } from "../providers/TwipsUserProvider";
+import { useTwipsJobs, Job } from "../providers/TwipsJobsProvider";
 
 type AppHeaderProps = {
   [x: string]: any;
+};
+
+const numJobsToShowInMenu = 1;
+
+const JobMenuItem = ({ id, relation, progress, username, paused }: Job) => {
+  const [pauseLoading, setPauseLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const { pauseJob, deleteJob } = useTwipsJobs();
+
+  return (
+    <Stack spacing={3}>
+      <Group position="apart">
+        <Group>
+          <Text size="sm">{`Fetch ${
+            relation == "blocking"
+              ? "blocklist"
+              : relation == "muting"
+              ? "mutelist"
+              : relation
+          } of @${username}`}</Text>
+        </Group>
+        <Group>
+          <ActionIcon
+            size="xs"
+            onClick={async () => {
+              setPauseLoading(true);
+              await pauseJob(id, !paused);
+              setPauseLoading(false);
+            }}
+            loading={pauseLoading}
+          >
+            {paused ? <IconPlayerPlay /> : <IconPlayerPause />}
+          </ActionIcon>
+          <CloseButton
+            size="xs"
+            radius="lg"
+            variant="outline"
+            color="red"
+            onClick={async () => {
+              setDeleteLoading(true);
+              await deleteJob(id);
+              setDeleteLoading(false);
+            }}
+            loading={deleteLoading}
+          />
+        </Group>
+      </Group>
+      <Progress
+        // animate
+        value={progress}
+        size="sm"
+      />
+    </Stack>
+  );
 };
 
 export const AppHeader = ({ ...others }: AppHeaderProps) => {
@@ -37,6 +99,8 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
   const { user } = useTwipsUser();
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
+
+  const { jobs } = useTwipsJobs();
 
   const dark = colorScheme === "dark";
 
@@ -68,11 +132,45 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
             <>
               <Menu shadow="md">
                 <Menu.Target>
-                  <Button>Background jobs</Button>
+                  <Button
+                    variant="outline"
+                    leftIcon={<IconSubtask size={16} stroke={1.5} />}
+                    rightIcon={<IconChevronDown size={16} />}
+                  >
+                    Background jobs
+                  </Button>
                 </Menu.Target>
 
-                <Menu.Dropdown></Menu.Dropdown>
+                <Menu.Dropdown>
+                  <Menu.Label>{jobs.length} active jobs</Menu.Label>
+
+                  <Stack p="sm" pt={2}>
+                    {jobs.slice(0, numJobsToShowInMenu).map((job) => (
+                      <JobMenuItem {...job} key={job.id} />
+                    ))}
+                    {jobs.length > numJobsToShowInMenu && (
+                      <Center>
+                        <Text size="sm" c="dimmed" weight="bold">
+                          ...
+                        </Text>
+                      </Center>
+                    )}
+                  </Stack>
+                  <Menu.Divider />
+                  <Menu.Item
+                    component="a"
+                    href={"/account/jobs"}
+                    icon={<IconSubtask size={14} />}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      router.push("/account/jobs");
+                    }}
+                  >
+                    Manage all jobs
+                  </Menu.Item>
+                </Menu.Dropdown>
               </Menu>
+
               <Menu shadow="md">
                 <Menu.Target>
                   <UnstyledButton>

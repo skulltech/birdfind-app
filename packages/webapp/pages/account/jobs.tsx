@@ -77,12 +77,12 @@ const JobChip = ({
 };
 
 const Jobs = () => {
-  const { jobs } = useTwipsJobs();
+  const { jobs, loading } = useTwipsJobs();
 
   return (
     <Group>
       <AccountNavbar activePage="jobs" />
-      {jobs === null ? (
+      {loading ? (
         <Loader />
       ) : jobs.length == 0 ? (
         <Center style={{ flex: 1 }}>
