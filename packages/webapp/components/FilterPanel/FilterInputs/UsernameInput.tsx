@@ -14,6 +14,7 @@ import {
   IconArrowNarrowRight,
   IconAt,
   IconCircleCheck,
+  IconLock,
 } from "@tabler/icons";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -134,7 +135,9 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
                 ? false
                 : valid
                 ? user
-                  ? false
+                  ? user.protected
+                    ? "Accout is private"
+                    : false
                   : "User does not exist"
                 : "Username is not valid"
               : false
@@ -144,7 +147,11 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
               <Loader size="xs" />
             ) : valid ? (
               user ? (
-                <IconCircleCheck size={20} color="green" />
+                user.protected ? (
+                  <IconLock size={20} color="red" />
+                ) : (
+                  <IconCircleCheck size={20} color="green" />
+                )
               ) : (
                 <IconAlertCircle size={20} color="red" />
               )
@@ -158,7 +165,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
           <ActionIcon
             size="lg"
             variant="default"
-            disabled={!valid || !user}
+            disabled={!valid || !user || user.protected}
             onClick={handleSubmit}
           >
             <IconArrowNarrowRight size={16} />
