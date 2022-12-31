@@ -49,6 +49,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
         twitter_profile (username,followers_count,following_count)`
     )
     .eq("finished", false)
+    .eq("deleted", false)
     .order("created_at", { ascending: false })
     .throwOnError();
 
@@ -87,6 +88,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
         twitter_list (name)`
     )
     .eq("finished", false)
+    .eq("deleted", false)
     .order("created_at", { ascending: false })
     .throwOnError();
 
@@ -180,13 +182,13 @@ export const TwipsJobsProvider = ({
           if (name == "update-relation")
             await supabase
               .from("update_relation_job")
-              .delete()
+              .update({ deleted: true })
               .eq("id", id)
               .throwOnError();
           if (name == "add-list-members")
             await supabase
               .from("add_list_members_job")
-              .delete()
+              .update({ deleted: true })
               .eq("id", id)
               .throwOnError();
         } catch (error) {
