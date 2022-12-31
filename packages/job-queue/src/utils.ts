@@ -64,10 +64,7 @@ export const queue = new Queue<number, void, JobName>("twips-jobs", {
   connection,
   defaultJobOptions: {
     // Keep up to 1 hour and 100 jobs
-    removeOnComplete: {
-      age: 1 * 3600,
-      count: 100,
-    },
+    removeOnComplete: true,
     // Keep up to 48 hours and 1000 jobs
     removeOnFail: {
       age: 48 * 3600,
@@ -83,3 +80,6 @@ export const getPgClient = async () => {
 };
 
 export type JobName = "update-relation" | "add-list-members";
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

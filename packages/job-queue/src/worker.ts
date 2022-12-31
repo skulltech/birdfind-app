@@ -1,6 +1,6 @@
 import { Worker } from "bullmq";
-import { addListMembers } from "./add-list-members/core";
-import { updateRelation } from "./update-relation/core";
+import { addListMembers } from "./add-list-members/worker";
+import { updateRelation } from "./update-relation/worker";
 import { logger, connection, JobName } from "./utils";
 
 // Start worker
