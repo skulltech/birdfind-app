@@ -4,6 +4,7 @@ import TelegramLogger from "winston-telegram";
 import { createClient } from "@supabase/supabase-js";
 import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
+import { JobName } from "@twips/common";
 dotenv.config();
 
 // To suppress warnings
@@ -78,8 +79,6 @@ export const getPgClient = async () => {
   await client.connect();
   return client;
 };
-
-export type JobName = "update-relation" | "add-list-members";
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));

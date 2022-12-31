@@ -40,7 +40,7 @@ type AppHeaderProps = {
 
 const numJobsToShowInMenu = 1;
 
-const JobMenuItem = ({ id, relation, progress, username, paused }: Job) => {
+const JobMenuItem = ({ id, name, label, progress, paused }: Job) => {
   const [pauseLoading, setPauseLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { pauseJob, deleteJob } = useTwipsJobs();
@@ -49,20 +49,14 @@ const JobMenuItem = ({ id, relation, progress, username, paused }: Job) => {
     <Stack spacing={3}>
       <Group position="apart">
         <Group>
-          <Text size="sm">{`Fetch ${
-            relation == "blocking"
-              ? "blocklist"
-              : relation == "muting"
-              ? "mutelist"
-              : relation
-          } of @${username}`}</Text>
+          <Text size="sm">{label}</Text>
         </Group>
         <Group>
           <ActionIcon
             size="xs"
             onClick={async () => {
               setPauseLoading(true);
-              await pauseJob(id, !paused);
+              await pauseJob(name, id, !paused);
               setPauseLoading(false);
             }}
             loading={pauseLoading}
@@ -76,7 +70,7 @@ const JobMenuItem = ({ id, relation, progress, username, paused }: Job) => {
             color="red"
             onClick={async () => {
               setDeleteLoading(true);
-              await deleteJob(id);
+              await deleteJob(name, id);
               setDeleteLoading(false);
             }}
             loading={deleteLoading}

@@ -20,7 +20,7 @@ type JobChipProps = {
 };
 
 const JobChip = ({
-  job: { id, relation, username, paused, progress },
+  job: { id, name, label, paused, progress },
 }: JobChipProps) => {
   const [pauseLoading, setPauseLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -31,20 +31,14 @@ const JobChip = ({
       <Stack pr="md">
         <Group position="apart">
           <Group>
-            <Text>{`Fetch ${
-              relation == "blocking"
-                ? "blocklist"
-                : relation == "muting"
-                ? "mutelist"
-                : relation
-            } of @${username}`}</Text>
+            <Text>{label}</Text>
           </Group>
           <Group>
             <ActionIcon
               size="sm"
               onClick={async () => {
                 setPauseLoading(true);
-                await pauseJob(id, !paused);
+                await pauseJob(name, id, !paused);
                 setPauseLoading(false);
               }}
               loading={pauseLoading}
@@ -58,7 +52,7 @@ const JobChip = ({
               color="red"
               onClick={async () => {
                 setDeleteLoading(true);
-                await deleteJob(id);
+                await deleteJob(name, id);
                 setDeleteLoading(false);
               }}
               loading={deleteLoading}

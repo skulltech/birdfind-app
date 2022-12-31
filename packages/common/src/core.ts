@@ -104,3 +104,5 @@ export const addListMembersJobColumns = [
   "member_ids_added_text",
   "member_ids_text",
 ];
+
+export type JobName = "update-relation" | "add-list-members";

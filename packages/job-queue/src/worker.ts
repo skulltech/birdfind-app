@@ -1,7 +1,8 @@
+import { JobName } from "@twips/common";
 import { Worker } from "bullmq";
 import { addListMembers } from "./add-list-members/worker";
 import { updateRelation } from "./update-relation/worker";
-import { logger, connection, JobName } from "./utils";
+import { logger, connection } from "./utils";
 
 // Start worker
 const worker = new Worker<number, void, JobName>(
