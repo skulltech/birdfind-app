@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import { UserTable } from "../components/UserTable/UserTable";
-import { useTwips } from "../components/TwipsProvider";
+import { useTwipsSearch } from "../providers/TwipsSearchProvider";
 import { Container, Group, LoadingOverlay, Stack, Text } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
 import { IconAlertCircle } from "@tabler/icons";
 import { FilterPanel } from "../components/FilterPanel/FilterPanel";
+import { useTwipsUser } from "../providers/TwipsUserProvider";
 
 const Home = () => {
-  const { user, userLoading, addFilters, searchLoading, filtersInvalid } =
-    useTwips();
+  const { user, loading: userLoading } = useTwipsUser();
+  const {
+    addFilters,
+    loading: searchLoading,
+    filtersInvalid,
+  } = useTwipsSearch();
   const [initialFiltersLoading, setInitialFiltersLoading] = useState(false);
   const supabase = useSupabaseClient();
   const router = useRouter();

@@ -13,37 +13,30 @@ import {
   useState,
 } from "react";
 import { Filters, parseTwitterProfile, TwitterProfile } from "../utils/helpers";
-import {
-  getUserDetails,
-  searchTwitterProfiles,
-  UserDetails,
-} from "../utils/supabase";
+import { searchTwitterProfiles } from "../utils/supabase";
+import { useTwipsUser } from "./TwipsUserProvider";
 
 export const usernameFilters = ["followerOf", "followedBy"];
 
-const TwipsContext = createContext<{
-  user: UserDetails;
+const TwipsSearchContext = createContext<{
   filters: Filters;
   addFilters: (arg: Partial<Filters>) => Promise<void>;
   removeFilters: (...args: RemoveFiltersArg[]) => void;
-  searchLoading: boolean;
+  loading: boolean;
   filtersInvalid: boolean;
-  searchResults: TwitterProfile[];
-  userLoading: boolean;
+  results: TwitterProfile[];
   refresh: () => void;
 }>({
-  user: null,
   filters: {},
   addFilters: async () => {},
   removeFilters: () => {},
-  searchLoading: false,
+  loading: false,
   filtersInvalid: false,
-  searchResults: [],
-  userLoading: false,
+  results: [],
   refresh: () => {},
 });
 
-interface TwipsProviderProps {
+interface TwipsSearchProviderProps {
   supabase: SupabaseClient;
   children: ReactNode;
 }
@@ -119,29 +112,20 @@ const updateRelationIfNeeded = async (
     });
 };
 
-export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
-  const [user, setUser] = useState<UserDetails>(null);
+export const TwipsSearchProvider = ({
+  supabase,
+  children,
+}: TwipsSearchProviderProps) => {
+  // Get user details from user provider
+  const { user, loading: userLoading } = useTwipsUser();
+
   const [filters, setFilters] = useState<Filters>({});
-  const [userLoading, setUserLoading] = useState(false);
   const [randomFloat, setRandomFloat] = useState(0);
 
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<TwitterProfile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<TwitterProfile[]>([]);
   // Usually indicates that the filters are insufficient
   const [filtersInvalid, setFiltersInvalid] = useState(false);
-
-  // Load user details
-  useEffect(() => {
-    const loadUserDetails = async () => {
-      setUserLoading(true);
-
-      // Get user details from database
-      const user = await getUserDetails(supabase);
-      setUser(user);
-      setUserLoading(false);
-    };
-    loadUserDetails();
-  }, [supabase]);
 
   // Add filters
   const addFilters = async (arg: Partial<Filters>) => {
@@ -218,10 +202,10 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   useEffect(() => {
     // Perform search on Supabase
     const handleSearch = async () => {
-      setSearchLoading(true);
+      setLoading(true);
       const results = await searchTwitterProfiles(supabase, filters);
-      setSearchResults(results);
-      setSearchLoading(false);
+      setResults(results);
+      setLoading(false);
     };
 
     // If user or filters are invalid
@@ -230,7 +214,7 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
       !isFiltersValid(user.twitter.username, filters)
     ) {
       setFiltersInvalid(true);
-      setSearchResults([]);
+      setResults([]);
       return;
     }
 
@@ -239,22 +223,20 @@ export const TwipsProvider = ({ supabase, children }: TwipsProviderProps) => {
   }, [filters, user?.twitter?.username, supabase, randomFloat]);
 
   return (
-    <TwipsContext.Provider
+    <TwipsSearchContext.Provider
       value={{
-        user,
         filters,
         addFilters,
         removeFilters,
-        searchLoading,
+        loading,
         filtersInvalid,
-        searchResults,
-        userLoading,
+        results,
         refresh: () => setRandomFloat(Math.random()),
       }}
     >
       {children}
-    </TwipsContext.Provider>
+    </TwipsSearchContext.Provider>
   );
 };
 
-export const useTwips = () => useContext(TwipsContext);
+export const useTwipsSearch = () => useContext(TwipsSearchContext);

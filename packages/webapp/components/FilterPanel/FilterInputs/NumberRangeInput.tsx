@@ -2,7 +2,7 @@ import { ActionIcon, Group, NumberInput, Stack, Text } from "@mantine/core";
 import { IconArrowNarrowRight } from "@tabler/icons";
 import { useState } from "react";
 import { FilterInputProps } from "../../../utils/helpers";
-import { useTwips } from "../../TwipsProvider";
+import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
 
 interface NumberRangeInputProps extends FilterInputProps {
   metric: "tweet" | "followers" | "following";
@@ -11,7 +11,7 @@ interface NumberRangeInputProps extends FilterInputProps {
 export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
   const [minValue, setMinValue] = useState<number>(undefined);
   const [maxValue, setMaxValue] = useState<number>(undefined);
-  const { addFilters } = useTwips();
+  const { addFilters } = useTwipsSearch();
 
   return (
     <Stack spacing={2}>

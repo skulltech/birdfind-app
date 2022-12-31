@@ -24,7 +24,7 @@ import {
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { accountMenuItems } from "../utils/helpers";
-import { useTwips } from "./TwipsProvider";
+import { useTwipsUser } from "../providers/TwipsUserProvider";
 
 type AppHeaderProps = {
   [x: string]: any;
@@ -34,7 +34,7 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
   const supabase = useSupabaseClient();
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const { user } = useTwips();
+  const { user } = useTwipsUser();
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
 

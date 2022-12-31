@@ -1,7 +1,11 @@
 import { Stack } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { RemoveFiltersArg, useTwips } from "../../TwipsProvider";
+import {
+  RemoveFiltersArg,
+  useTwipsSearch,
+} from "../../../providers/TwipsSearchProvider";
+import { useTwipsUser } from "../../../providers/TwipsUserProvider";
 import { FilterChip } from "./FilterChip";
 
 type Chip = {
@@ -38,7 +42,9 @@ const renderNumberRangeFilter = ({
 };
 
 export const FilterChipGroup = (props) => {
-  const { filters, removeFilters, user } = useTwips();
+  const { filters, removeFilters } = useTwipsSearch();
+  const { user } = useTwipsUser();
+
   const [chips, setChips] = useState<Chip[]>([]);
 
   useEffect(() => {

@@ -5,11 +5,11 @@ import { DateRangeInput } from "./FilterInputs/DateRangeInput";
 import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
 import { SearchTextInput } from "./FilterInputs/SearchTextInput";
 import { UsernameInput } from "./FilterInputs/UsernameInput";
-import { useTwips } from "../TwipsProvider";
+import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
 import { PromptInput } from "./FilterInputs/PromptInput";
 
 export const FilterPanel = ({ ...props }) => {
-  const { filters } = useTwips();
+  const { filters } = useTwipsSearch();
 
   return (
     <Navbar width={{ base: 300 }} p="xs" pr={0} {...props}>

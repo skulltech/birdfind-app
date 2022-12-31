@@ -30,7 +30,7 @@ import {
   IconSortDescending,
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
-import { useTwips } from "../TwipsProvider";
+import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
 import { AddToListMenu } from "./AddToListMenu";
 
 const useStyles = createStyles((theme) => ({
@@ -147,7 +147,7 @@ export const UserTable = () => {
   const [rowSelection, setRowSelection] = useState({});
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const { searchResults: users, refresh } = useTwips();
+  const { results: users, refresh } = useTwipsSearch();
 
   const columns = useMemo<ColumnDef<TwitterProfile>[]>(
     () => [

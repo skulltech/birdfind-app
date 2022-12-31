@@ -4,7 +4,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconChevronDown, IconRefresh, IconSquarePlus } from "@tabler/icons";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useTwips } from "../TwipsProvider";
+import { useTwipsUser } from "../../providers/TwipsUserProvider";
 import { openCreateListModal } from "./CreateListModal";
 
 type AddToListMenuProps = {
@@ -16,7 +16,7 @@ export const AddToListMenu = ({ userIds }: AddToListMenuProps) => {
   const [addMembersLoading, setAddMembersLoading] = useState(false);
   const [refreshListsLoading, setRefreshListsLoading] = useState(false);
   const supabase = useSupabaseClient();
-  const { user } = useTwips();
+  const { user } = useTwipsUser();
 
   // Refresh lists
   const refreshLists = async () => {

@@ -22,7 +22,7 @@ import {
   parseTwitterProfile,
   TwitterProfile,
 } from "../../../utils/helpers";
-import { useTwips } from "../../TwipsProvider";
+import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
 import { useDebouncedValue } from "@mantine/hooks";
 
 interface UsernameInputProps extends FilterInputProps {
@@ -42,7 +42,7 @@ const lookupUser = async (username: string): Promise<TwitterProfile> => {
 
 export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   const [username, setUsername] = useState("");
-  const { addFilters } = useTwips();
+  const { addFilters } = useTwipsSearch();
   const supabase = useSupabaseClient();
   const [autocompleteOptions, setAutocompleteOptions] = useState([]);
   const [addFiltersLoading, setAddFiltersLoading] = useState(false);

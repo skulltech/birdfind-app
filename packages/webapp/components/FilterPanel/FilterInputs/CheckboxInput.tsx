@@ -1,7 +1,8 @@
 import { Checkbox, Loader, CheckIcon, Group } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { FilterInputProps } from "../../../utils/helpers";
-import { useTwips } from "../../TwipsProvider";
+import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
+import { useTwipsUser } from "../../../providers/TwipsUserProvider";
 
 interface CheckboxInputProps extends FilterInputProps {
   relation: "blocked" | "muted" | "follower" | "followed";
@@ -10,7 +11,8 @@ interface CheckboxInputProps extends FilterInputProps {
 export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   const [checked, setChecked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { filters, addFilters, removeFilters, user } = useTwips();
+  const { user } = useTwipsUser();
+  const { filters, addFilters, removeFilters } = useTwipsSearch();
 
   const addFilter = async () => {
     setLoading(true);

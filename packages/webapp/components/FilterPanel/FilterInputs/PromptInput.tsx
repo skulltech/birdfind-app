@@ -13,7 +13,7 @@ import { IconAlertCircle, IconSearch } from "@tabler/icons";
 import axios from "axios";
 import { useState } from "react";
 import { Filters } from "../../../utils/helpers";
-import { useTwips } from "../../TwipsProvider";
+import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
 
 const parseFiltersJson = (obj: any): Filters => {
   if (obj.createdBefore) obj["createdBefore"] = new Date(obj.createdBefore);
@@ -26,7 +26,7 @@ export const PromptInput = () => {
   const [popoverOpened, setPopoverOpened] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const { addFilters } = useTwips();
+  const { addFilters } = useTwipsSearch();
 
   const handleSubmit = async () => {
     if (prompt.length > 0) {
