@@ -80,11 +80,11 @@ const updateRelationIfNeeded = async (
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { data, error: selectProfileError } = await supabase
+  const { data } = await supabase
     .from("twitter_profile")
     .select(twitterProfileFields.join(","))
-    .eq("username", username);
-  if (selectProfileError) throw selectProfileError;
+    .eq("username", username)
+    .throwOnError();
 
   const twitterProfile = parseTwitterProfile(data[0]);
 

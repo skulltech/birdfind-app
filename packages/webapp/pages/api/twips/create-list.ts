@@ -61,7 +61,7 @@ export default async function handler(
     return res.status(500).json({ error: getListResponse.errors[0].title });
 
   // Insert to supabase
-  const { data: list, error } = await supabase
+  const { data: list } = await supabase
     .from("twitter_list")
     .insert({
       id: getListResponse.data.id,
@@ -74,8 +74,8 @@ export default async function handler(
       owner_id: userDetails.twitter.id,
     })
     .select("*")
+    .throwOnError()
     .single();
-  if (error) throw error;
 
   return res.status(200).json(list);
 }

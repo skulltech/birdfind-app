@@ -20,7 +20,7 @@ type JobChipProps = {
 };
 
 const JobChip = ({
-  job: { id, name, label, paused, progress },
+  job: { id, name, label, paused, progress, createdAt },
 }: JobChipProps) => {
   const [pauseLoading, setPauseLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -31,7 +31,9 @@ const JobChip = ({
       <Stack pr="md">
         <Group position="apart">
           <Group>
-            <Text>{label}</Text>
+            <Text>
+              {label}. Job created at {createdAt.toLocaleString()}.
+            </Text>
           </Group>
           <Group>
             <ActionIcon

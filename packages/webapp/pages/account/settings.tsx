@@ -22,7 +22,7 @@ const Twitter = () => {
 
   return (
     <Group>
-      <AccountNavbar activePage="twitter" />
+      <AccountNavbar activePage="settings" />
       <Container>
         <Paper withBorder p="lg">
           <Stack>

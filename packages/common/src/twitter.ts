@@ -60,11 +60,11 @@ export const getTwitterClient = async ({
     const { token } = await authClient.refreshAccessToken();
 
     // Update refreshed token in Supabase
-    const { error } = await supabase
+    await supabase
       .from("user_profile")
       .update({ twitter_oauth_token: token })
-      .eq("id", userId);
-    if (error) throw error;
+      .eq("id", userId)
+      .throwOnError();
 
     oauthToken = token;
   }

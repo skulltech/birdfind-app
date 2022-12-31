@@ -67,10 +67,10 @@ export const AddToListMenu = ({ userIds }: AddToListMenuProps) => {
   // Fetch user's lists from DB on first load
   useEffect(() => {
     const fetchLists = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("twitter_list")
-        .select("id::text,name");
-      if (error) throw error;
+        .select("id::text,name")
+        .throwOnError();
 
       const lists = data.map((x: any) => {
         return { ...x, id: BigInt(x.id) };

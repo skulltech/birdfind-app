@@ -46,10 +46,7 @@ export default async function handler(
   });
   const twitterUser = await getTwitterUser(twitter, username);
 
-  if (!twitterUser) {
-    res.status(200).json({ profile: null });
-    return;
-  }
+  if (!twitterUser) return res.status(200).json({ profile: null });
 
   const serviceRoleSupabase = getServiceRoleSupabase();
   const profile = await upsertTwitterProfile(serviceRoleSupabase, twitterUser);

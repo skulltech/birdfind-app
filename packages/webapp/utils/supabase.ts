@@ -65,10 +65,10 @@ const parseUserDetails = (row: any) => {
 export const getUserProfile = async (
   supabase: SupabaseClient
 ): Promise<any> => {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("user_profile")
-    .select(userProfileFields.join(","));
-  if (error) throw error;
+    .select(userProfileFields.join(","))
+    .throwOnError();
   return data.length ? data[0] : null;
 };
 
@@ -81,11 +81,11 @@ export const startOauthFlow = async (
     data: { user: user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase
+  await supabase
     .from("user_profile")
     .update({ twitter_oauth_state: { state, challenge } })
-    .eq("id", user.id);
-  if (error) throw error;
+    .eq("id", user.id)
+    .throwOnError();
 };
 
 export const completeOauthFlow = async (
@@ -95,41 +95,39 @@ export const completeOauthFlow = async (
   oauthToken: any
 ) => {
   // Check if someone has this Twitter account linked already
-  const { count, error: selectError } = await supabase
+  const { count } = await supabase
     .from("user_profile")
     .select("*", { count: "exact", head: true })
-    .eq("twitter_id", twitterId);
-  if (selectError) throw selectError;
+    .eq("twitter_id", twitterId)
+    .throwOnError();
 
   // If yes, then remove that link
-  if (count) {
-    const { error: removeLinkError } = await supabase
+  if (count)
+    await supabase
       .from("user_profile")
       .update({ twitter_oauth_token: null, twitter_id: null })
-      .eq("twitter_id", twitterId);
-    if (removeLinkError) throw removeLinkError;
-  }
+      .eq("twitter_id", twitterId)
+      .throwOnError();
 
   // Link twitter to the new account
-  const { error: addLinkError } = await supabase
+  await supabase
     .from("user_profile")
     .update({
       twitter_oauth_state: null,
       twitter_oauth_token: oauthToken,
       twitter_id: twitterId,
     })
-    .eq("id", userId);
-  if (addLinkError) throw addLinkError;
+    .eq("id", userId)
+    .throwOnError();
 };
 
 export const getUserDetails = async (
   supabase: SupabaseClient
 ): Promise<UserDetails> => {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .rpc("get_user_details")
-    .select(userDetailsFields.join(","));
-  if (error) throw error;
-
+    .select(userDetailsFields.join(","))
+    .throwOnError();
   // @ts-ignore
   return data.length ? parseUserDetails(data[0]) : null;
 };
@@ -174,8 +172,7 @@ export const searchTwitterProfiles = async (
   for (const [key, value] of Object.entries(otherFilters))
     query = appendFilterFunctions[key](query, value);
 
-  const { data, error: searchError } = await query.limit(1000);
-  if (searchError) throw searchError;
+  const { data } = await query.limit(1000).throwOnError();
 
   // Insert event in user_event table
   await insertUserEvent(supabase, "search", filters);
@@ -187,11 +184,11 @@ export const upsertTwitterProfile = async (
   supabase: SupabaseClient,
   user: TwitterResponse<usersIdFollowers>["data"][number]
 ) => {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("twitter_profile")
     .upsert(serializeTwitterUser(user))
-    .select(twitterProfileFields.join(","));
-  if (error) throw error;
+    .select(twitterProfileFields.join(","))
+    .throwOnError();
 
   return parseTwitterProfile(data[0]);
 };
@@ -204,8 +201,8 @@ export const insertUserEvent = async (
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const { error: insertEventError } = await supabase
+  await supabase
     .from("user_event")
-    .insert({ user_id: user.id, type, data });
-  if (insertEventError) throw insertEventError;
+    .insert({ user_id: user.id, type, data })
+    .throwOnError();
 };

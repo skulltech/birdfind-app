@@ -13,11 +13,11 @@ type AddJobArgs = {
 
 export const addJob = async ({ email, relation, username }: AddJobArgs) => {
   // Get twitter ID of target twitter user
-  const { data: userIds, error: error1 } = await supabase
+  const { data: userIds } = await supabase
     .from("twitter_profile")
     .select("id::text")
-    .eq("username", username);
-  if (error1) throw error1;
+    .eq("username", username)
+    .throwOnError();
 
   let userId: BigInt;
 
@@ -27,26 +27,26 @@ export const addJob = async ({ email, relation, username }: AddJobArgs) => {
     const { data: user } = await twitter.users.findUserByUsername(username, {
       "user.fields": twitterUserFields,
     });
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("twitter_profile")
       .insert(serializeTwitterUser(user))
-      .select("id::text");
-    if (error) throw error;
+      .select("id::text")
+      .throwOnError();
 
     // @ts-ignore
     userId = BigInt(data[0].id);
   }
 
   // Get user ID of logged in user's email
-  const { data: signedInUserIds, error: error2 } = await supabase
+  const { data: signedInUserIds } = await supabase
     .from("user_profile")
     .select("id")
-    .eq("email", email);
-  if (error2) throw error2;
+    .eq("email", email)
+    .throwOnError();
   const signedInUserId = signedInUserIds[0].id;
 
   // Add job
-  const { data, error: insertJobError } = await supabase
+  const { data } = await supabase
     .from("update_relation_job")
     .insert({
       user_id: signedInUserId,
@@ -56,7 +56,8 @@ export const addJob = async ({ email, relation, username }: AddJobArgs) => {
       priority: 200000,
     })
     .select("id")
+    .throwOnError()
     .single();
-  if (insertJobError) throw insertJobError;
+
   return data.id;
 };

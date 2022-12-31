@@ -56,7 +56,7 @@ export default async function handler(
     .throwOnError();
 
   // Insert to supabase
-  const { data: lists, error: upsertListsError } = await supabase
+  const { data: lists } = await supabase
     .from("twitter_list")
     .upsert(
       userOwnedLists.map((x) => {
@@ -74,23 +74,23 @@ export default async function handler(
         };
       })
     )
-    .select("*");
-  if (upsertListsError) throw upsertListsError;
+    .select("*")
+    .throwOnError();
 
   // Delete the ones still marked for delete
-  const { error: deleteOldRows } = await supabase
+  await supabase
     .from("twitter_list")
     .delete()
     .eq("owner_id", userDetails.twitter.id)
-    .eq("to_delete", true);
-  if (deleteOldRows) throw deleteOldRows;
+    .eq("to_delete", true)
+    .throwOnError();
 
   // Update user's twitter profile
-  const { error: updateProfileError } = await supabase
+  await supabase
     .from("twitter_profile")
     .update({ lists_owned_updated_at: new Date().toISOString() })
-    .eq("id", userDetails.twitter.id);
-  if (updateProfileError) throw updateProfileError;
+    .eq("id", userDetails.twitter.id)
+    .throwOnError();
 
   // Return the lists
   return res.status(200).json(lists);

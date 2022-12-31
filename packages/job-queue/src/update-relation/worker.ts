@@ -69,12 +69,12 @@ const params: Record<Relation, Params> = {
 
 export const updateRelation = async (jobId: number) => {
   // Get job from Supabase
-  const { data: jobData, error: selectJobsError } = await supabase
+  const { data: jobData } = await supabase
     .from("update_relation_job")
     .select(updateRelationJobColumns.join(","))
     .eq("id", jobId)
+    .throwOnError()
     .single();
-  if (selectJobsError) throw selectJobsError;
   const job = jobData as any;
 
   // Return immediately if job is finished
@@ -96,12 +96,12 @@ export const updateRelation = async (jobId: number) => {
       .throwOnError();
 
   // Get twitter client of user
-  const { data: userProfileData, error: getTokenError } = await supabase
+  const { data: userProfileData } = await supabase
     .from("user_profile")
     .select("twitter_id::text,twitter_oauth_token")
     .eq("id", job.user_id)
+    .throwOnError()
     .single();
-  if (getTokenError) throw getTokenError;
   const userProfile = userProfileData as any;
 
   const twitter = await getTwitterClient({
@@ -129,72 +129,74 @@ export const updateRelation = async (jobId: number) => {
       const rateLimitResetsAt = new Date(
         Number(error.headers["x-rate-limit-reset"]) * 1000
       );
-      const { error: upsertRateLimitError } = await supabase
+      await supabase
         .from("twitter_api_rate_limit")
         .upsert({
           user_twitter_id: userProfile.twitter_id,
           endpoint: "get-" + job.relation,
           resets_at: rateLimitResetsAt.toISOString(),
-        });
-      if (upsertRateLimitError) throw upsertRateLimitError;
+        })
+        .throwOnError();
       return;
     } else throw error;
   }
 
   // Delete rate limit
-  const { error: deleteRateLimit } = await supabase
+  await supabase
     .from("twitter_api_rate_limit")
     .delete()
     .eq("endpoint", "get-" + job.relation)
-    .eq("user_twitter_id", userProfile.twitter_id);
-  if (deleteRateLimit) throw deleteRateLimit;
+    .eq("user_twitter_id", userProfile.twitter_id)
+    .throwOnError();
 
   // Remove duplicates
   users = dedupeUsers(users);
 
   // Upsert users to database
-  const { error: insertProfilesError } = await supabase
+  await supabase
     .from("twitter_profile")
-    .upsert(users.map(serializeTwitterUser));
-  if (insertProfilesError) throw insertProfilesError;
+    .upsert(users.map(serializeTwitterUser))
+    .throwOnError();
 
   // Upsert relations to database
-  const { error: insertEdgesError } = await supabase.from(table).upsert(
-    users.map((x) => {
-      return {
-        ...getRow(job.target_twitter_id, x.id),
-        updated_at: new Date().toISOString(),
-        to_delete: false,
-      };
-    })
-  );
-  if (insertEdgesError) throw insertEdgesError;
+  await supabase
+    .from(table)
+    .upsert(
+      users.map((x) => {
+        return {
+          ...getRow(job.target_twitter_id, x.id),
+          updated_at: new Date().toISOString(),
+          to_delete: false,
+        };
+      })
+    )
+    .throwOnError();
 
   // When no more pagination remaining
   const finished = paginationToken === null;
 
   if (finished) {
     // delete old relations with delete flag
-    const { error: deleteOldRelations } = await supabase
+    await supabase
       .from(table)
       .delete()
       .eq(
         job.relation == "followers" ? "target_id" : "source_id",
         job.target_twitter_id
       )
-      .eq("to_delete", true);
-    if (deleteOldRelations) throw deleteOldRelations;
+      .eq("to_delete", true)
+      .throwOnError();
 
     // Upsert user's relationUpdatedAt field in database
-    const { error: updateUserError } = await supabase
+    await supabase
       .from("twitter_profile")
       .update({ [updatedAtColumn]: new Date().toISOString() })
-      .eq("id", job.target_twitter_id);
-    if (updateUserError) throw updateUserError;
+      .eq("id", job.target_twitter_id)
+      .throwOnError();
   }
 
   // Update job
-  const { error: updateJobError } = await supabase
+  await supabase
     .from("update_relation_job")
     .update({
       pagination_token: paginationToken,
@@ -203,6 +205,6 @@ export const updateRelation = async (jobId: number) => {
       finished,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", jobId);
-  if (updateJobError) throw updateJobError;
+    .eq("id", jobId)
+    .throwOnError();
 };

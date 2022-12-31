@@ -17,40 +17,40 @@ const formatDate = (str: string) => new Date(str).toLocaleString("en-IN");
 // Get log metadata object
 export const getLog = async (jobId: number) => {
   // Get job details
-  const { data: jobData, error: getJobError } = await supabase
+  const { data: jobData } = await supabase
     .from("update_relation_job")
     .select(updateRelationJobColumns.join(","))
     .eq("id", jobId)
+    .throwOnError()
     .single();
-  if (getJobError) throw getJobError;
   const job = jobData as any;
 
   // Get user details
-  const { data: userDetailsData, error: getUserDetailsError } = await supabase
+  const { data: userDetailsData } = await supabase
     .rpc("get_user_details", {
       id: job.user_id,
     })
     .select("email,twitter_username,twitter_id::text")
+    .throwOnError()
     .single();
-  if (getUserDetailsError) throw getUserDetailsError;
   const userDetails = userDetailsData as any;
 
   // Get target Twitter username
-  const { data: targetDetails, error: getTwitterProfileError } = await supabase
+  const { data: targetDetails } = await supabase
     .from("twitter_profile")
     .select("username")
     .eq("id", job.target_twitter_id)
+    .throwOnError()
     .single();
-  if (getTwitterProfileError) throw getTwitterProfileError;
 
   // Get rate limit information
-  const { data: rateLimit, error: getRateLimitError } = await supabase
+  const { data: rateLimit } = await supabase
     .from("twitter_api_rate_limit")
     .select("resets_at")
     .eq("endpoint", "get-" + job.relation)
     .eq("user_twitter_id", userDetails.twitter_id)
+    .throwOnError()
     .maybeSingle();
-  if (getRateLimitError) throw getRateLimitError;
 
   // Return log metadata object
   return {

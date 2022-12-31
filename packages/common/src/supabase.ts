@@ -27,25 +27,24 @@ export const addUpdateRelationJob = async ({
     .maybeSingle();
 
   // If exists, then resume and upgrade priority if needed
-  if (data) {
-    const { error: updateJobError } = await supabase
+  if (data)
+    await supabase
       .from("update_relation_job")
       .update({
         priority: priority > data.priority ? priority : data.priority,
         paused: false,
       })
-      .eq("id", data.id);
-    if (updateJobError) throw updateJobError;
-    // If doesn't exist then add
-  } else {
-    const { error: insertJobError } = await supabase
+      .eq("id", data.id)
+      .throwOnError();
+  // If doesn't exist then add
+  else
+    await supabase
       .from("update_relation_job")
       .insert({
         user_id: userId,
         target_twitter_id: targetTwitterId,
         relation,
         priority,
-      });
-    if (insertJobError) throw insertJobError;
-  }
+      })
+      .throwOnError();
 };

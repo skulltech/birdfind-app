@@ -92,21 +92,22 @@ export default async function handler(
     // Update relation on Supabase
     const serviceRoleSupabase = getServiceRoleSupabase();
     const [table, add] = params[action].updateRelationArgs;
-    if (add) {
-      const { error } = await serviceRoleSupabase.from(table).upsert({
-        source_id: sourceUserId,
-        target_id: targetUserId,
-        updated_at: new Date().toISOString(),
-      });
-      if (error) throw error;
-    } else {
-      const { error } = await serviceRoleSupabase
+    if (add)
+      await serviceRoleSupabase
+        .from(table)
+        .upsert({
+          source_id: sourceUserId,
+          target_id: targetUserId,
+          updated_at: new Date().toISOString(),
+        })
+        .throwOnError();
+    else
+      await serviceRoleSupabase
         .from(table)
         .delete()
         .eq("source_id", sourceUserId)
-        .eq("target_id", targetUserId);
-      if (error) throw error;
-    }
+        .eq("target_id", targetUserId)
+        .throwOnError();
 
     // Insert user event
     await insertUserEvent(supabase, "perform-action", {

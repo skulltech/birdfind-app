@@ -59,12 +59,12 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   // Get username autocomplete options from Supabase
   useEffect(() => {
     const getAutocompleteOptions = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("twitter_profile")
         .select("username")
         .like("username", `${username}%`)
-        .limit(5);
-      if (error) throw error;
+        .limit(5)
+        .throwOnError();
 
       const options = data.map((x) => x.username);
       if (options.length == 1) setAutocompleteOptions([]);
