@@ -1,11 +1,10 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Relation } from "./core";
 
 type AddLookupRelationJob = {
   supabase: SupabaseClient;
   userId: string;
   targetTwitterId: BigInt;
-  relation: Relation;
+  relation: "followers" | "following" | "blocking" | "muting";
   priority: number;
 };
 
@@ -21,7 +20,7 @@ export const addLookupRelationJob = async ({
     .from("lookup_relation_job")
     .select("id,priority")
     .eq("user_id", userId)
-    .eq("target_twitter_id", targetTwitterId)
+    .eq("target_id", targetTwitterId)
     .eq("relation", relation)
     .eq("finished", false)
     .maybeSingle();
@@ -42,7 +41,7 @@ export const addLookupRelationJob = async ({
       .from("lookup_relation_job")
       .insert({
         user_id: userId,
-        target_twitter_id: targetTwitterId,
+        target_id: targetTwitterId,
         relation,
         priority,
       })

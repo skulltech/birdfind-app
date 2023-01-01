@@ -10,7 +10,8 @@ import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
 import { JobName } from "@twips/common";
 import { createLookupRelationJobEventMetadata } from "./lookup-relation/utils";
-import { createAddListMembersJobEventMetadata } from "./add-list-members/utils";
+import { createAddListMembersJobEventMetadata } from "./manage-list-members/utils";
+import { createManageRelationJobEventMetadata } from "./manage-relation/utils";
 dotenv.config();
 
 // To suppress warnings
@@ -105,8 +106,10 @@ const addJobs = async (pgClient: Client, name: JobName) => {
     text:
       name == "lookup-relation"
         ? "select id from get_lookup_relation_jobs_to_add($1, $2)"
-        : name == "add-list-members"
-        ? "select id from get_add_list_members_jobs_to_add($1, $2)"
+        : name == "manage-list-members"
+        ? "select id from get_manage_list_members_jobs_to_add($1, $2)"
+        : name == "manage-relation"
+        ? "select id from get_manage_relation_jobs_to_add($1, $2)"
         : null,
     values: [activeJobs, failedJobs],
   });
@@ -152,8 +155,10 @@ const handleJobEvent = async (
         metadata:
           name == "lookup-relation"
             ? await createLookupRelationJobEventMetadata(payload.new.id)
-            : name == "add-list-members"
+            : name == "manage-list-members"
             ? await createAddListMembersJobEventMetadata(payload.new.id)
+            : name == "manage-relation"
+            ? await createManageRelationJobEventMetadata(payload.new.id)
             : null,
       }
     );
@@ -168,8 +173,10 @@ export const getJobEventListener = (name: JobName) => {
   const table =
     name == "lookup-relation"
       ? "lookup_relation_job"
-      : name == "add-list-members"
-      ? "add_list_members_job"
+      : name == "manage-list-members"
+      ? "manage_list_members_job"
+      : name == "manage-relation"
+      ? "manage_relation_job"
       : null;
   return supabase
     .channel(`public:${table}`)

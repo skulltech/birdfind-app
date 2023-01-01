@@ -50,7 +50,7 @@ export const addJob = async ({ email, relation, username }: AddJobArgs) => {
     .from("lookup_relation_job")
     .insert({
       user_id: signedInUserId,
-      target_twitter_id: userId,
+      target_id: userId,
       relation,
       // Higher priority if it was never updated
       priority: 200000,

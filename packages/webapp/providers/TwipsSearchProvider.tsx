@@ -1,10 +1,6 @@
 import { showNotification } from "@mantine/notifications";
 import { SupabaseClient } from "@supabase/supabase-js";
-import {
-  addLookupRelationJob,
-  Relation,
-  twitterProfileFields,
-} from "@twips/common";
+import { addLookupRelationJob, twitterProfileFields } from "@twips/common";
 import {
   createContext,
   ReactNode,
@@ -18,6 +14,8 @@ import { useTwipsJobs } from "./TwipsJobsProvider";
 import { useTwipsUser } from "./TwipsUserProvider";
 
 export const usernameFilters = ["followerOf", "followedBy"];
+
+type Relation = "followers" | "following" | "blocking" | "muting";
 
 const TwipsSearchContext = createContext<{
   filters: Filters;

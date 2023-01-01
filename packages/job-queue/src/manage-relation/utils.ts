@@ -1,17 +1,16 @@
-import { addListMembersJobColumns } from "@twips/common";
 import ms from "ms";
+import { manageRelationJobColumns } from "@twips/common";
 import { formatDate, supabase } from "../utils";
 
 // Get log metadata object
-export const createAddListMembersJobEventMetadata = async (jobId: number) => {
+export const createManageRelationJobEventMetadata = async (jobId: number) => {
   // Get job details
-  const { data: jobData } = await supabase
-    .from("add_list_members_job")
-    .select(addListMembersJobColumns.join(","))
+  const { data: job } = await supabase
+    .from("manage_relation_job")
+    .select(manageRelationJobColumns)
     .eq("id", jobId)
     .throwOnError()
     .single();
-  const job = jobData as any;
 
   // Get user details
   const { data: userDetailsData } = await supabase
@@ -23,19 +22,11 @@ export const createAddListMembersJobEventMetadata = async (jobId: number) => {
     .single();
   const userDetails = userDetailsData as any;
 
-  // Get list name
-  const { data: list } = await supabase
-    .from("twitter_list")
-    .select("name")
-    .eq("id", job.list_id)
-    .throwOnError()
-    .single();
-
   // Get rate limit information
   const { data: rateLimit } = await supabase
     .from("twitter_api_rate_limit")
     .select("resets_at")
-    .eq("endpoint", "add-list-member")
+    .eq("endpoint", `${job.add ? "add" : "remove"}-${job.relation}`)
     .eq("user_twitter_id", userDetails.twitter_id)
     .throwOnError()
     .maybeSingle();
@@ -48,18 +39,15 @@ export const createAddListMembersJobEventMetadata = async (jobId: number) => {
       email: userDetails.email,
       twitter_username: "@" + userDetails.twitter_username,
     },
-    list: {
-      id: job.list_id,
-      name: list.name,
-    },
+    relation: job.relation,
     rate_limit_resets_at: rateLimit ? formatDate(rateLimit.resets_at) : null,
     created_at: formatDate(job.created_at),
     updated_at: formatDate(job.updated_at),
     time_elapsed: ms(
       new Date(job.updated_at).getTime() - new Date(job.created_at).getTime()
     ),
-    members_to_add: job.member_ids_text.length,
-    member_added: job.member_ids_added_text.length,
+    targets_to_do: job.target_ids_text.length,
+    targets_done: job.target_ids_done_text.length,
     priority: job.priority,
   };
 };

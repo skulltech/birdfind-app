@@ -37,7 +37,7 @@ export const manageRelation = async (jobId: number) => {
 
   const targetIds: bigint[] = job.target_ids_text.map(BigInt);
   const targetIdsDone: bigint[] = job.target_ids_done_text.map(BigInt);
-  const targetIdsToProcess = targetIds
+  const targetIdsToDo = targetIds
     .filter((x) => !targetIdsDone.includes(x))
     .slice(0, chunkSize);
 
@@ -47,7 +47,7 @@ export const manageRelation = async (jobId: number) => {
 
   try {
     // Manage relation through Twitter SDK
-    for (const targetId of targetIdsToProcess)
+    for (const targetId of targetIdsToDo)
       if (job.add) {
         if (relation == "follow")
           await twitter.users.usersIdFollow(userProfile.twitter_id, {
@@ -104,7 +104,7 @@ export const manageRelation = async (jobId: number) => {
     .eq("user_twitter_id", userProfile.twitter_id)
     .throwOnError();
 
-  targetIdsDone.push(...targetIdsToProcess);
+  targetIdsDone.push(...targetIdsToDo);
 
   // Update relation tables
   const relationTable =
@@ -119,7 +119,7 @@ export const manageRelation = async (jobId: number) => {
     await supabase
       .from(relationTable)
       .upsert(
-        targetIdsToProcess.map((x) => {
+        targetIdsToDo.map((x) => {
           return {
             source_id: userProfile.twitter_id,
             target_id: x,
@@ -132,7 +132,7 @@ export const manageRelation = async (jobId: number) => {
       .from(relationTable)
       .delete()
       .eq("source_id", userProfile.twitter_id)
-      .in("target_id", targetIdsToProcess)
+      .in("target_id", targetIdsToDo)
       .throwOnError();
 
   // Update job

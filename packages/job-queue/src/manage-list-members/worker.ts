@@ -1,13 +1,13 @@
-import { addListMembersJobColumns, getTwitterClient } from "@twips/common";
+import { manageListMembersJobColumns, getTwitterClient } from "@twips/common";
 import { supabase } from "../utils";
 
 const chunkSize = 1;
 
-export const addListMembers = async (jobId: number) => {
+export const manageListMembers = async (jobId: number) => {
   // Get job from Supabase
   const { data: jobData } = await supabase
-    .from("add_list_members_job")
-    .select(addListMembersJobColumns.join(","))
+    .from("manage_list_members_job")
+    .select(manageListMembersJobColumns.join(","))
     .eq("id", jobId)
     .throwOnError()
     .single();
@@ -34,16 +34,21 @@ export const addListMembers = async (jobId: number) => {
   });
 
   const memberIds: bigint[] = job.member_ids_text.map(BigInt);
-  const memberIdsAdded: bigint[] = job.member_ids_added_text.map(BigInt);
-  const membersToAdd = memberIds
-    .filter((x) => !memberIdsAdded.includes(x))
+  const memberIdsDone: bigint[] = job.member_ids_done_text.map(BigInt);
+  const memberIdsToDo = memberIds
+    .filter((x) => !memberIdsDone.includes(x))
     .slice(0, chunkSize);
 
+  // add-list-member or remove-list-member
+  const endpoint = `${job.add ? "add" : "remove"}-list-member`;
+
   try {
-    for (const userId of membersToAdd)
-      await twitter.lists.listAddMember(job.list_id, {
-        user_id: userId.toString(),
-      });
+    for (const userId of memberIdsToDo)
+      if (job.add)
+        await twitter.lists.listAddMember(job.list_id, {
+          user_id: userId.toString(),
+        });
+      else await twitter.lists.listRemoveMember(job.list_id, userId.toString());
   } catch (error) {
     // If rate-limited, delay the job
     if (error.status == 429) {
@@ -54,7 +59,7 @@ export const addListMembers = async (jobId: number) => {
         .from("twitter_api_rate_limit")
         .upsert({
           user_twitter_id: userProfile.twitter_id,
-          endpoint: "add-list-member",
+          endpoint,
           resets_at: rateLimitResetsAt.toISOString(),
         })
         .throwOnError();
@@ -66,19 +71,40 @@ export const addListMembers = async (jobId: number) => {
   await supabase
     .from("twitter_api_rate_limit")
     .delete()
-    .eq("endpoint", "add-list-member")
+    .eq("endpoint", endpoint)
     .eq("user_twitter_id", userProfile.twitter_id)
     .throwOnError();
 
-  memberIdsAdded.push(...membersToAdd);
+  memberIdsDone.push(...memberIdsToDo);
+
+  // Update list member table
+  if (job.add)
+    await supabase
+      .from("twitter_list_member")
+      .upsert(
+        memberIdsToDo.map((x) => {
+          return {
+            list_id: job.list_id,
+            member_id: x,
+          };
+        })
+      )
+      .throwOnError();
+  else
+    await supabase
+      .from("twitter_list_member")
+      .delete()
+      .eq("list_id", job.list_id)
+      .in("member_id", memberIdsToDo)
+      .throwOnError();
 
   // Update job
   await supabase
-    .from("add_list_members_job")
+    .from("manage_list_members_job")
     .update({
       priority: job.priority - chunkSize,
       updated_at: new Date().toISOString(),
-      member_ids_added: memberIdsAdded,
+      member_ids_done: memberIdsDone,
     })
     .eq("id", jobId)
     .throwOnError();

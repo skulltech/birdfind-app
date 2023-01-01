@@ -1,71 +1,15 @@
 import {
   getTwitterClient,
-  Relation,
   serializeTwitterUser,
   twitterUserFields,
   lookupRelationJobColumns,
 } from "@twips/common";
-import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
 import { supabase } from "../utils";
 import { dedupeUsers } from "./utils";
 
-type Params = {
-  table: string;
-  updatedAtColumn: string;
-  getTwitterMethod: (twitter: Client) => any;
-  getRow: (
-    sourceId: string,
-    targetId: string
-  ) => { source_id: string; target_id: string };
-};
-
-const params: Record<Relation, Params> = {
-  followers: {
-    table: "twitter_follow",
-    updatedAtColumn: "followers_updated_at",
-    getTwitterMethod: (twitter) => twitter.users.usersIdFollowers,
-    getRow: (sourceId: string, targetId: string) => {
-      return {
-        source_id: targetId,
-        target_id: sourceId.toString(),
-      };
-    },
-  },
-  following: {
-    table: "twitter_follow",
-    updatedAtColumn: "following_updated_at",
-    getTwitterMethod: (twitter) => twitter.users.usersIdFollowing,
-    getRow: (sourceId: string, targetId: string) => {
-      return {
-        source_id: sourceId.toString(),
-        target_id: targetId,
-      };
-    },
-  },
-  blocking: {
-    table: "twitter_block",
-    updatedAtColumn: "blocking_updated_at",
-    getTwitterMethod: (twitter) => twitter.users.usersIdBlocking,
-    getRow: (sourceId: string, targetId: string) => {
-      return {
-        source_id: sourceId,
-        target_id: targetId,
-      };
-    },
-  },
-  muting: {
-    table: "twitter_mute",
-    updatedAtColumn: "muting_updated_at",
-    getTwitterMethod: (twitter) => twitter.users.usersIdMuting,
-    getRow: (sourceId: string, targetId: string) => {
-      return {
-        source_id: sourceId.toString(),
-        target_id: targetId,
-      };
-    },
-  },
-};
+const relations = ["followers", "following", "blocking", "muting"] as const;
+type Relation = typeof relations[number];
 
 export const lookupRelation = async (jobId: number) => {
   // Get job from Supabase
@@ -80,18 +24,24 @@ export const lookupRelation = async (jobId: number) => {
   // Return immediately if job is finished
   if (job.finished) return;
 
-  // Get relation specific logic params
-  const { table, updatedAtColumn, getTwitterMethod, getRow } =
-    params[job.relation];
+  const relation = job.relation as Relation;
+  const relationTable =
+    relation == "followers" || relation == "following"
+      ? "twitter_follow"
+      : relation == "blocking"
+      ? "twitter_block"
+      : relation == "muting"
+      ? "twitter_mute"
+      : null;
 
   // If this is the first iteration, mark rows for delete
   if (job.updated_count === 0) {
     const { error } = await supabase
-      .from(table)
+      .from(relationTable)
       .update({ to_delete: true })
       .eq(
         job.relation == "followers" ? "target_id" : "source_id",
-        job.target_twitter_id
+        job.target_id
       );
     // TODO: fix this hack
     if (error?.message) throw error;
@@ -118,11 +68,22 @@ export const lookupRelation = async (jobId: number) => {
   let paginationToken = job.pagination_token;
 
   try {
-    const page = await getTwitterMethod(twitter)(job.target_twitter_id, {
+    const params = {
       max_results: 1000,
       "user.fields": twitterUserFields,
       pagination_token: paginationToken,
-    });
+    };
+    const page: any =
+      relation == "followers"
+        ? await twitter.users.usersIdFollowers(job.target_id, params)
+        : relation == "following"
+        ? await twitter.users.usersIdFollowing(job.target_id, params)
+        : relation == "blocking"
+        ? await twitter.users.usersIdBlocking(job.target_id, params)
+        : relation == "muting"
+        ? twitter.users.usersIdMuting(job.target_id, params)
+        : null;
+
     users = page.data;
     paginationToken = page.meta.next_token ?? null;
   } catch (error) {
@@ -160,13 +121,21 @@ export const lookupRelation = async (jobId: number) => {
     .upsert(users.map(serializeTwitterUser))
     .throwOnError();
 
+  // Only in the case of followers the user is target_id
+  const row =
+    relation == "followers"
+      ? {
+          source_id: job.target_id,
+          target_id: userProfile.twitter_id,
+        }
+      : { source_id: userProfile.twitter_id, target_id: job.target_id };
   // Upsert relations to database
   await supabase
-    .from(table)
+    .from(relationTable)
     .upsert(
       users.map((x) => {
         return {
-          ...getRow(job.target_twitter_id, x.id),
+          ...row,
           updated_at: new Date().toISOString(),
           to_delete: false,
         };
@@ -180,20 +149,18 @@ export const lookupRelation = async (jobId: number) => {
   if (finished) {
     // delete old relations with delete flag
     await supabase
-      .from(table)
+      .from(relationTable)
       .delete()
-      .eq(
-        job.relation == "followers" ? "target_id" : "source_id",
-        job.target_twitter_id
-      )
+      // Only in the case of followers the user is target_id
+      .eq(relation == "followers" ? "target_id" : "source_id", job.target_id)
       .eq("to_delete", true)
       .throwOnError();
 
-    // Upsert user's relationUpdatedAt field in database
+    // Update user's relationUpdatedAt field in database
     await supabase
       .from("twitter_profile")
-      .update({ [updatedAtColumn]: new Date().toISOString() })
-      .eq("id", job.target_twitter_id)
+      .update({ [`${relation}_updated_at`]: new Date().toISOString() })
+      .eq("id", job.target_id)
       .throwOnError();
   }
 

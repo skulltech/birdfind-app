@@ -4,14 +4,6 @@ import {
   TwitterResponse,
 } from "twitter-api-sdk/dist/types";
 
-export const relations = [
-  "followers",
-  "following",
-  "blocking",
-  "muting",
-] as const;
-export type Relation = typeof relations[number];
-
 export const twitterUserFields: TwitterParams<findUserByUsername>["user.fields"] =
   [
     "created_at",
@@ -84,7 +76,7 @@ export const lookupRelationJobColumns = [
   "updated_at",
   "user_id",
   "relation",
-  "target_twitter_id::text",
+  "target_id::text",
   "priority",
   "finished",
   "pagination_token",
@@ -92,16 +84,17 @@ export const lookupRelationJobColumns = [
   "paused",
 ];
 
-export const addListMembersJobColumns = [
+export const manageListMembersJobColumns = [
   "id",
   "created_at",
   "updated_at",
   "user_id",
   "list_id::text",
+  "add",
   "priority",
   "paused",
   "finished",
-  "member_ids_added_text",
+  "member_ids_done_text",
   "member_ids_text",
 ];
 
@@ -161,4 +154,4 @@ export const manageRelationJobColumns = join(
 export type JobName =
   | "lookup-relation"
   | "manage-relation"
-  | "add-list-members";
+  | "manage-list-members";

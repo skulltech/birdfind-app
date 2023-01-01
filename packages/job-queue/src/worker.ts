@@ -1,8 +1,9 @@
 import { JobName } from "@twips/common";
 import { Worker } from "bullmq";
-import { addListMembers } from "./add-list-members/worker";
+import { manageListMembers } from "./manage-list-members/worker";
 import { lookupRelation } from "./lookup-relation/worker";
 import { logger, connection } from "./utils";
+import { manageRelation } from "./manage-relation/worker";
 
 // Start worker
 const worker = new Worker<number, void, JobName>(
@@ -10,8 +11,10 @@ const worker = new Worker<number, void, JobName>(
   (job) => {
     return job.name == "lookup-relation"
       ? lookupRelation(job.data)
-      : job.name == "add-list-members"
-      ? addListMembers(job.data)
+      : job.name == "manage-list-members"
+      ? manageListMembers(job.data)
+      : job.name == "manage-relation"
+      ? manageRelation(job.data)
       : null;
   },
   {

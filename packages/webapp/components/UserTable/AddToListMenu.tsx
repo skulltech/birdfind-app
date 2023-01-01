@@ -43,10 +43,10 @@ export const AddToListMenu = ({ userIds }: AddToListMenuProps) => {
     setRefreshListsLoading(false);
   };
 
-  const addListMembers = async (listId: BigInt) => {
+  const manageListMembers = async (listId: BigInt) => {
     setAddMembersLoading(true);
 
-    const { error } = await supabase.from("add_list_members_job").insert({
+    const { error } = await supabase.from("manage_list_members_job").insert({
       user_id: user.id,
       list_id: listId,
       member_ids: userIds,
@@ -105,7 +105,7 @@ export const AddToListMenu = ({ userIds }: AddToListMenuProps) => {
             {lists.map((list) => (
               <Menu.Item
                 key={list.id.toString()}
-                onClick={() => addListMembers(list.id)}
+                onClick={() => manageListMembers(list.id)}
               >
                 {list.name}
               </Menu.Item>
