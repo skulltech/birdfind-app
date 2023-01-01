@@ -15,7 +15,7 @@ process.removeAllListeners("warning");
 yargs(hideBin(process.argv))
   .command({
     command: "add-job",
-    describe: "Add an update-relation job",
+    describe: "Add a lookup-relation job",
     builder: (yargs) =>
       yargs
         .option("relation", {

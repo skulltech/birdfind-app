@@ -78,7 +78,7 @@ export const serializeTwitterUser = (
   };
 };
 
-export const updateRelationJobColumns = [
+export const lookupRelationJobColumns = [
   "id",
   "created_at",
   "updated_at",
@@ -105,4 +105,60 @@ export const addListMembersJobColumns = [
   "member_ids_text",
 ];
 
-export type JobName = "update-relation" | "add-list-members";
+type ConcatStringArray<
+  Strings extends readonly string[],
+  Acc extends string = ""
+> = Strings extends readonly [infer Head, ...infer Rest]
+  ? Head extends string
+    ? Rest extends readonly string[]
+      ? ConcatStringArray<Rest, `${Acc}${Head}`>
+      : Acc
+    : Acc
+  : Acc;
+
+type Join<
+  Strings extends readonly string[],
+  Joiner extends string = ",",
+  Acc extends string = ""
+> = Strings extends readonly [infer Head, ...infer Rest]
+  ? Rest extends readonly string[]
+    ? Join<
+        Rest,
+        Joiner,
+        Head extends string
+          ? Acc extends ""
+            ? Head
+            : ConcatStringArray<readonly [Acc, Joiner, Head]>
+          : never
+      >
+    : never
+  : Acc;
+
+const join = <StrArr extends readonly string[], Sep extends string = ",">(
+  strings: StrArr,
+  separator: Sep = "," as Sep
+): Join<StrArr, Sep> => {
+  return strings.join(separator) as Join<StrArr, Sep>;
+};
+
+export const manageRelationJobColumns = join(
+  [
+    "id",
+    "created_at",
+    "updated_at",
+    "user_id",
+    "priority",
+    "relation",
+    "add",
+    "paused",
+    "finished",
+    "target_ids_text",
+    "target_ids_done_text",
+  ] as const,
+  ","
+);
+
+export type JobName =
+  | "lookup-relation"
+  | "manage-relation"
+  | "add-list-members";

@@ -9,7 +9,7 @@ import {
 import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
 import { JobName } from "@twips/common";
-import { createUpdateRelationJobEventMetadata } from "./update-relation/utils";
+import { createLookupRelationJobEventMetadata } from "./lookup-relation/utils";
 import { createAddListMembersJobEventMetadata } from "./add-list-members/utils";
 dotenv.config();
 
@@ -103,8 +103,8 @@ const addJobs = async (pgClient: Client, name: JobName) => {
   // Get jobs which can be added
   const result = await pgClient.query({
     text:
-      name == "update-relation"
-        ? "select id from get_update_relation_jobs_to_add($1, $2)"
+      name == "lookup-relation"
+        ? "select id from get_lookup_relation_jobs_to_add($1, $2)"
         : name == "add-list-members"
         ? "select id from get_add_list_members_jobs_to_add($1, $2)"
         : null,
@@ -150,8 +150,8 @@ const handleJobEvent = async (
       }`,
       {
         metadata:
-          name == "update-relation"
-            ? await createUpdateRelationJobEventMetadata(payload.new.id)
+          name == "lookup-relation"
+            ? await createLookupRelationJobEventMetadata(payload.new.id)
             : name == "add-list-members"
             ? await createAddListMembersJobEventMetadata(payload.new.id)
             : null,
@@ -166,8 +166,8 @@ const handleJobEvent = async (
 
 export const getJobEventListener = (name: JobName) => {
   const table =
-    name == "update-relation"
-      ? "update_relation_job"
+    name == "lookup-relation"
+      ? "lookup_relation_job"
       : name == "add-list-members"
       ? "add_list_members_job"
       : null;

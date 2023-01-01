@@ -1,5 +1,5 @@
 import ms from "ms";
-import { updateRelationJobColumns } from "@twips/common";
+import { lookupRelationJobColumns } from "@twips/common";
 import { formatDate, supabase } from "../utils";
 
 export const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
@@ -13,11 +13,11 @@ export const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
 };
 
 // Get log metadata object
-export const createUpdateRelationJobEventMetadata = async (jobId: number) => {
+export const createLookupRelationJobEventMetadata = async (jobId: number) => {
   // Get job details
   const { data: jobData } = await supabase
-    .from("update_relation_job")
-    .select(updateRelationJobColumns.join(","))
+    .from("lookup_relation_job")
+    .select(lookupRelationJobColumns.join(","))
     .eq("id", jobId)
     .throwOnError()
     .single();

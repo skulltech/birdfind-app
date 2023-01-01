@@ -3,7 +3,7 @@ import {
   Relation,
   serializeTwitterUser,
   twitterUserFields,
-  updateRelationJobColumns,
+  lookupRelationJobColumns,
 } from "@twips/common";
 import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
@@ -67,11 +67,11 @@ const params: Record<Relation, Params> = {
   },
 };
 
-export const updateRelation = async (jobId: number) => {
+export const lookupRelation = async (jobId: number) => {
   // Get job from Supabase
   const { data: jobData } = await supabase
-    .from("update_relation_job")
-    .select(updateRelationJobColumns.join(","))
+    .from("lookup_relation_job")
+    .select(lookupRelationJobColumns.join(","))
     .eq("id", jobId)
     .throwOnError()
     .single();
@@ -199,7 +199,7 @@ export const updateRelation = async (jobId: number) => {
 
   // Update job
   await supabase
-    .from("update_relation_job")
+    .from("lookup_relation_job")
     .update({
       pagination_token: paginationToken,
       updated_count: job.updated_count + users.length,

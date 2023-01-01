@@ -47,7 +47,7 @@ export const addJob = async ({ email, relation, username }: AddJobArgs) => {
 
   // Add job
   const { data } = await supabase
-    .from("update_relation_job")
+    .from("lookup_relation_job")
     .insert({
       user_id: signedInUserId,
       target_twitter_id: userId,

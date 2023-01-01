@@ -1,7 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Relation } from "./core";
 
-type AddUpdateRelationJob = {
+type AddLookupRelationJob = {
   supabase: SupabaseClient;
   userId: string;
   targetTwitterId: BigInt;
@@ -9,16 +9,16 @@ type AddUpdateRelationJob = {
   priority: number;
 };
 
-export const addUpdateRelationJob = async ({
+export const addLookupRelationJob = async ({
   supabase,
   userId,
   targetTwitterId,
   relation,
   priority,
-}: AddUpdateRelationJob) => {
+}: AddLookupRelationJob) => {
   // Get running job with same parameters
   const { data, error: getJobError } = await supabase
-    .from("update_relation_job")
+    .from("lookup_relation_job")
     .select("id,priority")
     .eq("user_id", userId)
     .eq("target_twitter_id", targetTwitterId)
@@ -29,7 +29,7 @@ export const addUpdateRelationJob = async ({
   // If exists, then resume and upgrade priority if needed
   if (data)
     await supabase
-      .from("update_relation_job")
+      .from("lookup_relation_job")
       .update({
         priority: priority > data.priority ? priority : data.priority,
         paused: false,
@@ -39,7 +39,7 @@ export const addUpdateRelationJob = async ({
   // If doesn't exist then add
   else
     await supabase
-      .from("update_relation_job")
+      .from("lookup_relation_job")
       .insert({
         user_id: userId,
         target_twitter_id: targetTwitterId,

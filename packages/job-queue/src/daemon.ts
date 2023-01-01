@@ -1,9 +1,9 @@
 import { getJobEventListener, runAddJobsLoop } from "./utils";
 
 // Run loops for adding jobs
-runAddJobsLoop("update-relation");
+runAddJobsLoop("lookup-relation");
 runAddJobsLoop("add-list-members");
 
 // Add event listeners
-getJobEventListener("update-relation").subscribe();
+getJobEventListener("lookup-relation").subscribe();
 getJobEventListener("add-list-members").subscribe();

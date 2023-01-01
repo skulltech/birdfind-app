@@ -42,8 +42,8 @@ interface TwipsJobsProviderProps {
 }
 
 const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
-  const { data: updateRelationJobsData } = await supabase
-    .from("update_relation_job")
+  const { data: lookupRelationJobsData } = await supabase
+    .from("lookup_relation_job")
     .select(
       `id,created_at,paused,relation,updated_count,
         twitter_profile (username,followers_count,following_count)`
@@ -53,7 +53,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
     .order("created_at", { ascending: false })
     .throwOnError();
 
-  const updateRelationJobs: Job[] = updateRelationJobsData.map((x) => {
+  const lookupRelationJobs: Job[] = lookupRelationJobsData.map((x) => {
     const updatedCount: number = x.updated_count;
     const totalCount: number =
       x.relation === "followers"
@@ -65,7 +65,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
         : null;
     return {
       id: parseInt(x.id),
-      name: "update-relation",
+      name: "lookup-relation",
       label: `Fetch ${
         x.relation == "blocking"
           ? "blocklist"
@@ -103,7 +103,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
     };
   });
 
-  return [...updateRelationJobs, ...addListMembersJobs];
+  return [...lookupRelationJobs, ...addListMembersJobs];
 };
 
 export const TwipsJobsProvider = ({
@@ -139,9 +139,9 @@ export const TwipsJobsProvider = ({
   // Handle pausing// unpausing of a job
   const pauseJob = async (name: JobName, id: number, paused: boolean) => {
     try {
-      if (name == "update-relation")
+      if (name == "lookup-relation")
         await supabase
-          .from("update_relation_job")
+          .from("lookup_relation_job")
           .update({ paused })
           .eq("id", id)
           .throwOnError();
@@ -179,9 +179,9 @@ export const TwipsJobsProvider = ({
       onCancel: () => {},
       onConfirm: async () => {
         try {
-          if (name == "update-relation")
+          if (name == "lookup-relation")
             await supabase
-              .from("update_relation_job")
+              .from("lookup_relation_job")
               .update({ deleted: true })
               .eq("id", id)
               .throwOnError();
@@ -211,21 +211,21 @@ export const TwipsJobsProvider = ({
     fetchJobs();
   }, [supabase, randomFloat]);
 
-  // Set event handler for checking progress of update-relation jobs
+  // Set event handler for checking progress of lookup-relation jobs
   useEffect(() => {
     supabase
-      .channel(`public:update_relation_job`)
+      .channel(`public:lookup_relation_job`)
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
-          table: "update_relation_job",
+          table: "lookup_relation_job",
         },
         (payload) => {
           // Update progress
           jobsHandlers.applyWhere(
-            (job) => job.id == payload.new.id && job.name == "update-relation",
+            (job) => job.id == payload.new.id && job.name == "lookup-relation",
             (job) => ({
               ...job,
               progress: job.totalCount

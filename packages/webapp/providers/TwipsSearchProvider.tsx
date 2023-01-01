@@ -1,7 +1,7 @@
 import { showNotification } from "@mantine/notifications";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
-  addUpdateRelationJob,
+  addLookupRelationJob,
   Relation,
   twitterProfileFields,
 } from "@twips/common";
@@ -72,7 +72,7 @@ const isFiltersValid = (username: string, filters: Filters) => {
   );
 };
 
-const updateRelationIfNeeded = async (
+const lookupRelationIfNeeded = async (
   supabase: SupabaseClient,
   username: string,
   relation: Relation
@@ -103,7 +103,7 @@ const updateRelationIfNeeded = async (
   const cacheTimeout = 24 * 3600 * 1000;
   // Relation was updated more than cacheTimeout times ago
   if (Date.now() - relationUpdateAt.getTime() > cacheTimeout) {
-    await addUpdateRelationJob({
+    await addLookupRelationJob({
       supabase,
       userId: user.id,
       targetTwitterId: twitterProfile.id,
@@ -158,7 +158,7 @@ export const TwipsSearchProvider = ({
                 : null;
 
             try {
-              const jobAdded = await updateRelationIfNeeded(
+              const jobAdded = await lookupRelationIfNeeded(
                 supabase,
                 item,
                 relation

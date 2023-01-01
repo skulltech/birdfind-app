@@ -50,36 +50,36 @@ export default async function handler(
         twitter.users.usersIdFollow(sourceUserId, {
           target_user_id: targetUserId,
         }),
-      updateRelationArgs: ["twitter_follow", true] as const,
+      lookupRelationArgs: ["twitter_follow", true] as const,
     },
     unfollow: {
       twitterFunction: () =>
         twitter.users.usersIdUnfollow(sourceUserId, targetUserId),
-      updateRelationArgs: ["twitter_follow", false] as const,
+      lookupRelationArgs: ["twitter_follow", false] as const,
     },
     block: {
       twitterFunction: () =>
         twitter.users.usersIdBlock(sourceUserId, {
           target_user_id: targetUserId,
         }),
-      updateRelationArgs: ["twitter_block", true] as const,
+      lookupRelationArgs: ["twitter_block", true] as const,
     },
     unblock: {
       twitterFunction: () =>
         twitter.users.usersIdUnblock(sourceUserId, targetUserId),
-      updateRelationArgs: ["twitter_block", false] as const,
+      lookupRelationArgs: ["twitter_block", false] as const,
     },
     mute: {
       twitterFunction: () =>
         twitter.users.usersIdMute(sourceUserId, {
           target_user_id: targetUserId,
         }),
-      updateRelationArgs: ["twitter_mute", true] as const,
+      lookupRelationArgs: ["twitter_mute", true] as const,
     },
     unmute: {
       twitterFunction: () =>
         twitter.users.usersIdUnmute(sourceUserId, targetUserId),
-      updateRelationArgs: ["twitter_mute", false] as const,
+      lookupRelationArgs: ["twitter_mute", false] as const,
     },
   };
 
@@ -91,7 +91,7 @@ export default async function handler(
   else {
     // Update relation on Supabase
     const serviceRoleSupabase = getServiceRoleSupabase();
-    const [table, add] = params[action].updateRelationArgs;
+    const [table, add] = params[action].lookupRelationArgs;
     if (add)
       await serviceRoleSupabase
         .from(table)
