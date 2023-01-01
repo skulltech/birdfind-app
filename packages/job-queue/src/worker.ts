@@ -8,8 +8,11 @@ import { logger, connection } from "./utils";
 const worker = new Worker<number, void, JobName>(
   "twips-jobs",
   (job) => {
-    if (job.name == "update-relation") return updateRelation(job.data);
-    if (job.name == "add-list-members") return addListMembers(job.data);
+    return job.name == "update-relation"
+      ? updateRelation(job.data)
+      : job.name == "add-list-members"
+      ? addListMembers(job.data)
+      : null;
   },
   {
     connection,
@@ -17,6 +20,12 @@ const worker = new Worker<number, void, JobName>(
     maxStalledCount: 10,
   }
 );
+
+worker.on("failed", (job, error) => {
+  logger.error("Worker failed", {
+    metadata: { error, job: { name: job.name, id: job.id } },
+  });
+});
 
 worker.on("error", (error) => {
   logger.error("Worker error", { metadata: { error } });

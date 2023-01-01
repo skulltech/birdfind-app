@@ -1,23 +1,13 @@
+import { addListMembersJobColumns } from "@twips/common";
 import ms from "ms";
-import { updateRelationJobColumns } from "@twips/common";
 import { formatDate, supabase } from "../utils";
 
-export const dedupeUsers = <T extends { id: string }>(arr: T[]) => {
-  const dedupedUsers = new Set<string>();
-
-  return arr.filter((x) => {
-    if (dedupedUsers.has(x.id)) return false;
-    dedupedUsers.add(x.id);
-    return true;
-  });
-};
-
 // Get log metadata object
-export const createUpdateRelationJobEventMetadata = async (jobId: number) => {
+export const createAddListMembersJobEventMetadata = async (jobId: number) => {
   // Get job details
   const { data: jobData } = await supabase
-    .from("update_relation_job")
-    .select(updateRelationJobColumns.join(","))
+    .from("add_list_members_job")
+    .select(addListMembersJobColumns.join(","))
     .eq("id", jobId)
     .throwOnError()
     .single();
@@ -33,11 +23,11 @@ export const createUpdateRelationJobEventMetadata = async (jobId: number) => {
     .single();
   const userDetails = userDetailsData as any;
 
-  // Get target Twitter username
-  const { data: targetDetails } = await supabase
-    .from("twitter_profile")
-    .select("username")
-    .eq("id", job.target_twitter_id)
+  // Get list name
+  const { data: list } = await supabase
+    .from("twitter_list")
+    .select("name")
+    .eq("id", job.list_id)
     .throwOnError()
     .single();
 
@@ -45,7 +35,7 @@ export const createUpdateRelationJobEventMetadata = async (jobId: number) => {
   const { data: rateLimit } = await supabase
     .from("twitter_api_rate_limit")
     .select("resets_at")
-    .eq("endpoint", "get-" + job.relation)
+    .eq("endpoint", "add-list-member")
     .eq("user_twitter_id", userDetails.twitter_id)
     .throwOnError()
     .maybeSingle();
@@ -58,19 +48,18 @@ export const createUpdateRelationJobEventMetadata = async (jobId: number) => {
       email: userDetails.email,
       twitter_username: "@" + userDetails.twitter_username,
     },
-    target: {
-      twitter_username: "@" + targetDetails.username,
-      twitter_id: job.target_twitter_id,
+    list: {
+      id: job.list_id,
+      name: list.name,
     },
-    relation: job.relation,
     rate_limit_resets_at: rateLimit ? formatDate(rateLimit.resets_at) : null,
     created_at: formatDate(job.created_at),
     updated_at: formatDate(job.updated_at),
     time_elapsed: ms(
       new Date(job.updated_at).getTime() - new Date(job.created_at).getTime()
     ),
-    updated_count: job.updated_count,
-    pagination_token: job.pagination_token,
+    members_to_add: job.member_ids_text.length,
+    member_added: job.member_ids_added_text.length,
     priority: job.priority,
   };
 };

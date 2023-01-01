@@ -1,10 +1,16 @@
 import * as dotenv from "dotenv";
 import winston from "winston";
 import TelegramLogger from "winston-telegram";
-import { createClient } from "@supabase/supabase-js";
+import {
+  createClient,
+  RealtimePostgresInsertPayload,
+  RealtimePostgresUpdatePayload,
+} from "@supabase/supabase-js";
 import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
 import { JobName } from "@twips/common";
+import { createUpdateRelationJobEventMetadata } from "./update-relation/utils";
+import { createAddListMembersJobEventMetadata } from "./add-list-members/utils";
 dotenv.config();
 
 // To suppress warnings
@@ -80,5 +86,104 @@ export const getPgClient = async () => {
   return client;
 };
 
-export const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const addJobs = async (pgClient: Client, name: JobName) => {
+  // Get jobs from queue
+  const activeJobs = (await queue.getJobs(["active", "waiting"]))
+    .filter((x) => x != undefined)
+    .filter((x) => x.name == name)
+    .map((x) => x.data);
+
+  const failedJobs = (await queue.getFailed())
+    .filter((x) => x != undefined)
+    .filter((x) => x.name == name)
+    .map((x) => x.data);
+
+  // Get jobs which can be added
+  const result = await pgClient.query({
+    text:
+      name == "update-relation"
+        ? "select id from get_update_relation_jobs_to_add($1, $2)"
+        : name == "add-list-members"
+        ? "select id from get_add_list_members_jobs_to_add($1, $2)"
+        : null,
+    values: [activeJobs, failedJobs],
+  });
+  const jobIds = result.rows.map((x) => x.id);
+
+  // Add jobs
+  for (const jobId of jobIds) await queue.add(name, jobId);
+};
+
+export const runAddJobsLoop = async (name: JobName) => {
+  // Get postgres client
+  const pgClient = await getPgClient();
+
+  while (true) {
+    try {
+      await addJobs(pgClient, name);
+    } catch (error) {
+      logger.error(`Error at daemon while adding ${name} jobs`, {
+        metadata: { error },
+      });
+    }
+    // Sleep for 2 seconds
+    sleep(2 * 1000);
+  }
+};
+
+const handleJobEvent = async (
+  name: JobName,
+  payload:
+    | RealtimePostgresInsertPayload<{ [key: string]: any }>
+    | RealtimePostgresUpdatePayload<{ [key: string]: any }>
+) => {
+  try {
+    logger.info(
+      `${name} job ${
+        payload.eventType == "INSERT"
+          ? "added"
+          : payload.new.finished
+          ? "finished"
+          : "progressed"
+      }`,
+      {
+        metadata:
+          name == "update-relation"
+            ? await createUpdateRelationJobEventMetadata(payload.new.id)
+            : name == "add-list-members"
+            ? await createAddListMembersJobEventMetadata(payload.new.id)
+            : null,
+      }
+    );
+  } catch (error) {
+    logger.error("Error at daemon while logging event", {
+      metadata: { error },
+    });
+  }
+};
+
+export const getJobEventListener = (name: JobName) => {
+  const table =
+    name == "update-relation"
+      ? "update_relation_job"
+      : name == "add-list-members"
+      ? "add_list_members_job"
+      : null;
+  return supabase
+    .channel(`public:${table}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table },
+      (payload) => handleJobEvent(name, payload)
+    )
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table },
+      (payload) => handleJobEvent(name, payload)
+    );
+};
+
+export const formatDate = (str: string) =>
+  new Date(str).toLocaleString("en-IN");

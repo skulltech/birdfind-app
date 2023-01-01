@@ -1,7 +1,7 @@
 import { addListMembersJobColumns, getTwitterClient } from "@twips/common";
 import { supabase } from "../utils";
 
-const chunkSize = 3;
+const chunkSize = 1;
 
 export const addListMembers = async (jobId: number) => {
   // Get job from Supabase
