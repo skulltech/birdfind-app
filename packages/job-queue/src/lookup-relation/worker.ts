@@ -33,6 +33,7 @@ export const lookupRelation = async (jobId: number) => {
       : relation == "muting"
       ? "twitter_mute"
       : null;
+  const endpoint = "lookup-" + relation;
 
   // If this is the first iteration, mark rows for delete
   if (job.updated_count === 0) {
@@ -96,7 +97,7 @@ export const lookupRelation = async (jobId: number) => {
         .from("twitter_api_rate_limit")
         .upsert({
           user_twitter_id: userProfile.twitter_id,
-          endpoint: "get-" + job.relation,
+          endpoint,
           resets_at: rateLimitResetsAt.toISOString(),
         })
         .throwOnError();
@@ -108,7 +109,7 @@ export const lookupRelation = async (jobId: number) => {
   await supabase
     .from("twitter_api_rate_limit")
     .delete()
-    .eq("endpoint", "get-" + job.relation)
+    .eq("endpoint", endpoint)
     .eq("user_twitter_id", userProfile.twitter_id)
     .throwOnError();
 
@@ -121,19 +122,19 @@ export const lookupRelation = async (jobId: number) => {
     .upsert(users.map(serializeTwitterUser))
     .throwOnError();
 
-  // Only in the case of followers the user is target_id
-  const row =
-    relation == "followers"
-      ? {
-          source_id: job.target_id,
-          target_id: userProfile.twitter_id,
-        }
-      : { source_id: userProfile.twitter_id, target_id: job.target_id };
   // Upsert relations to database
   await supabase
     .from(relationTable)
     .upsert(
       users.map((x) => {
+        // Only in the case of followers target user is target_id
+        const row =
+          relation == "followers"
+            ? {
+                source_id: x.id,
+                target_id: job.target_id,
+              }
+            : { source_id: job.target_id, target_id: x.id };
         return {
           ...row,
           updated_at: new Date().toISOString(),

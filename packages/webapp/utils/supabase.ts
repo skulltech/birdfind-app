@@ -175,7 +175,7 @@ export const searchTwitterProfiles = async (
   const { data } = await query.limit(1000).throwOnError();
 
   // Insert event in user_event table
-  await insertUserEvent(supabase, "search", filters);
+  await insertUserEvent(supabase, "search-filters", filters);
 
   return data.map((x) => parseTwitterProfile(x));
 };

@@ -51,6 +51,7 @@ export const AddToListMenu = ({ userIds }: AddToListMenuProps) => {
       list_id: listId,
       member_ids: userIds,
       priority: 10000,
+      add: true,
     });
     if (error) {
       console.log(error);
