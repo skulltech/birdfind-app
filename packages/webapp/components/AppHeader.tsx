@@ -1,13 +1,11 @@
 import {
   ActionIcon,
   Avatar,
-  Burger,
   Button,
   Center,
   CloseButton,
   Group,
   Header,
-  MediaQuery,
   Menu,
   Progress,
   Stack,
@@ -15,7 +13,6 @@ import {
   Title,
   UnstyledButton,
   useMantineColorScheme,
-  useMantineTheme,
 } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
@@ -25,6 +22,7 @@ import {
   IconMoonStars,
   IconPlayerPause,
   IconPlayerPlay,
+  IconRefresh,
   IconSubtask,
   IconSun,
 } from "@tabler/icons";
@@ -91,9 +89,8 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { user } = useTwipsUser();
-  const theme = useMantineTheme();
 
-  const { jobs } = useTwipsJobs();
+  const { jobs, loading: jobsLoading, refresh: refreshJobs } = useTwipsJobs();
 
   const dark = colorScheme === "dark";
 
@@ -127,7 +124,14 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
                 </Menu.Target>
 
                 <Menu.Dropdown>
-                  <Menu.Label>{jobs.length} active jobs</Menu.Label>
+                  <Menu.Label>
+                    <Group position="apart">
+                      <Text>{jobs.length} active jobs</Text>
+                      <ActionIcon onClick={refreshJobs} loading={jobsLoading}>
+                        <IconRefresh size={14} />
+                      </ActionIcon>
+                    </Group>
+                  </Menu.Label>
 
                   <Stack p="sm" pt={2}>
                     {jobs.slice(0, numJobsToShowInMenu).map((job) => (

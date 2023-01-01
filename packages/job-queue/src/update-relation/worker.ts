@@ -84,16 +84,18 @@ export const updateRelation = async (jobId: number) => {
   const { table, updatedAtColumn, getTwitterMethod, getRow } =
     params[job.relation];
 
-  // If this is the first iteration, set to_delete flags to true
-  if (job.updated_count === 0)
-    await supabase
+  // If this is the first iteration, mark rows for delete
+  if (job.updated_count === 0) {
+    const { error } = await supabase
       .from(table)
       .update({ to_delete: true })
       .eq(
         job.relation == "followers" ? "target_id" : "source_id",
         job.target_twitter_id
-      )
-      .throwOnError();
+      );
+    // TODO: fix this hack
+    if (error?.message) throw error;
+  }
 
   // Get twitter client of user
   const { data: userProfileData } = await supabase
