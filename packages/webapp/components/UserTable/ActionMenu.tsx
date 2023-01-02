@@ -1,8 +1,7 @@
-import { ActionIcon, Button, Group, Loader, Menu, Text } from "@mantine/core";
+import { ActionIcon, Group, Loader, Menu, Text } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
-  IconChevronDown,
   IconChevronRight,
   IconCircleCheck,
   IconForbid2,
@@ -16,14 +15,20 @@ import {
   TablerIcon,
 } from "@tabler/icons";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useTwipsJobs } from "../../providers/TwipsJobsProvider";
+import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
 import { useTwipsUser } from "../../providers/TwipsUserProvider";
+import { SearchResult } from "../../utils/supabase";
 import { openCreateListModal } from "./CreateListModal";
 
-type ActionMenuProps = {
-  userIds: BigInt[];
-};
+interface ActionMenuProps {
+  users: SearchResult[];
+  target: ReactNode;
+  lists: any[];
+  refreshLists: () => void;
+  listsLoading: boolean;
+}
 
 type Relation = "follow" | "block" | "mute";
 
@@ -33,20 +38,24 @@ type ManageRelationMenuItemProps = {
   onClick: () => Promise<void>;
 };
 
-const ManageRelationMenuItem = (props: ManageRelationMenuItemProps) => {
+const ManageRelationMenuItem = ({
+  icon: Icon,
+  label,
+  onClick,
+}: ManageRelationMenuItemProps) => {
   const [loading, setLoading] = useState(false);
 
   return (
     <Menu.Item
-      icon={<props.icon size={14} />}
-      onClick={() => {
+      icon={<Icon size={14} />}
+      onClick={async () => {
         setLoading(true);
-        props.onClick();
+        await onClick();
         setLoading(false);
       }}
-      rightSection={loading ?? <Loader size={14} />}
+      rightSection={loading && <Loader size={14} />}
     >
-      {props.label}
+      {label}
     </Menu.Item>
   );
 };
@@ -56,37 +65,58 @@ type ManageListMembersMenuItemsProps = {
   label: string;
 };
 
-const ManageListMembersMenuItem = (props: ManageListMembersMenuItemsProps) => {
+const ManageListMembersMenuItem = ({
+  onClick,
+  label,
+}: ManageListMembersMenuItemsProps) => {
   const [loading, setLoading] = useState(false);
 
   return (
     <Menu.Item
-      onClick={() => {
+      onClick={async () => {
         setLoading(true);
-        props.onClick();
+        await onClick();
         setLoading(false);
       }}
       rightSection={loading ?? <Loader size={14} />}
     >
-      {props.label}
+      {label}
     </Menu.Item>
   );
 };
 
-export const BulkActionMenu = ({ userIds }: ActionMenuProps) => {
+export const ActionMenu = ({
+  users,
+  target,
+  lists,
+  listsLoading,
+  refreshLists,
+}: ActionMenuProps) => {
   const [menuOpened, setMenuOpened] = useState(false);
-  const [lists, setLists] = useState<any[]>(null);
-  const [refreshListsLoading, setRefreshListsLoading] = useState(false);
   const supabase = useSupabaseClient();
   const { user } = useTwipsUser();
   const { refresh: refreshJobs } = useTwipsJobs();
+  const { refresh: refreshSearch } = useTwipsSearch();
+  const singleInputUser = users.length == 1;
 
   // Add or remove relation
   const manageRelation = async (relation: Relation, add: boolean) => {
     try {
-      await axios.get("/api/twips/manage-relation", {
-        params: { targetId: userIds[0], relation, add },
-      });
+      if (singleInputUser)
+        await axios.get("/api/twips/manage-relation", {
+          params: { targetId: users[0].id, relation, add },
+        });
+      else
+        await supabase
+          .from("manage_relation_job")
+          .insert({
+            user_id: user.id,
+            target_ids: users.map((x) => x.id),
+            priority: 10000,
+            relation,
+            add,
+          })
+          .throwOnError();
     } catch (error) {
       console.log(error);
       showNotification({
@@ -95,28 +125,31 @@ export const BulkActionMenu = ({ userIds }: ActionMenuProps) => {
         color: "red",
       });
     }
-  };
 
-  // Refresh lists
-  const refreshLists = async () => {
-    setRefreshListsLoading(true);
-
-    try {
-      const response = await axios.get("/api/twips/lookup-lists");
-      const lists = response.data.map((x: any) => {
-        return { ...x, id: BigInt(x.id) };
-      });
-      setLists(lists);
-    } catch (error) {
-      console.log(error);
+    if (singleInputUser) {
       showNotification({
-        title: "Error",
-        message: "Some error ocurred",
-        color: "red",
+        title: "Success",
+        message: `Successfully ${
+          add
+            ? relation == "follow"
+              ? "followed"
+              : relation == "block"
+              ? "blocked"
+              : relation == "mute"
+              ? "muted"
+              : null
+            : relation == "block"
+            ? "unblocked"
+            : relation == "follow"
+            ? "unfollowed"
+            : relation == "mute"
+            ? "unmuted"
+            : null
+        } @${users[0].username}`,
+        color: "green",
       });
+      refreshSearch();
     }
-
-    setRefreshListsLoading(false);
   };
 
   // Add or remove list members
@@ -124,7 +157,7 @@ export const BulkActionMenu = ({ userIds }: ActionMenuProps) => {
     const { error } = await supabase.from("manage_list_members_job").insert({
       user_id: user.id,
       list_id: listId,
-      member_ids: userIds,
+      member_ids: users.map((x) => x.id),
       priority: 10000,
       add,
     });
@@ -138,23 +171,6 @@ export const BulkActionMenu = ({ userIds }: ActionMenuProps) => {
     } else refreshJobs();
   };
 
-  // Fetch user owned lists from DB on first load
-  useEffect(() => {
-    const fetchLists = async () => {
-      const { data } = await supabase
-        .from("twitter_list")
-        .select("id::text,name")
-        .throwOnError();
-
-      const lists = data.map((x: any) => {
-        return { ...x, id: BigInt(x.id) };
-      });
-      setLists(lists);
-    };
-
-    fetchLists();
-  }, [supabase]);
-
   return (
     <Menu
       shadow="md"
@@ -163,49 +179,60 @@ export const BulkActionMenu = ({ userIds }: ActionMenuProps) => {
       onChange={setMenuOpened}
       closeOnItemClick={false}
     >
-      <Menu.Target>
-        <Button compact variant="default">
-          <Group spacing="xs">
-            Actions
-            <IconChevronDown size={14} />
-          </Group>
-        </Button>
-      </Menu.Target>
+      <Menu.Target>{target}</Menu.Target>
 
       <Menu.Dropdown>
         <ManageRelationMenuItem
           icon={IconUserPlus}
-          onClick={() => manageRelation("follow", true)}
+          onClick={async () => {
+            await manageRelation("follow", true);
+            setMenuOpened(false);
+          }}
           label="Follow"
         />
         <ManageRelationMenuItem
           icon={IconUserMinus}
-          onClick={() => manageRelation("follow", false)}
+          onClick={async () => {
+            await manageRelation("follow", false);
+            setMenuOpened(false);
+          }}
           label="Unfollow"
         />
         <Menu.Divider />
 
         <ManageRelationMenuItem
           icon={IconForbid2}
-          onClick={() => manageRelation("block", true)}
+          onClick={async () => {
+            await manageRelation("block", true);
+            setMenuOpened(false);
+          }}
           label="Block"
         />
         <ManageRelationMenuItem
           icon={IconCircleCheck}
-          onClick={() => manageRelation("block", false)}
+          onClick={async () => {
+            await manageRelation("block", false);
+            setMenuOpened(false);
+          }}
           label="Unblock"
         />
         <Menu.Divider />
 
         <ManageRelationMenuItem
           icon={IconVolume3}
-          onClick={() => manageRelation("mute", true)}
-          label="Block"
+          onClick={async () => {
+            await manageRelation("mute", true);
+            setMenuOpened(false);
+          }}
+          label="Mute"
         />
         <ManageRelationMenuItem
           icon={IconVolume}
-          onClick={() => manageRelation("mute", false)}
-          label="Unblock"
+          onClick={async () => {
+            await manageRelation("mute", false);
+            setMenuOpened(false);
+          }}
+          label="Unmute"
         />
         <Menu.Divider />
 
@@ -224,10 +251,7 @@ export const BulkActionMenu = ({ userIds }: ActionMenuProps) => {
               <Menu.Label>
                 <Group position="apart">
                   <Text>Your lists</Text>
-                  <ActionIcon
-                    onClick={refreshLists}
-                    loading={refreshListsLoading}
-                  >
+                  <ActionIcon onClick={refreshLists} loading={listsLoading}>
                     <IconRefresh size={14} />
                   </ActionIcon>
                 </Group>

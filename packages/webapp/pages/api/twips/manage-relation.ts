@@ -28,14 +28,14 @@ export default async function handler(
   const parsedQuery = schema.safeParse(req.query);
   if (!parsedQuery.success)
     return res.status(400).send({ error: "Bad request params" });
-  const { targetId, add, relation } = parsedQuery.data;
+  const { targetId, add: addStr, relation } = parsedQuery.data;
+  const add = addStr == "true";
 
   const supabase = createServerSupabaseClient({
     req,
     res,
   });
 
-  // const serviceRoleSupabase = getServiceRoleSupabase();
   const userDetails = await getUserDetails(supabase);
   const twitter = await getTwitterClient({
     ...twitterSecrets,

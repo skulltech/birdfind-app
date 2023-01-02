@@ -11,6 +11,7 @@ import {
   ScrollArea,
   ActionIcon,
   Badge,
+  Button,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
@@ -26,15 +27,19 @@ import {
 import { UserProfileCard } from "./UserProfileCard";
 import {
   IconArrowsSort,
+  IconChevronDown,
   IconRefresh,
   IconSortAscending,
   IconSortDescending,
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
 import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
-import { BulkActionMenu } from "./BulkActionMenu";
+import { ActionMenu } from "./ActionMenu";
 import { SearchResult } from "../../utils/supabase";
 import { RelationsCell } from "./RelationsCell";
+import axios from "axios";
+import { showNotification } from "@mantine/notifications";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -152,6 +157,49 @@ export const UserTable = () => {
   const [scrolled, setScrolled] = useState(false);
   const { results: users, refresh } = useTwipsSearch();
 
+  const supabase = useSupabaseClient();
+  const [lists, setLists] = useState<any[]>(null);
+  const [refreshListsLoading, setRefreshListsLoading] = useState(false);
+
+  // Refresh lists
+  const refreshLists = async () => {
+    setRefreshListsLoading(true);
+
+    try {
+      const response = await axios.get("/api/twips/lookup-lists");
+      const lists = response.data.map((x: any) => {
+        return { ...x, id: BigInt(x.id) };
+      });
+      setLists(lists);
+    } catch (error) {
+      console.log(error);
+      showNotification({
+        title: "Error",
+        message: "Some error ocurred",
+        color: "red",
+      });
+    }
+
+    setRefreshListsLoading(false);
+  };
+
+  // Fetch user owned lists from DB on first load
+  useEffect(() => {
+    const fetchLists = async () => {
+      const { data } = await supabase
+        .from("twitter_list")
+        .select("id::text,name")
+        .throwOnError();
+
+      const lists = data.map((x: any) => {
+        return { ...x, id: BigInt(x.id) };
+      });
+      setLists(lists);
+    };
+
+    fetchLists();
+  }, [supabase]);
+
   const columns = useMemo<ColumnDef<SearchResult>[]>(
     () => [
       {
@@ -214,12 +262,17 @@ export const UserTable = () => {
         header: "Relation",
         enableSorting: false,
         cell: (info) => (
-          <RelationsCell profile={info.getValue<SearchResult>()} />
+          <RelationsCell
+            profile={info.getValue<SearchResult>()}
+            lists={lists}
+            refreshLists={refreshLists}
+            listsLoading={refreshListsLoading}
+          />
         ),
         size: 170,
       },
     ],
-    []
+    [lists, refreshListsLoading]
   );
 
   const table = useReactTable<SearchResult>({
@@ -279,8 +332,19 @@ export const UserTable = () => {
           <Text size={14}>
             {Object.keys(rowSelection).length} of {users.length} users selected
           </Text>
-          <BulkActionMenu
-            userIds={users.filter((x, i) => rowSelection[i]).map((x) => x.id)}
+          <ActionMenu
+            users={users.filter((x, i) => rowSelection[i])}
+            target={
+              <Button compact variant="default">
+                <Group spacing="xs">
+                  Actions
+                  <IconChevronDown size={14} />
+                </Group>
+              </Button>
+            }
+            lists={lists}
+            listsLoading={refreshListsLoading}
+            refreshLists={refreshLists}
           />
         </Group>
         <Group>
