@@ -8,15 +8,16 @@ import {
 import { z } from "zod";
 import { getTwitterClient } from "@twips/common";
 import { twitterSecrets } from "../../../utils/twitter";
-import { actions, zodBigint } from "../../../utils/helpers";
+import { zodBigint } from "../../../utils/helpers";
 
 type ErrorData = {
   error?: string;
 };
 
 const schema = z.object({
-  userId: zodBigint,
-  action: z.enum(actions),
+  targetId: zodBigint,
+  relation: z.enum(["follow", "block", "mute"]),
+  add: z.union([z.literal("true"), z.literal("false")]),
 });
 
 export default async function handler(
@@ -27,7 +28,7 @@ export default async function handler(
   const parsedQuery = schema.safeParse(req.query);
   if (!parsedQuery.success)
     return res.status(400).send({ error: "Bad request params" });
-  const { userId: targetUserId, action } = parsedQuery.data;
+  const { targetId, add, relation } = parsedQuery.data;
 
   const supabase = createServerSupabaseClient({
     req,
@@ -42,80 +43,51 @@ export default async function handler(
     userId: userDetails.id,
     oauthToken: userDetails.twitter.oauthToken,
   });
-  const sourceUserId = userDetails.twitter.id.toString();
-
-  const params = {
-    follow: {
-      twitterFunction: () =>
-        twitter.users.usersIdFollow(sourceUserId, {
-          target_user_id: targetUserId,
-        }),
-      lookupRelationArgs: ["twitter_follow", true] as const,
-    },
-    unfollow: {
-      twitterFunction: () =>
-        twitter.users.usersIdUnfollow(sourceUserId, targetUserId),
-      lookupRelationArgs: ["twitter_follow", false] as const,
-    },
-    block: {
-      twitterFunction: () =>
-        twitter.users.usersIdBlock(sourceUserId, {
-          target_user_id: targetUserId,
-        }),
-      lookupRelationArgs: ["twitter_block", true] as const,
-    },
-    unblock: {
-      twitterFunction: () =>
-        twitter.users.usersIdUnblock(sourceUserId, targetUserId),
-      lookupRelationArgs: ["twitter_block", false] as const,
-    },
-    mute: {
-      twitterFunction: () =>
-        twitter.users.usersIdMute(sourceUserId, {
-          target_user_id: targetUserId,
-        }),
-      lookupRelationArgs: ["twitter_mute", true] as const,
-    },
-    unmute: {
-      twitterFunction: () =>
-        twitter.users.usersIdUnmute(sourceUserId, targetUserId),
-      lookupRelationArgs: ["twitter_mute", false] as const,
-    },
-  };
+  const userTwitterId = userDetails.twitter.id.toString();
 
   // Perform action
-  const { errors } = await params[action].twitterFunction();
-
-  if (errors && errors.length)
-    res.status(500).send({ error: errors[0].detail });
-  else {
-    // Update relation on Supabase
-    const serviceRoleSupabase = getServiceRoleSupabase();
-    const [table, add] = params[action].lookupRelationArgs;
-    if (add)
-      await serviceRoleSupabase
-        .from(table)
-        .upsert({
-          source_id: sourceUserId,
-          target_id: targetUserId,
-          updated_at: new Date().toISOString(),
-        })
-        .throwOnError();
-    else
-      await serviceRoleSupabase
-        .from(table)
-        .delete()
-        .eq("source_id", sourceUserId)
-        .eq("target_id", targetUserId)
-        .throwOnError();
-
-    // Insert user event
-    await insertUserEvent(supabase, "perform-action", {
-      action,
-      sourceUserId,
-      targetUserId,
-    });
-
-    res.status(200).send(null);
+  if (add) {
+    if (relation == "follow")
+      await twitter.users.usersIdFollow(userTwitterId, {
+        target_user_id: targetId,
+      });
+    if (relation == "block")
+      await twitter.users.usersIdBlock(userTwitterId, {
+        target_user_id: targetId,
+      });
+    if (relation == "mute")
+      await twitter.users.usersIdMute(userTwitterId, {
+        target_user_id: targetId,
+      });
+  } else {
+    if (relation == "follow")
+      await twitter.users.usersIdUnfollow(userTwitterId, targetId);
+    if (relation == "block")
+      await twitter.users.usersIdUnblock(userTwitterId, targetId);
+    if (relation == "mute")
+      await twitter.users.usersIdUnmute(userTwitterId, targetId);
   }
+
+  // Update relation on Supabase
+  const serviceRoleSupabase = getServiceRoleSupabase();
+  const table = `twitter_${relation}`;
+
+  if (add)
+    await serviceRoleSupabase
+      .from(table)
+      .upsert({
+        source_id: userTwitterId,
+        target_id: targetId,
+        updated_at: new Date().toISOString(),
+      })
+      .throwOnError();
+  else
+    await serviceRoleSupabase
+      .from(table)
+      .delete()
+      .eq("source_id", userTwitterId)
+      .eq("target_id", targetId)
+      .throwOnError();
+
+  res.status(200).send(null);
 }

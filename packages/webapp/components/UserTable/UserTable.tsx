@@ -31,7 +31,7 @@ import {
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
 import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
-import { AddToListMenu } from "./AddToListMenu";
+import { ActionMenu } from "./ActionMenu";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -267,7 +267,7 @@ export const UserTable = () => {
           <Text size={14}>
             {Object.keys(rowSelection).length} of {users.length} users selected
           </Text>
-          <AddToListMenu
+          <ActionMenu
             userIds={users.filter((x, i) => rowSelection[i]).map((x) => x.id)}
           />
         </Group>

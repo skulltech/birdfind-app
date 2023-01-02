@@ -1,10 +1,7 @@
 import {
-  IconBell,
-  IconBrandTwitter,
   IconReceipt2,
   IconSettings,
   IconSubtask,
-  IconUserCircle,
   TablerIcon,
 } from "@tabler/icons";
 import camelcase from "camelcase";
@@ -39,17 +36,6 @@ export const zodBigint = z.string().refine((x) => {
     return false;
   }
 });
-
-export const actions = [
-  "follow",
-  "unfollow",
-  "block",
-  "unblock",
-  "mute",
-  "unmute",
-] as const;
-
-export type Action = typeof actions[number];
 
 export const parseTwitterProfile = (row: any): TwitterProfile => {
   const x: any = Object.entries(row).reduce((prev, [key, value]) => {
