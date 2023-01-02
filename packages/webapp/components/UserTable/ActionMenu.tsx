@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Group, Menu, Text } from "@mantine/core";
+import { ActionIcon, Button, Group, Loader, Menu, Text } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
@@ -13,6 +13,7 @@ import {
   IconUserPlus,
   IconVolume,
   IconVolume3,
+  TablerIcon,
 } from "@tabler/icons";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -26,11 +27,55 @@ type ActionMenuProps = {
 
 type Relation = "follow" | "block" | "mute";
 
+type ManageRelationMenuItemProps = {
+  icon: TablerIcon;
+  label: string;
+  onClick: () => Promise<void>;
+};
+
+const ManageRelationMenuItem = (props: ManageRelationMenuItemProps) => {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <Menu.Item
+      icon={<props.icon size={14} />}
+      onClick={() => {
+        setLoading(true);
+        props.onClick();
+        setLoading(false);
+      }}
+      rightSection={loading ?? <Loader size={14} />}
+    >
+      {props.label}
+    </Menu.Item>
+  );
+};
+
+type ManageListMembersMenuItemsProps = {
+  onClick: () => Promise<void>;
+  label: string;
+};
+
+const ManageListMembersMenuItem = (props: ManageListMembersMenuItemsProps) => {
+  const [loading, setLoading] = useState(false);
+
+  return (
+    <Menu.Item
+      onClick={() => {
+        setLoading(true);
+        props.onClick();
+        setLoading(false);
+      }}
+      rightSection={loading ?? <Loader size={14} />}
+    >
+      {props.label}
+    </Menu.Item>
+  );
+};
+
 export const ActionMenu = ({ userIds }: ActionMenuProps) => {
+  const [menuOpened, setMenuOpened] = useState(false);
   const [lists, setLists] = useState<any[]>(null);
-  const [manageRelationLoading, setManageRelationLoading] = useState(false);
-  const [manageListMembersLoading, setManageListMembersLoading] =
-    useState(false);
   const [refreshListsLoading, setRefreshListsLoading] = useState(false);
   const supabase = useSupabaseClient();
   const { user } = useTwipsUser();
@@ -38,20 +83,18 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
 
   // Add or remove relation
   const manageRelation = async (relation: Relation, add: boolean) => {
-    setManageRelationLoading(true);
-
-    const res = await axios.get("/api/twips/manage-relation", {
-      params: { targetId: userIds[0], relation, add },
-    });
-    if (res.status != 200)
+    try {
+      await axios.get("/api/twips/manage-relation", {
+        params: { targetId: userIds[0], relation, add },
+      });
+    } catch (error) {
+      console.log(error);
       showNotification({
         title: "Error",
-        message:
-          "Some error ocurred. You may have been rate limited. Please try again later.",
+        message: "Some error ocurred",
         color: "red",
       });
-
-    setManageRelationLoading(false);
+    }
   };
 
   // Refresh lists
@@ -78,8 +121,6 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
 
   // Add or remove list members
   const manageListMembers = async (listId: BigInt, add: boolean) => {
-    setManageListMembersLoading(true);
-
     const { error } = await supabase.from("manage_list_members_job").insert({
       user_id: user.id,
       list_id: listId,
@@ -95,8 +136,6 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
         color: "red",
       });
     } else refreshJobs();
-
-    setManageListMembersLoading(true);
   };
 
   // Fetch user owned lists from DB on first load
@@ -117,7 +156,13 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
   }, [supabase]);
 
   return (
-    <Menu shadow="md" width={200}>
+    <Menu
+      shadow="md"
+      width={200}
+      opened={menuOpened}
+      onChange={setMenuOpened}
+      closeOnItemClick={false}
+    >
       <Menu.Target>
         <Button compact variant="default">
           <Group spacing="xs">
@@ -128,49 +173,44 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
       </Menu.Target>
 
       <Menu.Dropdown>
-        <Menu.Item
-          icon={<IconUserPlus size={14} />}
+        <ManageRelationMenuItem
+          icon={IconUserPlus}
           onClick={() => manageRelation("follow", true)}
-        >
-          Follow
-        </Menu.Item>
-        <Menu.Item
-          icon={<IconUserMinus size={14} />}
+          label="Follow"
+        />
+        <ManageRelationMenuItem
+          icon={IconUserMinus}
           onClick={() => manageRelation("follow", false)}
-        >
-          Unfollow
-        </Menu.Item>
+          label="Unfollow"
+        />
         <Menu.Divider />
 
-        <Menu.Item
-          icon={<IconForbid2 size={14} />}
+        <ManageRelationMenuItem
+          icon={IconForbid2}
           onClick={() => manageRelation("block", true)}
-        >
-          Block
-        </Menu.Item>
-        <Menu.Item
-          icon={<IconCircleCheck size={14} />}
+          label="Block"
+        />
+        <ManageRelationMenuItem
+          icon={IconCircleCheck}
           onClick={() => manageRelation("block", false)}
-        >
-          Unblock
-        </Menu.Item>
+          label="Unblock"
+        />
         <Menu.Divider />
 
-        <Menu.Item
-          icon={<IconVolume3 size={14} />}
+        <ManageRelationMenuItem
+          icon={IconVolume3}
           onClick={() => manageRelation("mute", true)}
-        >
-          Mute
-        </Menu.Item>
-        <Menu.Item
-          icon={<IconVolume size={14} />}
+          label="Block"
+        />
+        <ManageRelationMenuItem
+          icon={IconVolume}
           onClick={() => manageRelation("mute", false)}
-        >
-          Unmute
-        </Menu.Item>
+          label="Unblock"
+        />
+        <Menu.Divider />
 
         <Menu.Item>
-          <Menu position="right" trigger="hover">
+          <Menu position="right" trigger="hover" offset={18}>
             <Menu.Target>
               <Group position="apart">
                 <Group spacing={10}>
@@ -195,19 +235,21 @@ export const ActionMenu = ({ userIds }: ActionMenuProps) => {
               {Boolean(lists?.length) && (
                 <>
                   {lists.map((list) => (
-                    <Menu.Item
+                    <ManageListMembersMenuItem
                       key={list.id.toString()}
                       onClick={() => manageListMembers(list.id, true)}
-                    >
-                      {list.name}
-                    </Menu.Item>
+                      label={list.name}
+                    />
                   ))}
                   <Menu.Divider />
                 </>
               )}
               <Menu.Item
                 icon={<IconSquarePlus size={14} />}
-                onClick={openCreateListModal}
+                onClick={() => {
+                  setMenuOpened(false);
+                  openCreateListModal();
+                }}
               >
                 Create list
               </Menu.Item>
