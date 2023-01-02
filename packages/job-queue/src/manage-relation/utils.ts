@@ -5,12 +5,13 @@ import { formatDate, supabase } from "../utils";
 // Get log metadata object
 export const createManageRelationJobEventMetadata = async (jobId: number) => {
   // Get job details
-  const { data: job } = await supabase
+  const { data: jobData } = await supabase
     .from("manage_relation_job")
     .select(manageRelationJobColumns)
     .eq("id", jobId)
     .throwOnError()
     .single();
+  const job = jobData as any;
 
   // Get user details
   const { data: userDetailsData } = await supabase
@@ -46,8 +47,8 @@ export const createManageRelationJobEventMetadata = async (jobId: number) => {
     time_elapsed: ms(
       new Date(job.updated_at).getTime() - new Date(job.created_at).getTime()
     ),
-    targets_to_do: job.target_ids_text.length,
-    targets_done: job.target_ids_done_text.length,
+    targets_to_do: job.target_ids.length,
+    targets_done: job.target_ids_done.length,
     priority: job.priority,
   };
 };

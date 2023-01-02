@@ -1,6 +1,6 @@
 import { showNotification } from "@mantine/notifications";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { addLookupRelationJob, twitterProfileFields } from "@twips/common";
+import { addLookupRelationJob, twitterProfileColumns } from "@twips/common";
 import {
   createContext,
   ReactNode,
@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { Filters, parseTwitterProfile, TwitterProfile } from "../utils/helpers";
-import { searchTwitterProfiles } from "../utils/supabase";
+import { SearchResult, searchTwitterProfiles } from "../utils/supabase";
 import { useTwipsJobs } from "./TwipsJobsProvider";
 import { useTwipsUser } from "./TwipsUserProvider";
 
@@ -23,7 +23,7 @@ const TwipsSearchContext = createContext<{
   removeFilters: (...args: RemoveFiltersArg[]) => void;
   loading: boolean;
   filtersInvalid: boolean;
-  results: TwitterProfile[];
+  results: SearchResult[];
   refresh: () => void;
 }>({
   filters: {},
@@ -80,7 +80,7 @@ const lookupRelationIfNeeded = async (
   } = await supabase.auth.getUser();
   const { data } = await supabase
     .from("twitter_profile")
-    .select(twitterProfileFields.join(","))
+    .select(twitterProfileColumns.join(","))
     .eq("username", username)
     .throwOnError();
 
@@ -126,7 +126,7 @@ export const TwipsSearchProvider = ({
   const [randomFloat, setRandomFloat] = useState(0);
 
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<TwitterProfile[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   // Usually indicates that the filters are insufficient
   const [filtersInvalid, setFiltersInvalid] = useState(false);
 
@@ -211,7 +211,11 @@ export const TwipsSearchProvider = ({
     // Perform search on Supabase
     const handleSearch = async () => {
       setLoading(true);
-      const results = await searchTwitterProfiles(supabase, filters);
+      const results = await searchTwitterProfiles(
+        supabase,
+        user.twitter.id,
+        filters
+      );
       setResults(results);
       setLoading(false);
     };

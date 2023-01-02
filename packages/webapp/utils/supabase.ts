@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { serializeTwitterUser, twitterProfileFields } from "@twips/common";
+import { serializeTwitterUser, twitterProfileColumns } from "@twips/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 import { parseTwitterProfile, TwitterProfile, Filters } from "./helpers";
@@ -132,23 +132,43 @@ export const getUserDetails = async (
   return data.length ? parseUserDetails(data[0]) : null;
 };
 
+export interface SearchResult extends TwitterProfile {
+  isFollowing: boolean;
+  isFollower: boolean;
+  isBlocked: boolean;
+  isMuted: boolean;
+}
+
 export const searchTwitterProfiles = async (
   supabase: SupabaseClient,
+  userTwitterId: BigInt,
   filters: Filters
-): Promise<TwitterProfile[]> => {
+): Promise<SearchResult[]> => {
   const { followerOf, followedBy, blockedBy, mutedBy, ...otherFilters } =
     filters;
 
   let query = supabase
     .rpc("search_twitter_profiles", {
+      reference_user: userTwitterId,
       follower_of: followerOf,
       followed_by: followedBy,
       blocked_by: blockedBy,
       muted_by: mutedBy,
     })
-    .select(twitterProfileFields.join(","));
+    .select(
+      [
+        ...twitterProfileColumns,
+        "is_follower",
+        "is_following",
+        "is_blocked",
+        "is_muted",
+      ].join(",")
+    );
 
-  const appendFilterFunctions = {
+  const appendFilterFunctions: Record<
+    keyof Omit<Filters, "followerOf" | "followedBy" | "blockedBy" | "mutedBy">,
+    (query: any, value: any) => any
+  > = {
     followersCountLessThan: (query, value: number) =>
       query.lt("followers_count", value),
     followersCountGreaterThan: (query, value: number) =>
@@ -177,7 +197,15 @@ export const searchTwitterProfiles = async (
   // Insert event in user_event table
   await insertUserEvent(supabase, "search-filters", filters);
 
-  return data.map((x) => parseTwitterProfile(x));
+  return data.map((x: any) => {
+    return {
+      ...parseTwitterProfile(x),
+      isFollower: x.is_follower,
+      isFollowing: x.is_following,
+      isBlocked: x.is_blocked,
+      isMuted: x.is_muted,
+    };
+  });
 };
 
 export const upsertTwitterProfile = async (
@@ -187,7 +215,7 @@ export const upsertTwitterProfile = async (
   const { data } = await supabase
     .from("twitter_profile")
     .upsert(serializeTwitterUser(user))
-    .select(twitterProfileFields.join(","))
+    .select(twitterProfileColumns.join(","))
     .throwOnError();
 
   return parseTwitterProfile(data[0]);

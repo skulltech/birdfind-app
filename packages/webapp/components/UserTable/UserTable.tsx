@@ -10,6 +10,7 @@ import {
   Center,
   ScrollArea,
   ActionIcon,
+  Badge,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
@@ -31,7 +32,9 @@ import {
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
 import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
-import { ActionMenu } from "./ActionMenu";
+import { BulkActionMenu } from "./BulkActionMenu";
+import { SearchResult } from "../../utils/supabase";
+import { RelationsCell } from "./RelationsCell";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -149,7 +152,7 @@ export const UserTable = () => {
   const [scrolled, setScrolled] = useState(false);
   const { results: users, refresh } = useTwipsSearch();
 
-  const columns = useMemo<ColumnDef<TwitterProfile>[]>(
+  const columns = useMemo<ColumnDef<SearchResult>[]>(
     () => [
       {
         id: "select",
@@ -206,11 +209,20 @@ export const UserTable = () => {
         cell: (info) => dayjs(info.getValue<Date>()).format("DD MMM YYYY"),
         size: 170,
       },
+      {
+        accessorFn: (row) => row,
+        header: "Relation",
+        enableSorting: false,
+        cell: (info) => (
+          <RelationsCell profile={info.getValue<SearchResult>()} />
+        ),
+        size: 170,
+      },
     ],
     []
   );
 
-  const table = useReactTable<TwitterProfile>({
+  const table = useReactTable<SearchResult>({
     data: users,
     columns,
     state: {
@@ -267,7 +279,7 @@ export const UserTable = () => {
           <Text size={14}>
             {Object.keys(rowSelection).length} of {users.length} users selected
           </Text>
-          <ActionMenu
+          <BulkActionMenu
             userIds={users.filter((x, i) => rowSelection[i]).map((x) => x.id)}
           />
         </Group>

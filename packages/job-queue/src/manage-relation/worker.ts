@@ -8,12 +8,13 @@ const chunkSize = 1;
 
 export const manageRelation = async (jobId: number) => {
   // Get job from Supabase
-  const { data: job } = await supabase
+  const { data: jobData } = await supabase
     .from("manage_relation_job")
     .select(manageRelationJobColumns)
     .eq("id", jobId)
     .throwOnError()
     .single();
+  const job = jobData as any;
 
   // Return immediately if job is finished
   if (job.finished) return;
@@ -35,8 +36,8 @@ export const manageRelation = async (jobId: number) => {
     oauthToken: userProfile.twitter_oauth_token,
   });
 
-  const targetIds: bigint[] = job.target_ids_text.map(BigInt);
-  const targetIdsDone: bigint[] = job.target_ids_done_text.map(BigInt);
+  const targetIds: bigint[] = job.target_ids.map(BigInt);
+  const targetIdsDone: bigint[] = job.target_ids_done.map(BigInt);
   const targetIdsToDo = targetIds
     .filter((x) => !targetIdsDone.includes(x))
     .slice(0, chunkSize);

@@ -58,8 +58,8 @@ export const createAddListMembersJobEventMetadata = async (jobId: number) => {
     time_elapsed: ms(
       new Date(job.updated_at).getTime() - new Date(job.created_at).getTime()
     ),
-    members_to_do: job.member_ids_text.length,
-    member_done: job.member_ids_done_text.length,
+    members_to_do: job.member_ids.length,
+    member_done: job.member_ids_done.length,
     priority: job.priority,
   };
 };

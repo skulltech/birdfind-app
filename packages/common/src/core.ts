@@ -19,7 +19,7 @@ export const twitterUserFields: TwitterParams<findUserByUsername>["user.fields"]
     "withheld",
   ];
 
-export const twitterProfileFields = [
+export const twitterProfileColumns = [
   "id::text",
   "created_at",
   "updated_at",
@@ -44,6 +44,8 @@ export const twitterProfileFields = [
   "verified",
   "withheld",
 ];
+
+export const searchTwitterProfilesColumns = [...twitterProfileColumns];
 
 export const serializeTwitterUser = (
   user: TwitterResponse<findUserByUsername>["data"]
@@ -94,8 +96,8 @@ export const manageListMembersJobColumns = [
   "priority",
   "paused",
   "finished",
-  "member_ids_done_text",
-  "member_ids_text",
+  "member_ids_done::_text",
+  "member_ids::_text",
 ];
 
 type ConcatStringArray<
@@ -145,8 +147,8 @@ export const manageRelationJobColumns = join(
     "add",
     "paused",
     "finished",
-    "target_ids_text",
-    "target_ids_done_text",
+    "target_ids::_text",
+    "target_ids_done::_text",
   ] as const,
   ","
 );

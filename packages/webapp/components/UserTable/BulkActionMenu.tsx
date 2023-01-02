@@ -73,7 +73,7 @@ const ManageListMembersMenuItem = (props: ManageListMembersMenuItemsProps) => {
   );
 };
 
-export const ActionMenu = ({ userIds }: ActionMenuProps) => {
+export const BulkActionMenu = ({ userIds }: ActionMenuProps) => {
   const [menuOpened, setMenuOpened] = useState(false);
   const [lists, setLists] = useState<any[]>(null);
   const [refreshListsLoading, setRefreshListsLoading] = useState(false);

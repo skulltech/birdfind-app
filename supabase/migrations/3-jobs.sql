@@ -75,17 +75,6 @@ create table if not exists manage_list_members_job (
     member_ids_done bigint[] default array[]::bigint[]
 );
 
--- Virtual columns
-
-create function member_ids_text(manage_list_members_job) returns text[] as $$
-  select $1.member_ids::text[];
-$$ language sql;
-
-create function member_ids_done_text(manage_list_members_job) returns text[] as $$
-  select $1.member_ids_done::text[];
-$$ language sql;
-
-
 alter table manage_list_members_job enable row level security;
 
 create policy "Users can create manage-list-members jobs that will use their own tokens"
@@ -121,19 +110,6 @@ create table if not exists manage_relation_job (
     deleted boolean default false not null,
     target_ids_done bigint[] default array[]::bigint[]
 );
-
--- Virtual columns
-
-create function target_ids_text(manage_relation_job) returns text[] as $$
-  select $1.target_ids::text[];
-$$ language sql;
-
-create function target_ids_done_text(manage_relation_job) returns text[] as $$
-  select $1.target_ids_done::text[];
-$$ language sql;
-
-
-
 
 -- Function to get the next lookup-relation jobs to execute
 

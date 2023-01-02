@@ -33,8 +33,8 @@ export const manageListMembers = async (jobId: number) => {
     oauthToken: userProfile.twitter_oauth_token,
   });
 
-  const memberIds: bigint[] = job.member_ids_text.map(BigInt);
-  const memberIdsDone: bigint[] = job.member_ids_done_text.map(BigInt);
+  const memberIds: bigint[] = job.member_ids.map(BigInt);
+  const memberIdsDone: bigint[] = job.member_ids_done.map(BigInt);
   const memberIdsToDo = memberIds
     .filter((x) => !memberIdsDone.includes(x))
     .slice(0, chunkSize);
