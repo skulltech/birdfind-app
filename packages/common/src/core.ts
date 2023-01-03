@@ -153,7 +153,10 @@ export const manageRelationJobColumns = join(
   ","
 );
 
-export type JobName =
-  | "lookup-relation"
-  | "manage-relation"
-  | "manage-list-members";
+export const jobNames = [
+  "lookup-relation",
+  "manage-relation",
+  "manage-list-members",
+] as const;
+
+export type JobName = typeof jobNames[number];

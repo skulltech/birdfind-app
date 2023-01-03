@@ -3,7 +3,7 @@ import { useListState } from "@mantine/hooks";
 import { openConfirmModal } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { JobName } from "@twips/common";
+import { JobName, jobNames } from "@twips/common";
 import {
   createContext,
   ReactNode,
@@ -218,91 +218,56 @@ export const TwipsJobsProvider = ({
     fetchJobs();
   }, [supabase, randomFloat]);
 
-  // Set event handler for checking progress of lookup-relation jobs
+  // Set event handlers for checking progress of jobs
   useEffect(() => {
-    supabase
-      .channel(`public:lookup_relation_job`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "lookup_relation_job",
-        },
-        (payload) => {
-          // Update progress
-          jobsHandlers.applyWhere(
-            (job) => job.id == payload.new.id && job.name == "lookup-relation",
-            (job) => ({
-              ...job,
-              progress: job.totalCount
-                ? (payload.new.updated_count / job.totalCount) * 100
-                : null,
-              finished: payload.new.finished,
-            })
-          );
-        }
-      )
-      .subscribe();
-  }, []);
+    for (const name of jobNames) {
+      const table =
+        name == "lookup-relation"
+          ? "lookup_relation_job"
+          : name == "manage-list-members"
+          ? "manage_list_members_job"
+          : name == "manage-relation"
+          ? "manage_relation_job"
+          : null;
 
-  // Set event handler for checking progress of manage-list-members jobs
-  useEffect(() => {
-    supabase
-      .channel(`public:manage_list_members_job`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "manage_list_members_job",
-        },
-        (payload) => {
-          // Update progress
-          jobsHandlers.applyWhere(
-            (job) =>
-              job.id == payload.new.id && job.name == "manage-list-members",
-            (job) => ({
-              ...job,
-              progress:
-                (payload.new.member_ids_done.length /
-                  payload.new.member_ids.length) *
-                100,
-              finished: payload.new.finished,
-            })
-          );
-        }
-      )
-      .subscribe();
-  }, []);
-
-  // Set event handler for checking progress of manage-relation jobs
-  useEffect(() => {
-    supabase
-      .channel(`public:manage_relation_job`)
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "manage_relation_job",
-        },
-        (payload) => {
-          // Update progress
-          jobsHandlers.applyWhere(
-            (job) => job.id == payload.new.id && job.name == "manage-relation",
-            (job) => ({
-              ...job,
-              progress:
-                (payload.new.member_ids_done.length /
-                  payload.new.member_ids.length) *
-                100,
-              finished: payload.new.finished,
-            })
-          );
-        }
-      )
-      .subscribe();
+      // Subscribe to channel
+      supabase
+        .channel(`public:${table}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table,
+          },
+          (payload) => {
+            // Update progress
+            jobsHandlers.applyWhere(
+              (job) => job.id == payload.new.id && job.name == name,
+              (job) => ({
+                ...job,
+                progress:
+                  // Set progress
+                  name == "lookup-relation"
+                    ? job.totalCount
+                      ? (payload.new.updated_count / job.totalCount) * 100
+                      : null
+                    : name == "manage-list-members"
+                    ? (payload.new.member_ids_done.length /
+                        payload.new.member_ids.length) *
+                      100
+                    : name == "manage-relation"
+                    ? (payload.new.target_ids_done.length /
+                        payload.new.target_ids.length) *
+                      100
+                    : null,
+                finished: payload.new.finished,
+              })
+            );
+          }
+        )
+        .subscribe();
+    }
   }, []);
 
   return (
