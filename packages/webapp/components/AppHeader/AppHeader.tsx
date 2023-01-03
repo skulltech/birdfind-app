@@ -29,9 +29,12 @@ const useStyles = createStyles((theme) => ({
     color:
       theme.colorScheme === "dark"
         ? theme.colors.dark[1]
-        : theme.colors.gray[6],
-    fontWeight: 700,
+        : theme.colors.gray[7],
+    height: 50,
+    fontSize: 16,
+    fontWeight: 600,
     transition: "border-color 100ms ease, color 100ms ease",
+    borderBottom: "2px solid transparent",
 
     "&:hover": {
       color: theme.colorScheme === "dark" ? theme.white : theme.black,
@@ -51,6 +54,8 @@ const useStyles = createStyles((theme) => ({
       }).background,
       color: theme.fn.variant({ variant: "light", color: theme.primaryColor })
         .color,
+      borderBottomColor:
+        theme.colors[theme.primaryColor][theme.colorScheme === "dark" ? 5 : 6],
     },
   },
 }));
@@ -61,6 +66,10 @@ interface LinkProps {
 }
 
 const links: LinkProps[] = [
+  {
+    label: "Home",
+    link: "/",
+  },
   {
     label: "Search",
     link: "/search",
@@ -88,7 +97,7 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
   return (
     <Header height={60} {...others}>
       <Group position="apart">
-        <Group spacing={40}>
+        <Group spacing={40} align="stretch">
           <UnstyledButton
             component="a"
             href="/"
@@ -96,6 +105,7 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
               event.preventDefault();
               router.push("/");
             }}
+            sx={{ display: "flex", alignItems: "center" }}
           >
             <Group spacing="xs">
               <Image
@@ -109,11 +119,9 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
               </Title>
             </Group>
           </UnstyledButton>
-
-          <Group>
-            {links.map((item) => {
-              console.log(item.label, active, item.label == active);
-              return (
+          {user && (
+            <Group spacing="xs" align="center">
+              {links.map((item) => (
                 <UnstyledButton
                   component="a"
                   href={item.link}
@@ -130,11 +138,11 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
                   px="lg"
                   sx={{ borderRadius: 3 }}
                 >
-                  <Text>{item.label}</Text>
+                  <Text pt={6}>{item.label}</Text>
                 </UnstyledButton>
-              );
-            })}
-          </Group>
+              ))}
+            </Group>
+          )}
         </Group>
 
         <Group>

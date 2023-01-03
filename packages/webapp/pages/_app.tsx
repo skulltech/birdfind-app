@@ -17,6 +17,7 @@ import { GoogleAnalytics } from "nextjs-google-analytics";
 import { TwipsUserProvider } from "../providers/TwipsUserProvider";
 import { TwipsJobsProvider } from "../providers/TwipsJobsProvider";
 import { RouterTransition } from "../components/RouterTransition";
+import { useLocalStorage } from "@mantine/hooks";
 
 // Monkeypatching BigInt
 BigInt.prototype["toJSON"] = function () {
@@ -30,7 +31,10 @@ export default function App({
   initialSession: Session;
 }>) {
   const [supabase] = useState(() => createBrowserSupabaseClient());
-  const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
+  const [colorScheme, setColorScheme] = useLocalStorage<ColorScheme>({
+    key: "color-scheme",
+    defaultValue: "light",
+  });
   const toggleColorScheme = (value?: ColorScheme) =>
     setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
   const horizontalPadding = 100;
