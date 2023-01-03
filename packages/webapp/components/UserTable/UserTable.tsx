@@ -10,8 +10,8 @@ import {
   Center,
   ScrollArea,
   ActionIcon,
-  Badge,
   Button,
+  LoadingOverlay,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
@@ -44,6 +44,13 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 const useStyles = createStyles((theme) => ({
   th: {
     padding: "0 !important",
+  },
+
+  headerGroup: {
+    backgroundColor:
+      theme.colorScheme === "dark"
+        ? theme.colors.dark[8]
+        : theme.colors.gray[0],
   },
 
   header: {
@@ -122,35 +129,29 @@ export const Th = ({
     : IconArrowsSort;
   return (
     <th className={classes.th} {...others}>
-      <UnstyledButton onClick={onSort} className={classes.control}>
-        <Group position="apart" noWrap>
-          <Text weight={500} size="sm">
+      {isSortable ? (
+        <UnstyledButton onClick={onSort} className={classes.control}>
+          <Group position="apart" noWrap spacing="xs">
+            <Text weight={500} size="sm" sx={{ whiteSpace: "nowrap" }}>
+              {children}
+            </Text>
+            <Center className={classes.icon}>
+              <Icon size={14} stroke={1.5} />
+            </Center>
+          </Group>
+        </UnstyledButton>
+      ) : (
+        <Group className={classes.control}>
+          <Text weight={500} size="sm" sx={{ whiteSpace: "nowrap" }}>
             {children}
           </Text>
-          <Center className={classes.icon}>
-            {isSortable ? <Icon size={14} stroke={1.5} /> : null}
-          </Center>
         </Group>
-      </UnstyledButton>
+      )}
     </th>
   );
 };
 
-interface TrProps {
-  children: React.ReactNode;
-  selected: boolean;
-}
-
-export const Tr = ({ children, selected, ...others }: TrProps) => {
-  const { classes } = useStyles();
-  return (
-    <tr className={selected ? classes.rowSelected : undefined} {...others}>
-      {children}
-    </tr>
-  );
-};
-
-export const UserTable = () => {
+export const UserTable = ({ loading }: { loading: boolean }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const { classes, cx } = useStyles();
@@ -221,7 +222,6 @@ export const UserTable = () => {
             transitionDuration={0}
           />
         ),
-        size: 10,
         enableSorting: false,
       },
       {
@@ -231,31 +231,26 @@ export const UserTable = () => {
           <UserProfileCard profile={info.getValue<TwitterProfile>()} />
         ),
         enableSorting: false,
-        // size: 80,
       },
       {
         accessorKey: "followersCount",
         header: "Followers",
         cell: (info) => info.getValue<number>().toString(),
-        size: 100,
       },
       {
         accessorKey: "followingCount",
         header: "Following",
         cell: (info) => info.getValue<number>().toString(),
-        size: 100,
       },
       {
         accessorKey: "tweetCount",
         header: "Tweets",
         cell: (info) => info.getValue<number>().toString(),
-        size: 100,
       },
       {
         accessorKey: "userCreatedAt",
-        header: "Account Created On",
+        header: "Joined On",
         cell: (info) => dayjs(info.getValue<Date>()).format("DD MMM YYYY"),
-        size: 170,
       },
       {
         accessorFn: (row) => row,
@@ -269,7 +264,6 @@ export const UserTable = () => {
             listsLoading={refreshListsLoading}
           />
         ),
-        size: 170,
       },
     ],
     [lists, refreshListsLoading]
@@ -313,7 +307,10 @@ export const UserTable = () => {
 
   const rows = table.getRowModel().rows.map((row) => {
     return (
-      <Tr key={row.id} selected={row.getIsSelected()}>
+      <tr
+        key={row.id}
+        className={row.getIsSelected() ? classes.rowSelected : undefined}
+      >
         {row.getAllCells().map((cell) => {
           return (
             <td key={cell.id}>
@@ -321,13 +318,13 @@ export const UserTable = () => {
             </td>
           );
         })}
-      </Tr>
+      </tr>
     );
   });
 
   return (
-    <Stack>
-      <Group position="apart">
+    <Stack spacing={0}>
+      <Group position="apart" p="md" className={classes.headerGroup} pb={0}>
         <Group>
           <Text size={14}>
             {Object.keys(rowSelection).length} of {users.length} users selected
@@ -359,32 +356,36 @@ export const UserTable = () => {
           />
         </Group>
       </Group>
-      <ScrollArea
-        sx={{ height: "80vh" }}
-        onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
-      >
-        <Table horizontalSpacing="md" verticalSpacing="xs">
-          <thead
-            className={cx(classes.header, { [classes.scrolled]: scrolled })}
-            style={{ zIndex: 1 }}
-          >
-            {headers}
-          </thead>
-          <tbody>
-            {rows.length > 0 ? (
-              rows
-            ) : (
-              <tr>
-                <td colSpan={6}>
-                  <Text size={18} weight={500} align="center">
-                    No users found
-                  </Text>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      </ScrollArea>
+      <div style={{ position: "relative" }}>
+        <LoadingOverlay visible={loading} overlayBlur={2} />
+
+        <ScrollArea
+          sx={{ height: "82vh" }}
+          onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+        >
+          <Table horizontalSpacing="md" verticalSpacing="xs" width="100%">
+            <thead
+              className={cx(classes.header, { [classes.scrolled]: scrolled })}
+              style={{ zIndex: 1 }}
+            >
+              {headers}
+            </thead>
+            <tbody>
+              {rows.length > 0 ? (
+                rows
+              ) : (
+                <tr>
+                  <td colSpan={6}>
+                    <Text size={18} weight={500} align="center">
+                      No users found
+                    </Text>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </ScrollArea>
+      </div>
     </Stack>
   );
 };

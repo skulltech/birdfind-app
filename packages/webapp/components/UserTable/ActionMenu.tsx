@@ -8,14 +8,13 @@ import {
   IconList,
   IconRefresh,
   IconSquarePlus,
-  IconUserMinus,
   IconUserPlus,
   IconVolume,
   IconVolume3,
   TablerIcon,
 } from "@tabler/icons";
 import axios from "axios";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import { useTwipsJobs } from "../../providers/TwipsJobsProvider";
 import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
 import { useTwipsUser } from "../../providers/TwipsUserProvider";
@@ -97,14 +96,14 @@ export const ActionMenu = ({
   const { user } = useTwipsUser();
   const { refresh: refreshJobs } = useTwipsJobs();
   const { refresh: refreshSearch } = useTwipsSearch();
-  const singleInputUser = users.length == 1;
+  const singleInputUser = users.length == 1 ? users[0] : null;
 
   // Add or remove relation
   const manageRelation = async (relation: Relation, add: boolean) => {
     try {
       if (singleInputUser)
         await axios.get("/api/twips/manage-relation", {
-          params: { targetId: users[0].id, relation, add },
+          params: { targetId: singleInputUser.id, relation, add },
         });
       else
         await supabase
@@ -145,7 +144,7 @@ export const ActionMenu = ({
             : relation == "mute"
             ? "unmuted"
             : null
-        } @${users[0].username}`,
+        } @${singleInputUser.username}`,
         color: "green",
       });
       refreshSearch();
@@ -182,59 +181,71 @@ export const ActionMenu = ({
       <Menu.Target>{target}</Menu.Target>
 
       <Menu.Dropdown>
-        <ManageRelationMenuItem
-          icon={IconUserPlus}
-          onClick={async () => {
-            await manageRelation("follow", true);
-            setMenuOpened(false);
-          }}
-          label="Follow"
-        />
-        <ManageRelationMenuItem
-          icon={IconUserMinus}
-          onClick={async () => {
-            await manageRelation("follow", false);
-            setMenuOpened(false);
-          }}
-          label="Unfollow"
-        />
-        <Menu.Divider />
+        {singleInputUser && singleInputUser.isFollowing ? null : (
+          <ManageRelationMenuItem
+            icon={IconUserPlus}
+            onClick={async () => {
+              await manageRelation("follow", true);
+              setMenuOpened(false);
+            }}
+            label="Follow"
+          />
+        )}
+        {singleInputUser && !singleInputUser.isFollowing ? null : (
+          <ManageRelationMenuItem
+            icon={IconUserPlus}
+            onClick={async () => {
+              await manageRelation("follow", false);
+              setMenuOpened(false);
+            }}
+            label="Unfollow"
+          />
+        )}
+        {!singleInputUser && <Menu.Divider />}
 
-        <ManageRelationMenuItem
-          icon={IconForbid2}
-          onClick={async () => {
-            await manageRelation("block", true);
-            setMenuOpened(false);
-          }}
-          label="Block"
-        />
-        <ManageRelationMenuItem
-          icon={IconCircleCheck}
-          onClick={async () => {
-            await manageRelation("block", false);
-            setMenuOpened(false);
-          }}
-          label="Unblock"
-        />
-        <Menu.Divider />
+        {singleInputUser && singleInputUser.isBlocked ? null : (
+          <ManageRelationMenuItem
+            icon={IconForbid2}
+            onClick={async () => {
+              await manageRelation("block", true);
+              setMenuOpened(false);
+            }}
+            label="Block"
+          />
+        )}
+        {singleInputUser && !singleInputUser.isBlocked ? null : (
+          <ManageRelationMenuItem
+            icon={IconCircleCheck}
+            onClick={async () => {
+              await manageRelation("block", false);
+              setMenuOpened(false);
+            }}
+            label="Unblock"
+          />
+        )}
+        {!singleInputUser && <Menu.Divider />}
 
-        <ManageRelationMenuItem
-          icon={IconVolume3}
-          onClick={async () => {
-            await manageRelation("mute", true);
-            setMenuOpened(false);
-          }}
-          label="Mute"
-        />
-        <ManageRelationMenuItem
-          icon={IconVolume}
-          onClick={async () => {
-            await manageRelation("mute", false);
-            setMenuOpened(false);
-          }}
-          label="Unmute"
-        />
-        <Menu.Divider />
+        {singleInputUser && singleInputUser.isMuted ? null : (
+          <ManageRelationMenuItem
+            icon={IconVolume3}
+            onClick={async () => {
+              await manageRelation("mute", true);
+              setMenuOpened(false);
+            }}
+            label="Mute"
+          />
+        )}
+        {singleInputUser && !singleInputUser.isMuted ? null : (
+          <ManageRelationMenuItem
+            icon={IconVolume}
+            onClick={async () => {
+              await manageRelation("mute", false);
+              setMenuOpened(false);
+            }}
+            label="Unmute"
+          />
+        )}
+        {!singleInputUser && <Menu.Divider />}
 
         <Menu.Item>
           <Menu position="right" trigger="hover" offset={18}>
@@ -242,7 +253,7 @@ export const ActionMenu = ({
               <Group position="apart">
                 <Group spacing={10}>
                   <IconList size={14} />
-                  <Text>List</Text>
+                  <Text>Add to list</Text>
                 </Group>
                 <IconChevronRight size={14} />
               </Group>

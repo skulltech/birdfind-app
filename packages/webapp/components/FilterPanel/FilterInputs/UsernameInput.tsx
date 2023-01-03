@@ -121,7 +121,9 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
 
   return (
     <Stack spacing={2}>
-      <Text>{label}</Text>
+      <Text>
+        {label} <span style={{ color: "red" }}>*</span>
+      </Text>
 
       <Group align="start" noWrap position="apart">
         <Autocomplete

@@ -1,98 +1,41 @@
 import {
   ActionIcon,
-  Center,
-  CloseButton,
   Group,
-  Loader,
-  Paper,
-  Progress,
+  LoadingOverlay,
   ScrollArea,
   Stack,
   Text,
 } from "@mantine/core";
-import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons";
-import { useState } from "react";
+import { IconRefresh } from "@tabler/icons";
 import { AccountNavbar } from "../../components/AccountNavbar";
-import { Job, useTwipsJobs } from "../../providers/TwipsJobsProvider";
-
-type JobChipProps = {
-  job: Job;
-};
-
-const JobChip = ({
-  job: { id, name, label, paused, progress, createdAt },
-}: JobChipProps) => {
-  const [pauseLoading, setPauseLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const { pauseJob, deleteJob } = useTwipsJobs();
-
-  return (
-    <Paper shadow="md" withBorder p="xs" radius="md">
-      <Stack pr="md">
-        <Group position="apart">
-          <Group>
-            <Text>
-              {label}. Job created at {createdAt.toLocaleString()}.
-            </Text>
-          </Group>
-          <Group>
-            <ActionIcon
-              size="sm"
-              onClick={async () => {
-                setPauseLoading(true);
-                await pauseJob(name, id, !paused);
-                setPauseLoading(false);
-              }}
-              loading={pauseLoading}
-            >
-              {paused ? <IconPlayerPlay /> : <IconPlayerPause />}
-            </ActionIcon>
-            <CloseButton
-              size="sm"
-              radius="lg"
-              variant="outline"
-              color="red"
-              onClick={async () => {
-                setDeleteLoading(true);
-                await deleteJob(name, id);
-                setDeleteLoading(false);
-              }}
-              loading={deleteLoading}
-            />
-          </Group>
-        </Group>
-        <Progress
-          // animate
-          value={progress}
-          label={`${progress.toFixed(0)}%`}
-          size="xl"
-        />
-      </Stack>
-    </Paper>
-  );
-};
+import { JobItem } from "../../components/JobItem";
+import { useTwipsJobs } from "../../providers/TwipsJobsProvider";
 
 const Jobs = () => {
-  const { jobs, loading } = useTwipsJobs();
+  const { jobs, loading, refresh } = useTwipsJobs();
+  const numActiveJobs = jobs.filter((x) => !x.finished).length;
 
   return (
     <Group>
       <AccountNavbar activePage="jobs" />
-      {loading ? (
-        <Loader />
-      ) : jobs.length == 0 ? (
-        <Center style={{ flex: 1 }}>
-          <Text>No jobs</Text>
-        </Center>
-      ) : (
-        <ScrollArea style={{ height: "80vh", flex: 1 }}>
-          <Stack>
-            {jobs.map((job) => (
-              <JobChip key={job.id} job={job} />
-            ))}
-          </Stack>
+      <Stack style={{ flex: 1 }}>
+        <Group position="apart" pt="lg">
+          <Text>{numActiveJobs ? numActiveJobs : "No"} active jobs</Text>
+          <ActionIcon onClick={refresh}>
+            <IconRefresh />
+          </ActionIcon>
+        </Group>
+        <ScrollArea style={{ height: "80vh" }}>
+          <div style={{ position: "relative" }}>
+            <LoadingOverlay visible={loading} overlayBlur={2} />
+            <Stack>
+              {jobs.map((job) => (
+                <JobItem key={job.id} job={job} compact={false} />
+              ))}
+            </Stack>
+          </div>
         </ScrollArea>
-      )}
+      </Stack>
     </Group>
   );
 };

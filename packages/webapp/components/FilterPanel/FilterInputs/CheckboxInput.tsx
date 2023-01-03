@@ -1,4 +1,4 @@
-import { Checkbox, Loader, CheckIcon, Group } from "@mantine/core";
+import { Checkbox, Loader, Group, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { FilterInputProps } from "../../../utils/helpers";
 import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
@@ -50,14 +50,12 @@ export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
   return (
     <Checkbox
       label={
-        loading ? (
-          <Group align="center" spacing="xs">
-            {label}
-            <Loader variant="dots" />
-          </Group>
-        ) : (
-          label
-        )
+        <Group align="center" spacing="xs">
+          <Text>
+            {label} <span style={{ color: "red" }}>*</span>
+          </Text>
+          {loading && <Loader variant="dots" />}
+        </Group>
       }
       checked={checked}
       indeterminate={loading}

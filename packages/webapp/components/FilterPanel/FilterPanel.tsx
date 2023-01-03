@@ -6,7 +6,6 @@ import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
 import { SearchTextInput } from "./FilterInputs/SearchTextInput";
 import { UsernameInput } from "./FilterInputs/UsernameInput";
 import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
-import { PromptInput } from "./FilterInputs/PromptInput";
 
 export const FilterPanel = ({ ...props }) => {
   const { filters } = useTwipsSearch();

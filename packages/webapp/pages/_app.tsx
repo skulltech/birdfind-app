@@ -6,7 +6,7 @@ import {
 } from "@mantine/core";
 import { NotificationsProvider } from "@mantine/notifications";
 import type { AppProps } from "next/app";
-import { AppHeader } from "../components/AppHeader";
+import { AppHeader } from "../components/AppHeader/AppHeader";
 import { Session } from "@supabase/supabase-js";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { useState } from "react";
@@ -55,7 +55,7 @@ export default function App({
                 <TwipsUserProvider supabase={supabase}>
                   <TwipsJobsProvider supabase={supabase}>
                     <TwipsSearchProvider supabase={supabase}>
-                      <Stack>
+                      <Stack spacing={0}>
                         <AppHeader px={horizontalPadding} py="xs" />
                         <main
                           style={{

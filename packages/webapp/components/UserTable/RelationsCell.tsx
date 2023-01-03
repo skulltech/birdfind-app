@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Menu, Text } from "@mantine/core";
+import { ActionIcon, Group, Text } from "@mantine/core";
 import { IconSettings } from "@tabler/icons";
 import { SearchResult } from "../../utils/supabase";
 import { ActionMenu } from "./ActionMenu";
@@ -41,7 +41,7 @@ export const RelationsCell = ({
       <ActionMenu
         target={
           <ActionIcon>
-            <IconSettings size={14} />
+            <IconSettings size={16} />
           </ActionIcon>
         }
         users={[profile]}

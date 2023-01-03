@@ -18,6 +18,7 @@ export type Job = {
   createdAt: Date;
   label: string;
   paused: boolean;
+  finished: boolean;
   progress?: number;
   totalCount?: number;
 };
@@ -45,7 +46,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
   const { data: lookupRelationJobsData } = await supabase
     .from("lookup_relation_job")
     .select(
-      `id,created_at,paused,relation,updated_count,
+      `id,created_at,paused,relation,updated_count,finished,
         twitter_profile (username,followers_count,following_count)`
     )
     .eq("finished", false)
@@ -78,13 +79,14 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
       paused: x.paused,
       totalCount,
       progress: totalCount ? (updatedCount / totalCount) * 100 : null,
+      finished: x.finished,
     };
   });
 
   const { data: manageListMembersJobsData } = await supabase
     .from("manage_list_members_job")
     .select(
-      `id,created_at,paused,member_ids,member_ids_done,
+      `id,created_at,paused,member_ids,member_ids_done,finished,
         twitter_list (name)`
     )
     .eq("finished", false)
@@ -101,6 +103,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
         createdAt: new Date(x.created_at),
         paused: x.paused,
         progress: (x.member_ids_done.length / x.member_ids.length) * 100,
+        finished: x.finished,
       };
     }
   );
@@ -235,6 +238,7 @@ export const TwipsJobsProvider = ({
               progress: job.totalCount
                 ? (payload.new.updated_count / job.totalCount) * 100
                 : null,
+              finished: payload.new.finished,
             })
           );
         }
@@ -264,6 +268,7 @@ export const TwipsJobsProvider = ({
                 (payload.new.member_ids_done.length /
                   payload.new.member_ids.length) *
                 100,
+              finished: payload.new.finished,
             })
           );
         }
@@ -292,6 +297,7 @@ export const TwipsJobsProvider = ({
                 (payload.new.member_ids_done.length /
                   payload.new.member_ids.length) *
                 100,
+              finished: payload.new.finished,
             })
           );
         }

@@ -16,13 +16,14 @@ export const addLookupRelationJob = async ({
   priority,
 }: AddLookupRelationJob) => {
   // Get running job with same parameters
-  const { data, error: getJobError } = await supabase
+  const { data } = await supabase
     .from("lookup_relation_job")
     .select("id,priority")
     .eq("user_id", userId)
     .eq("target_id", targetTwitterId)
     .eq("relation", relation)
     .eq("finished", false)
+    .throwOnError()
     .maybeSingle();
 
   // If exists, then resume and upgrade priority if needed
