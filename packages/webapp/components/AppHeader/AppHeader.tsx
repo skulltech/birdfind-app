@@ -76,6 +76,9 @@ const links: LinkProps[] = [
   },
 ];
 
+const getRandomElement = <T,>(arg: T[]) =>
+  arg[Math.floor(Math.random() * arg.length)];
+
 export const AppHeader = ({ ...others }: AppHeaderProps) => {
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
@@ -114,8 +117,11 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
                 width={34}
                 height={34}
               />
-              <Title order={2} className={abrilFatface.className}>
-                Twips
+              <Title
+                order={2}
+                className={getRandomElement([abrilFatface.className])}
+              >
+                @twips_xyz
               </Title>
             </Group>
           </UnstyledButton>

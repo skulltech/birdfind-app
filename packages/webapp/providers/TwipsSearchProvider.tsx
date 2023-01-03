@@ -120,7 +120,6 @@ export const TwipsSearchProvider = ({
 }: TwipsSearchProviderProps) => {
   // Get user details from user provider
   const { user } = useTwipsUser();
-  const { refresh } = useTwipsJobs();
 
   const [filters, setFilters] = useState<Filters>({});
   const [randomFloat, setRandomFloat] = useState(0);
@@ -156,12 +155,7 @@ export const TwipsSearchProvider = ({
                 : null;
 
             try {
-              const jobAdded = await lookupRelationIfNeeded(
-                supabase,
-                item,
-                relation
-              );
-              if (jobAdded) refresh();
+              await lookupRelationIfNeeded(supabase, item, relation);
               updatedValue.add(item);
             } catch (error) {
               console.log(error);

@@ -120,8 +120,9 @@ export const AccountNavbar = ({ activePage }: AccountNavbarProps) => {
             supabase.auth.signOut();
             window.location.replace("/auth/signin");
           }}
+          style={{ color: "red" }}
         >
-          <IconLogout className={classes.linkIcon} stroke={1.5} />
+          <IconLogout className={classes.linkIcon} stroke={1.5} color="red" />
           <span>Sign out</span>
         </a>
       </Navbar.Section>

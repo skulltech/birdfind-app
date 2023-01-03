@@ -94,7 +94,6 @@ export const ActionMenu = ({
   const [menuOpened, setMenuOpened] = useState(false);
   const supabase = useSupabaseClient();
   const { user } = useTwipsUser();
-  const { refresh: refreshJobs } = useTwipsJobs();
   const { refresh: refreshSearch } = useTwipsSearch();
   const singleInputUser = users.length == 1 ? users[0] : null;
 
@@ -167,7 +166,7 @@ export const ActionMenu = ({
         message: "Some error ocurred",
         color: "red",
       });
-    } else refreshJobs();
+    }
   };
 
   return (

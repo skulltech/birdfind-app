@@ -2,7 +2,10 @@ import { Text } from "@mantine/core";
 import { useListState } from "@mantine/hooks";
 import { openConfirmModal } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
-import { SupabaseClient } from "@supabase/supabase-js";
+import {
+  RealtimePostgresChangesPayload,
+  SupabaseClient,
+} from "@supabase/supabase-js";
 import { JobName, jobNames } from "@twips/common";
 import {
   createContext,
@@ -27,13 +30,11 @@ const TwipsJobsContext = createContext<{
   loading: boolean;
   pauseJob: (name: JobName, id: number, paused: boolean) => Promise<void>;
   deleteJob: (name: JobName, id: number) => Promise<void>;
-  refresh: () => void;
 }>({
   jobs: [],
   loading: false,
   pauseJob: async () => {},
   deleteJob: async () => {},
-  refresh: () => {},
 });
 
 interface TwipsJobsProviderProps {
@@ -41,8 +42,74 @@ interface TwipsJobsProviderProps {
   children: ReactNode;
 }
 
+const parseLookupRelationJob = (job: any): Job => {
+  const updatedCount: number = job.updated_count;
+  const totalCount: number =
+    job.relation === "followers"
+      ? job.twitter_profile.followers_count
+      : job.relation === "following"
+      ? job.twitter_profile.following_count
+      : null;
+  return {
+    id: parseInt(job.id),
+    name: "lookup-relation",
+    label: `Fetch ${
+      job.relation == "blocking"
+        ? "blocklist"
+        : job.relation == "muting"
+        ? "mutelist"
+        : job.relation
+    } of @${job.twitter_profile.username}`,
+    createdAt: new Date(job.created_at),
+    paused: job.paused,
+    totalCount,
+    progress: totalCount ? (updatedCount / totalCount) * 100 : null,
+  };
+};
+
+const parseManageListMembersJob = (job: any): Job => ({
+  id: parseInt(job.id),
+  name: "manage-list-members",
+  label: `Add ${job.member_ids.length} users to list "${job.twitter_list.name}"`,
+  createdAt: new Date(job.created_at),
+  paused: job.paused,
+  progress: (job.member_ids_done.length / job.member_ids.length) * 100,
+});
+
+const getJobById = async (
+  supabase: SupabaseClient,
+  name: JobName,
+  id: BigInt
+) => {
+  if (name == "lookup-relation") {
+    const { data } = await supabase
+      .from("lookup_relation_job")
+      .select(
+        `id,created_at,paused,relation,updated_count,finished,
+        twitter_profile (username,followers_count,following_count)`
+      )
+      .eq("id", id)
+      .throwOnError()
+      .single();
+    return parseLookupRelationJob(data);
+  }
+
+  if (name == "manage-list-members") {
+    const { data } = await supabase
+      .from("manage_list_members_job")
+      .select(
+        `id,created_at,paused,member_ids,member_ids_done,
+        twitter_list (name)`
+      )
+      .eq("id", id)
+      .throwOnError()
+      .single();
+    return parseManageListMembersJob(data);
+  }
+};
+
 const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
-  const { data: lookupRelationJobsData } = await supabase
+  const { data: lookupRelationJobs } = await supabase
     .from("lookup_relation_job")
     .select(
       `id,created_at,paused,relation,updated_count,finished,
@@ -53,35 +120,7 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
     .order("created_at", { ascending: false })
     .throwOnError();
 
-  const lookupRelationJobs: Job[] = lookupRelationJobsData.map((x) => {
-    const updatedCount: number = x.updated_count;
-    const totalCount: number =
-      x.relation === "followers"
-        ? // @ts-ignore
-          x.twitter_profile.followers_count
-        : x.relation === "following"
-        ? // @ts-ignore
-          x.twitter_profile.following_count
-        : null;
-    return {
-      id: parseInt(x.id),
-      name: "lookup-relation",
-      label: `Fetch ${
-        x.relation == "blocking"
-          ? "blocklist"
-          : x.relation == "muting"
-          ? "mutelist"
-          : x.relation
-        // @ts-ignore
-      } of @${x.twitter_profile.username}`,
-      createdAt: new Date(x.created_at),
-      paused: x.paused,
-      totalCount,
-      progress: totalCount ? (updatedCount / totalCount) * 100 : null,
-    };
-  });
-
-  const { data: manageListMembersJobsData } = await supabase
+  const { data: manageListMembersJobs } = await supabase
     .from("manage_list_members_job")
     .select(
       `id,created_at,paused,member_ids,member_ids_done,
@@ -92,20 +131,10 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
     .order("created_at", { ascending: false })
     .throwOnError();
 
-  const manageListMembersJobs: Job[] = manageListMembersJobsData.map(
-    (x: any) => {
-      return {
-        id: parseInt(x.id),
-        name: "manage-list-members",
-        label: `Add ${x.member_ids.length} users to list "${x.twitter_list.name}"`,
-        createdAt: new Date(x.created_at),
-        paused: x.paused,
-        progress: (x.member_ids_done.length / x.member_ids.length) * 100,
-      };
-    }
-  );
-
-  return [...lookupRelationJobs, ...manageListMembersJobs];
+  return [
+    ...lookupRelationJobs.map(parseLookupRelationJob),
+    ...manageListMembersJobs.map(parseManageListMembersJob),
+  ];
 };
 
 export const TwipsJobsProvider = ({
@@ -114,7 +143,6 @@ export const TwipsJobsProvider = ({
 }: TwipsJobsProviderProps) => {
   const [jobs, jobsHandlers] = useListState<Job>([]);
   const [loading, setLoading] = useState(false);
-  const [randomFloat, setRandomFloat] = useState(Math.random());
 
   // Fetch jobs and update state
   const fetchJobs = async () => {
@@ -210,13 +238,64 @@ export const TwipsJobsProvider = ({
     });
   };
 
-  // Load jobs on first load and if manually refreshed
+  // Load jobs on first load
   useEffect(() => {
     fetchJobs();
-  }, [supabase, randomFloat]);
+  }, []);
 
-  // Set event handlers for checking progress of jobs
+  // Set event handlers
   useEffect(() => {
+    const handlePayload = async (
+      name: JobName,
+      payload: RealtimePostgresChangesPayload<any>
+    ) => {
+      if (payload.eventType == "UPDATE") {
+        if (payload.new.finished) {
+          // Remove job and show notification
+          const job = await getJobById(supabase, name, payload.new.id);
+          jobsHandlers.filter((job) => job.id !== payload.new.id);
+          showNotification({
+            title: "Job finished",
+            message: `${job.label} has finished!`,
+            color: "green",
+          });
+        }
+        // Update progress
+        else
+          jobsHandlers.applyWhere(
+            (job) => job.id == payload.new.id && job.name == name,
+            (job) => ({
+              ...job,
+              progress:
+                // Set progress
+                name == "lookup-relation"
+                  ? job.totalCount
+                    ? (payload.new.updated_count / job.totalCount) * 100
+                    : null
+                  : name == "manage-list-members"
+                  ? (payload.new.member_ids_done.length /
+                      payload.new.member_ids.length) *
+                    100
+                  : name == "manage-relation"
+                  ? (payload.new.target_ids_done.length /
+                      payload.new.target_ids.length) *
+                    100
+                  : null,
+            })
+          );
+      }
+
+      if (payload.eventType == "INSERT") {
+        const job = await getJobById(supabase, name, payload.new.id);
+        jobsHandlers.append(job);
+        showNotification({
+          title: "Job added",
+          message: `${job.label} has started!`,
+          color: "green",
+        });
+      }
+    };
+
     for (const name of jobNames) {
       const table =
         name == "lookup-relation"
@@ -233,38 +312,11 @@ export const TwipsJobsProvider = ({
         .on(
           "postgres_changes",
           {
-            event: "UPDATE",
+            event: "*",
             schema: "public",
             table,
           },
-          (payload) => {
-            // Remove job
-            if (payload.new.finished)
-              jobsHandlers.filter((job) => job.id !== payload.new.id);
-            // Update progress
-            else
-              jobsHandlers.applyWhere(
-                (job) => job.id == payload.new.id && job.name == name,
-                (job) => ({
-                  ...job,
-                  progress:
-                    // Set progress
-                    name == "lookup-relation"
-                      ? job.totalCount
-                        ? (payload.new.updated_count / job.totalCount) * 100
-                        : null
-                      : name == "manage-list-members"
-                      ? (payload.new.member_ids_done.length /
-                          payload.new.member_ids.length) *
-                        100
-                      : name == "manage-relation"
-                      ? (payload.new.target_ids_done.length /
-                          payload.new.target_ids.length) *
-                        100
-                      : null,
-                })
-              );
-          }
+          (payload) => handlePayload(name, payload)
         )
         .subscribe();
     }
@@ -277,7 +329,6 @@ export const TwipsJobsProvider = ({
         loading,
         pauseJob,
         deleteJob,
-        refresh: () => setRandomFloat(Math.random()),
       }}
     >
       {children}
