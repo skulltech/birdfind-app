@@ -24,7 +24,7 @@ import {
   getSortedRowModel,
   SortingState,
   useReactTable,
-  getPaginationRowModel,
+  PaginationState,
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
 import {
@@ -159,11 +159,19 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
   const [rowSelection, setRowSelection] = useState({});
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const { results: users, refresh } = useTwipsSearch();
+  const { results, refresh, pageIndex, count, setPageIndex } = useTwipsSearch();
 
   const supabase = useSupabaseClient();
   const [lists, setLists] = useState<any[]>(null);
   const [refreshListsLoading, setRefreshListsLoading] = useState(false);
+
+  const pagination = useMemo<PaginationState>(
+    () => ({
+      pageIndex,
+      pageSize: 100,
+    }),
+    [pageIndex]
+  );
 
   // Refresh lists
   const refreshLists = async () => {
@@ -273,23 +281,19 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
   );
 
   const table = useReactTable<SearchResult>({
-    data: users,
+    data: results,
     columns,
     state: {
       sorting,
+      pagination,
       rowSelection,
     },
+    pageCount: Math.ceil(count / 100),
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
-
-  // Set page size when component loads
-  useEffect(() => {
-    table.setPageSize(100);
-  }, []);
 
   const headers = table.getHeaderGroups().map((headerGroup) => (
     <tr key={headerGroup.id}>
@@ -332,11 +336,10 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
           <Group position="apart" p="md" className={classes.headerGroup} pb={0}>
             <Group>
               <Text size={14}>
-                {Object.keys(rowSelection).length} of {users.length} users
-                selected
+                {Object.keys(rowSelection).length} of {count} users selected
               </Text>
               <ActionMenu
-                users={users.filter((x, i) => rowSelection[i])}
+                users={results.filter((x, i) => rowSelection[i])}
                 target={
                   <Button compact variant="default">
                     <Group spacing="xs">
@@ -351,13 +354,13 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
               />
             </Group>
             <Group>
-              <ActionIcon size="sm" color="blue" onClick={refresh}>
+              <ActionIcon size="sm" color="blue" onClick={() => refresh(false)}>
                 <IconRefresh />
               </ActionIcon>
               <Pagination
                 size="sm"
                 page={table.getState().pagination.pageIndex + 1}
-                onChange={(page) => table.setPageIndex(page - 1)}
+                onChange={(page) => setPageIndex(page - 1)}
                 total={table.getPageCount()}
               />
             </Group>
@@ -385,7 +388,6 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
         </>
       ) : (
         <Container mt={100}>
-          {" "}
           {loading ? (
             <Loader />
           ) : (
@@ -394,7 +396,7 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
                 <IconAlertCircle color="orange" />
                 <Text weight="bold">No users found</Text>
               </Group>
-              <ActionIcon onClick={refresh}>
+              <ActionIcon onClick={() => refresh(false)}>
                 <IconRefresh size={20} />
               </ActionIcon>
             </Group>

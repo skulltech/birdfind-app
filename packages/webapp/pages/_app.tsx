@@ -58,8 +58,8 @@ export default function App({
             <NotificationsProvider position="top-center">
               <ModalsProvider>
                 <TwipsUserProvider supabase={supabase}>
-                  <TwipsJobsProvider supabase={supabase}>
-                    <TwipsSearchProvider supabase={supabase}>
+                  <TwipsSearchProvider supabase={supabase}>
+                    <TwipsJobsProvider supabase={supabase}>
                       <Stack spacing={0}>
                         <RouterTransition />
                         <AppHeader px={horizontalPadding} py="xs" />
@@ -72,8 +72,8 @@ export default function App({
                           <Component {...pageProps} />
                         </main>
                       </Stack>
-                    </TwipsSearchProvider>
-                  </TwipsJobsProvider>
+                    </TwipsJobsProvider>
+                  </TwipsSearchProvider>
                 </TwipsUserProvider>
               </ModalsProvider>
             </NotificationsProvider>

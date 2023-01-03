@@ -14,6 +14,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useTwipsSearch } from "./TwipsSearchProvider";
 
 export type Job = {
   id: number;
@@ -143,6 +144,7 @@ export const TwipsJobsProvider = ({
 }: TwipsJobsProviderProps) => {
   const [jobs, jobsHandlers] = useListState<Job>([]);
   const [loading, setLoading] = useState(false);
+  const { refresh } = useTwipsSearch();
 
   // Fetch jobs and update state
   const fetchJobs = async () => {
@@ -250,6 +252,9 @@ export const TwipsJobsProvider = ({
       payload: RealtimePostgresChangesPayload<any>
     ) => {
       if (payload.eventType == "UPDATE") {
+        // Refresh search results
+        refresh(true);
+
         if (payload.new.finished) {
           // Remove job and show notification
           const job = await getJobById(supabase, name, payload.new.id);

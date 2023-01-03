@@ -139,31 +139,26 @@ export interface SearchResult extends TwitterProfile {
   isMuted: boolean;
 }
 
-export const searchTwitterProfiles = async (
-  supabase: SupabaseClient,
-  userTwitterId: BigInt,
-  filters: Filters
-): Promise<SearchResult[]> => {
+type searchTwitterProfilesArgs = {
+  supabase: SupabaseClient;
+  userTwitterId: BigInt;
+  filters: Filters;
+  pageIndex: number;
+};
+
+type SearchTwitterProfilesResult = {
+  results: SearchResult[];
+  count: number;
+};
+
+export const searchTwitterProfiles = async ({
+  supabase,
+  userTwitterId,
+  filters,
+  pageIndex,
+}: searchTwitterProfilesArgs): Promise<SearchTwitterProfilesResult> => {
   const { followerOf, followedBy, blockedBy, mutedBy, ...otherFilters } =
     filters;
-
-  let query = supabase
-    .rpc("search_twitter_profiles", {
-      reference_user: userTwitterId,
-      follower_of: followerOf,
-      followed_by: followedBy,
-      blocked_by: blockedBy,
-      muted_by: mutedBy,
-    })
-    .select(
-      [
-        ...twitterProfileColumns,
-        "is_follower",
-        "is_following",
-        "is_blocked",
-        "is_muted",
-      ].join(",")
-    );
 
   const appendFilterFunctions: Record<
     keyof Omit<Filters, "followerOf" | "followedBy" | "blockedBy" | "mutedBy">,
@@ -189,15 +184,59 @@ export const searchTwitterProfiles = async (
       query.ilike("concat(username,name,description)", `%${value}%`),
   };
 
-  for (const [key, value] of Object.entries(otherFilters))
-    query = appendFilterFunctions[key](query, value);
+  // Get count
 
-  const { data } = await query.limit(1000).throwOnError();
+  let countQuery = supabase
+    .rpc(
+      "search_twitter_profiles",
+      {
+        follower_of: followerOf,
+        followed_by: followedBy,
+        blocked_by: blockedBy,
+        muted_by: mutedBy,
+      },
+      { count: "exact" }
+    )
+    .select("id");
+
+  for (const [key, value] of Object.entries(otherFilters))
+    countQuery = appendFilterFunctions[key](countQuery, value);
+
+  const { count } = await countQuery.throwOnError();
+
+  // Get results
+
+  let resultsQuery = supabase
+    .rpc("search_twitter_profiles", {
+      reference_user: userTwitterId,
+      follower_of: followerOf,
+      followed_by: followedBy,
+      blocked_by: blockedBy,
+      muted_by: mutedBy,
+    })
+    .select(
+      [
+        ...twitterProfileColumns,
+        "is_follower",
+        "is_following",
+        "is_blocked",
+        "is_muted",
+      ].join(",")
+    );
+
+  for (const [key, value] of Object.entries(otherFilters))
+    resultsQuery = appendFilterFunctions[key](resultsQuery, value);
+
+  const { data } = await resultsQuery
+    .order("updated_at", { ascending: true })
+    .order("id", { ascending: true })
+    .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
+    .throwOnError();
 
   // Insert event in user_event table
   await insertUserEvent(supabase, "search-filters", filters);
 
-  return data.map((x: any) => {
+  const results = data.map((x: any) => {
     return {
       ...parseTwitterProfile(x),
       isFollower: x.is_follower,
@@ -206,6 +245,11 @@ export const searchTwitterProfiles = async (
       isMuted: x.is_muted,
     };
   });
+
+  return {
+    count,
+    results,
+  };
 };
 
 export const upsertTwitterProfile = async (

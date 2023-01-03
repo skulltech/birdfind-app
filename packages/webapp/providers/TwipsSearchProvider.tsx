@@ -3,14 +3,15 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { addLookupRelationJob, twitterProfileColumns } from "@twips/common";
 import {
   createContext,
+  Dispatch,
   ReactNode,
+  SetStateAction,
   useContext,
   useEffect,
   useState,
 } from "react";
-import { Filters, parseTwitterProfile, TwitterProfile } from "../utils/helpers";
+import { Filters, parseTwitterProfile } from "../utils/helpers";
 import { SearchResult, searchTwitterProfiles } from "../utils/supabase";
-import { useTwipsJobs } from "./TwipsJobsProvider";
 import { useTwipsUser } from "./TwipsUserProvider";
 
 export const usernameFilters = ["followerOf", "followedBy"];
@@ -18,13 +19,19 @@ export const usernameFilters = ["followerOf", "followedBy"];
 type Relation = "followers" | "following" | "blocking" | "muting";
 
 const TwipsSearchContext = createContext<{
+  // Filters
   filters: Filters;
   addFilters: (arg: Partial<Filters>) => Promise<void>;
   removeFilters: (...args: RemoveFiltersArg[]) => void;
-  loading: boolean;
   filtersInvalid: boolean;
+  // Search results and pagination
   results: SearchResult[];
-  refresh: () => void;
+  count: number;
+  pageIndex: number;
+  setPageIndex: Dispatch<SetStateAction<number>>;
+  // Loading and refresh
+  loading: boolean;
+  refresh: (silent: boolean) => void;
 }>({
   filters: {},
   addFilters: async () => {},
@@ -32,6 +39,9 @@ const TwipsSearchContext = createContext<{
   loading: false,
   filtersInvalid: false,
   results: [],
+  count: 0,
+  pageIndex: 0,
+  setPageIndex: () => {},
   refresh: () => {},
 });
 
@@ -122,10 +132,11 @@ export const TwipsSearchProvider = ({
   const { user } = useTwipsUser();
 
   const [filters, setFilters] = useState<Filters>({});
-  const [randomFloat, setRandomFloat] = useState(0);
-
+  const [pageIndex, setPageIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
+
+  const [count, setCount] = useState(0);
   // Usually indicates that the filters are insufficient
   const [filtersInvalid, setFiltersInvalid] = useState(false);
 
@@ -200,33 +211,40 @@ export const TwipsSearchProvider = ({
     setFilters(updatedFilters);
   };
 
-  // Search Twitter profiles
+  // Perform search on Supabase
+  const handleSearch = async (silent: boolean) => {
+    if (!silent) setLoading(true);
+    const { results, count } = await searchTwitterProfiles({
+      supabase,
+      userTwitterId: user.twitter.id,
+      filters,
+      pageIndex,
+    });
+    setResults(results);
+    setCount(count);
+    setLoading(false);
+  };
+
+  // Check if filters are invalid and search loudly if so
   useEffect(() => {
-    // Perform search on Supabase
-    const handleSearch = async () => {
-      setLoading(true);
-      const results = await searchTwitterProfiles(
-        supabase,
-        user.twitter.id,
-        filters
-      );
-      setResults(results);
-      setLoading(false);
+    const foo = async () => {
+      if (!isFiltersValid(user.twitter.username, filters)) {
+        setFiltersInvalid(true);
+        setResults([]);
+        setCount(0);
+      } else setFiltersInvalid(false);
+
+      await handleSearch(false);
+      setPageIndex(0);
     };
 
-    // If user or filters are invalid
-    if (
-      !user?.twitter?.username ||
-      !isFiltersValid(user.twitter.username, filters)
-    ) {
-      setFiltersInvalid(true);
-      setResults([]);
-      return;
-    }
+    foo();
+  }, [filters]);
 
-    setFiltersInvalid(false);
-    handleSearch();
-  }, [filters, user?.twitter?.username, supabase, randomFloat]);
+  // Search loudly on page change
+  useEffect(() => {
+    handleSearch(false);
+  }, [pageIndex]);
 
   return (
     <TwipsSearchContext.Provider
@@ -237,7 +255,10 @@ export const TwipsSearchProvider = ({
         loading,
         filtersInvalid,
         results,
-        refresh: () => setRandomFloat(Math.random()),
+        count,
+        refresh: handleSearch,
+        pageIndex,
+        setPageIndex,
       }}
     >
       {children}
