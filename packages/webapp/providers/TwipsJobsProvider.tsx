@@ -18,7 +18,6 @@ export type Job = {
   createdAt: Date;
   label: string;
   paused: boolean;
-  finished: boolean;
   progress?: number;
   totalCount?: number;
 };
@@ -79,14 +78,13 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
       paused: x.paused,
       totalCount,
       progress: totalCount ? (updatedCount / totalCount) * 100 : null,
-      finished: x.finished,
     };
   });
 
   const { data: manageListMembersJobsData } = await supabase
     .from("manage_list_members_job")
     .select(
-      `id,created_at,paused,member_ids,member_ids_done,finished,
+      `id,created_at,paused,member_ids,member_ids_done,
         twitter_list (name)`
     )
     .eq("finished", false)
@@ -103,7 +101,6 @@ const getJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
         createdAt: new Date(x.created_at),
         paused: x.paused,
         progress: (x.member_ids_done.length / x.member_ids.length) * 100,
-        finished: x.finished,
       };
     }
   );
@@ -241,29 +238,32 @@ export const TwipsJobsProvider = ({
             table,
           },
           (payload) => {
+            // Remove job
+            if (payload.new.finished)
+              jobsHandlers.filter((job) => job.id !== payload.new.id);
             // Update progress
-            jobsHandlers.applyWhere(
-              (job) => job.id == payload.new.id && job.name == name,
-              (job) => ({
-                ...job,
-                progress:
-                  // Set progress
-                  name == "lookup-relation"
-                    ? job.totalCount
-                      ? (payload.new.updated_count / job.totalCount) * 100
-                      : null
-                    : name == "manage-list-members"
-                    ? (payload.new.member_ids_done.length /
-                        payload.new.member_ids.length) *
-                      100
-                    : name == "manage-relation"
-                    ? (payload.new.target_ids_done.length /
-                        payload.new.target_ids.length) *
-                      100
-                    : null,
-                finished: payload.new.finished,
-              })
-            );
+            else
+              jobsHandlers.applyWhere(
+                (job) => job.id == payload.new.id && job.name == name,
+                (job) => ({
+                  ...job,
+                  progress:
+                    // Set progress
+                    name == "lookup-relation"
+                      ? job.totalCount
+                        ? (payload.new.updated_count / job.totalCount) * 100
+                        : null
+                      : name == "manage-list-members"
+                      ? (payload.new.member_ids_done.length /
+                          payload.new.member_ids.length) *
+                        100
+                      : name == "manage-relation"
+                      ? (payload.new.target_ids_done.length /
+                          payload.new.target_ids.length) *
+                        100
+                      : null,
+                })
+              );
           }
         )
         .subscribe();

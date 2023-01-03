@@ -1,19 +1,48 @@
-import { Avatar, Group, Menu, Text, UnstyledButton } from "@mantine/core";
+import {
+  Avatar,
+  createStyles,
+  Group,
+  Indicator,
+  Menu,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconChevronDown, IconLogout } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useTwipsUser } from "../../providers/TwipsUserProvider";
 import { accountMenuItems } from "../../utils/helpers";
 
+const useStyles = createStyles((theme) => ({
+  target: {
+    "&:hover": {
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[6]
+          : theme.colors.gray[0],
+    },
+  },
+}));
+
 export const AccountMenu = () => {
   const { user } = useTwipsUser();
   const router = useRouter();
   const supabase = useSupabaseClient();
+  const { classes } = useStyles();
 
   return (
     <Menu shadow="md">
       <Menu.Target>
-        <UnstyledButton>
+        <UnstyledButton
+          className={classes.target}
+          sx={{
+            paddingTop: 2,
+            paddingBottom: 2,
+            paddingLeft: 5,
+            paddingRight: 5,
+            borderRadius: 10,
+          }}
+        >
           <Group spacing="xs">
             <Avatar src={user.twitter?.profileImageUrl} radius="xl" />
             <div>

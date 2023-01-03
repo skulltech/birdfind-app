@@ -1,7 +1,5 @@
 import {
   ActionIcon,
-  Badge,
-  Center,
   CloseButton,
   createStyles,
   Group,
@@ -10,11 +8,7 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import {
-  IconCircleCheck,
-  IconPlayerPause,
-  IconPlayerPlay,
-} from "@tabler/icons";
+import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons";
 import { useState } from "react";
 import { Job, useTwipsJobs } from "../providers/TwipsJobsProvider";
 
@@ -35,7 +29,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 export const JobItem = ({
-  job: { id, name, label, paused, progress, createdAt, finished },
+  job: { id, name, label, paused, progress, createdAt },
   compact,
 }: JobItemProps) => {
   const [pauseLoading, setPauseLoading] = useState(false);
@@ -47,11 +41,12 @@ export const JobItem = ({
     <Paper
       withBorder={!compact}
       p="xs"
+      // py={compact ? 2 : "xs"}
       radius="md"
       className={classes.jobItem}
       shadow={compact ? "none" : "md"}
     >
-      <Stack pr={compact ? "none" : "md"} spacing="sm">
+      <Stack pr={compact ? "none" : "md"} spacing={compact ? 3 : "sm"}>
         <Group position="apart">
           <Stack spacing={2}>
             <Text size={compact ? "sm" : "md"}>{label}</Text>
@@ -59,56 +54,37 @@ export const JobItem = ({
               Created at {createdAt.toLocaleString()}
             </Text>
           </Stack>
-          {finished ? (
-            <Badge
-              size={compact ? "sm" : "lg"}
-              variant="outline"
-              sx={{ textTransform: "none" }}
-              leftSection={
-                <Center>
-                  <IconCircleCheck
-                    radius="xl"
-                    size={compact ? 12 : 16}
-                    color="green"
-                  />
-                </Center>
-              }
+          <Group>
+            <ActionIcon
+              size={compact ? "xs" : "sm"}
+              color={paused ? "green" : "yellow"}
+              onClick={async () => {
+                setPauseLoading(true);
+                await pauseJob(name, id, !paused);
+                setPauseLoading(false);
+              }}
+              loading={pauseLoading}
             >
-              Finished
-            </Badge>
-          ) : (
-            <Group>
-              <ActionIcon
-                size={compact ? "xs" : "sm"}
-                color={paused ? "green" : "yellow"}
-                onClick={async () => {
-                  setPauseLoading(true);
-                  await pauseJob(name, id, !paused);
-                  setPauseLoading(false);
-                }}
-                loading={pauseLoading}
-              >
-                {paused ? <IconPlayerPlay /> : <IconPlayerPause />}
-              </ActionIcon>
-              <CloseButton
-                size={compact ? "xs" : "sm"}
-                radius="lg"
-                variant="outline"
-                color="red"
-                onClick={async () => {
-                  setDeleteLoading(true);
-                  await deleteJob(name, id);
-                  setDeleteLoading(false);
-                }}
-                loading={deleteLoading}
-              />
-            </Group>
-          )}
+              {paused ? <IconPlayerPlay /> : <IconPlayerPause />}
+            </ActionIcon>
+            <CloseButton
+              size={compact ? "xs" : "sm"}
+              radius="lg"
+              variant="outline"
+              color="red"
+              onClick={async () => {
+                setDeleteLoading(true);
+                await deleteJob(name, id);
+                setDeleteLoading(false);
+              }}
+              loading={deleteLoading}
+            />
+          </Group>
         </Group>
         <Progress
           value={progress}
-          label={progress.toFixed(0) + "%"}
-          size="lg"
+          label={compact ? null : progress.toFixed(0) + "%"}
+          size={compact ? "md" : "lg"}
         />
       </Stack>
     </Paper>

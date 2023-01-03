@@ -33,6 +33,7 @@ export const addLookupRelationJob = async ({
       .update({
         priority: priority > data.priority ? priority : data.priority,
         paused: false,
+        deleted: false,
       })
       .eq("id", data.id)
       .throwOnError();
