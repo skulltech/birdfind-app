@@ -12,6 +12,8 @@ import {
   ActionIcon,
   Button,
   LoadingOverlay,
+  Container,
+  Loader,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +28,7 @@ import {
 } from "@tanstack/react-table";
 import { UserProfileCard } from "./UserProfileCard";
 import {
+  IconAlertCircle,
   IconArrowsSort,
   IconChevronDown,
   IconRefresh,
@@ -323,69 +326,81 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
   });
 
   return (
-    <Stack spacing={0}>
-      <Group position="apart" p="md" className={classes.headerGroup} pb={0}>
-        <Group>
-          <Text size={14}>
-            {Object.keys(rowSelection).length} of {users.length} users selected
-          </Text>
-          <ActionMenu
-            users={users.filter((x, i) => rowSelection[i])}
-            target={
-              <Button compact variant="default">
-                <Group spacing="xs">
-                  Actions
-                  <IconChevronDown size={14} />
-                </Group>
-              </Button>
-            }
-            lists={lists}
-            listsLoading={refreshListsLoading}
-            refreshLists={refreshLists}
-          />
-        </Group>
-        <Group>
-          <ActionIcon size="sm" color="blue" onClick={refresh}>
-            <IconRefresh />
-          </ActionIcon>
-          <Pagination
-            size="sm"
-            page={table.getState().pagination.pageIndex + 1}
-            onChange={(page) => table.setPageIndex(page - 1)}
-            total={table.getPageCount()}
-          />
-        </Group>
-      </Group>
-      <div style={{ position: "relative" }}>
-        <LoadingOverlay visible={loading} overlayBlur={2} />
+    <Stack spacing={0} sx={{ flex: 1 }}>
+      {rows.length > 0 ? (
+        <>
+          <Group position="apart" p="md" className={classes.headerGroup} pb={0}>
+            <Group>
+              <Text size={14}>
+                {Object.keys(rowSelection).length} of {users.length} users
+                selected
+              </Text>
+              <ActionMenu
+                users={users.filter((x, i) => rowSelection[i])}
+                target={
+                  <Button compact variant="default">
+                    <Group spacing="xs">
+                      Actions
+                      <IconChevronDown size={14} />
+                    </Group>
+                  </Button>
+                }
+                lists={lists}
+                listsLoading={refreshListsLoading}
+                refreshLists={refreshLists}
+              />
+            </Group>
+            <Group>
+              <ActionIcon size="sm" color="blue" onClick={refresh}>
+                <IconRefresh />
+              </ActionIcon>
+              <Pagination
+                size="sm"
+                page={table.getState().pagination.pageIndex + 1}
+                onChange={(page) => table.setPageIndex(page - 1)}
+                total={table.getPageCount()}
+              />
+            </Group>
+          </Group>
 
-        <ScrollArea
-          sx={{ height: "82vh" }}
-          onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
-        >
-          <Table horizontalSpacing="md" verticalSpacing="xs" width="100%">
-            <thead
-              className={cx(classes.header, { [classes.scrolled]: scrolled })}
-              style={{ zIndex: 1 }}
+          <div style={{ position: "relative" }}>
+            <LoadingOverlay visible={loading} overlayBlur={2} />
+            <ScrollArea
+              sx={{ height: "82vh" }}
+              onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
             >
-              {headers}
-            </thead>
-            <tbody>
-              {rows.length > 0 ? (
-                rows
-              ) : (
-                <tr>
-                  <td colSpan={6}>
-                    <Text size={18} weight={500} align="center">
-                      No users found
-                    </Text>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
-        </ScrollArea>
-      </div>
+              <Table horizontalSpacing="md" verticalSpacing="xs" width="100%">
+                <thead
+                  className={cx(classes.header, {
+                    [classes.scrolled]: scrolled,
+                  })}
+                  style={{ zIndex: 1 }}
+                >
+                  {headers}
+                </thead>
+                <tbody>{rows}</tbody>
+              </Table>
+            </ScrollArea>
+          </div>
+        </>
+      ) : (
+        <Container mt={100}>
+          {" "}
+          {loading ? (
+            <Loader />
+          ) : (
+            <Group align="center" spacing="xl">
+              <Group spacing="xs">
+                <IconAlertCircle color="orange" />
+                <Text weight="bold">No users found</Text>
+              </Group>
+              <ActionIcon onClick={refresh}>
+                <IconRefresh size={20} />
+              </ActionIcon>
+            </Group>
+          )}
+        </Container>
+      )}
     </Stack>
   );
 };

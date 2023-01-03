@@ -47,21 +47,15 @@ const Search = () => {
     <Group noWrap spacing={0} pt="sm" align="start">
       <FilterPanel />
       {filtersInvalid && !userLoading ? (
-        <Container>
+        <Container mt={100}>
           <Stack align="center" spacing="xs">
-            <Group>
+            <Group spacing="xs">
               <IconAlertCircle color="red" />
-              <Text weight="bold">Insufficient Filters</Text>
+              <Text weight="bold">Insufficient search filters</Text>
             </Group>
             <Text>
-              You have to select at least one{" "}
-              <span style={{ fontFamily: "monospace" }}>followed by</span> or{" "}
-              <span style={{ fontFamily: "monospace" }}>follower of</span>{" "}
-              filters
-            </Text>
-            <Text>
-              Please select filters from the left panel or type it in english
-              above
+              Select at least one required
+              <span style={{ color: "red" }}>*</span> filter from the left panel
             </Text>
           </Stack>
         </Container>

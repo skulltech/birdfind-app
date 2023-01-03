@@ -16,6 +16,7 @@ import { ModalsProvider } from "@mantine/modals";
 import { GoogleAnalytics } from "nextjs-google-analytics";
 import { TwipsUserProvider } from "../providers/TwipsUserProvider";
 import { TwipsJobsProvider } from "../providers/TwipsJobsProvider";
+import { RouterTransition } from "../components/RouterTransition";
 
 // Monkeypatching BigInt
 BigInt.prototype["toJSON"] = function () {
@@ -56,6 +57,7 @@ export default function App({
                   <TwipsJobsProvider supabase={supabase}>
                     <TwipsSearchProvider supabase={supabase}>
                       <Stack spacing={0}>
+                        <RouterTransition />
                         <AppHeader px={horizontalPadding} py="xs" />
                         <main
                           style={{

@@ -1,9 +1,11 @@
-import { Container, Text } from "@mantine/core";
+import { Center, Container, Text } from "@mantine/core";
 
 const Home = () => {
   return (
-    <Container>
-      <Text>Welcome to Twips</Text>
+    <Container mt={100}>
+      <Center>
+        <Text>Welcome to Twips</Text>
+      </Center>
     </Container>
   );
 };

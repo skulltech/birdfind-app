@@ -12,7 +12,7 @@ export const FilterPanel = ({ ...props }) => {
 
   return (
     <Navbar width={{ base: 300 }} p="xs" pr={0} {...props}>
-      <ScrollArea pr="md">
+      <ScrollArea pr="md" style={{ height: "85vh" }}>
         <Navbar.Section>
           <Stack style={{ fontSize: 14 }}>
             {Boolean(Object.keys(filters).length) && (

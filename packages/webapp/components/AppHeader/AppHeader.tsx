@@ -1,44 +1,140 @@
 import {
   ActionIcon,
-  Button,
+  createStyles,
   Group,
   Header,
+  Text,
   Title,
   UnstyledButton,
   useMantineColorScheme,
 } from "@mantine/core";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { IconBrandTwitter, IconMoonStars, IconSun } from "@tabler/icons";
+import { IconMoonStars, IconSun } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useTwipsUser } from "../../providers/TwipsUserProvider";
 import { JobMenu } from "./JobMenu";
 import { AccountMenu } from "./AccountMenu";
+import { useEffect, useState } from "react";
+import { Abril_Fatface } from "@next/font/google";
+import Image from "next/image";
 
 type AppHeaderProps = {
   [x: string]: any;
 };
 
+const abrilFatface = Abril_Fatface({ weight: "400", subsets: ["latin"] });
+
+// Ref: https://ui.mantine.dev/component/double-header
+const useStyles = createStyles((theme) => ({
+  link: {
+    color:
+      theme.colorScheme === "dark"
+        ? theme.colors.dark[1]
+        : theme.colors.gray[6],
+    fontWeight: 700,
+    transition: "border-color 100ms ease, color 100ms ease",
+
+    "&:hover": {
+      color: theme.colorScheme === "dark" ? theme.white : theme.black,
+      backgroundColor:
+        theme.colorScheme === "dark"
+          ? theme.colors.dark[6]
+          : theme.colors.gray[0],
+      // color: theme.colorScheme === "dark" ? theme.white : theme.black,
+    },
+  },
+
+  linkActive: {
+    "&, &:hover": {
+      backgroundColor: theme.fn.variant({
+        variant: "light",
+        color: theme.primaryColor,
+      }).background,
+      color: theme.fn.variant({ variant: "light", color: theme.primaryColor })
+        .color,
+    },
+  },
+}));
+
+interface LinkProps {
+  label: string;
+  link: string;
+}
+
+const links: LinkProps[] = [
+  {
+    label: "Search",
+    link: "/search",
+  },
+];
+
 export const AppHeader = ({ ...others }: AppHeaderProps) => {
-  const supabase = useSupabaseClient();
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { user } = useTwipsUser();
-
   const dark = colorScheme === "dark";
+
+  const { classes, cx } = useStyles();
+
+  // The current active tab// link
+  const [active, setActive] = useState(null);
+  useEffect(
+    () =>
+      setActive(
+        links.filter((x) => x.link === router.pathname).map((x) => x.label)[0]
+      ),
+    [router.pathname]
+  );
 
   return (
     <Header height={60} {...others}>
       <Group position="apart">
-        <Group>
-          <UnstyledButton onClick={() => router.push("/")}>
-            <Title order={2}>
-              <Group>
-                <IconBrandTwitter />
+        <Group spacing={40}>
+          <UnstyledButton
+            component="a"
+            href="/"
+            onClick={(event) => {
+              event.preventDefault();
+              router.push("/");
+            }}
+          >
+            <Group spacing="xs">
+              <Image
+                src="/images/icons8-twitter-64.png"
+                alt="Twitter logo"
+                width={34}
+                height={34}
+              />
+              <Title order={2} className={abrilFatface.className}>
                 Twips
-              </Group>
-            </Title>
+              </Title>
+            </Group>
           </UnstyledButton>
-          <Button onClick={() => router.push("/search")}>Search</Button>
+
+          <Group>
+            {links.map((item) => {
+              console.log(item.label, active, item.label == active);
+              return (
+                <UnstyledButton
+                  component="a"
+                  href={item.link}
+                  key={item.label}
+                  className={cx(classes.link, {
+                    [classes.linkActive]: item.label == active,
+                  })}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    router.push(item.link);
+                    setActive(item.label);
+                  }}
+                  py={5}
+                  px="lg"
+                  sx={{ borderRadius: 3 }}
+                >
+                  <Text>{item.label}</Text>
+                </UnstyledButton>
+              );
+            })}
+          </Group>
         </Group>
 
         <Group>
