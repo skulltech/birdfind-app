@@ -4,6 +4,7 @@ import {
   IconSubtask,
   TablerIcon,
 } from "@tabler/icons";
+import { JobName } from "@twips/common";
 import camelcase from "camelcase";
 import { z } from "zod";
 import { RemoveFiltersArg } from "../pages/search";
@@ -117,3 +118,13 @@ export const twitterListFields = [
   "member_count",
   "private",
 ];
+
+export type Job = {
+  id: number;
+  name: JobName;
+  createdAt: Date;
+  label: string;
+  paused: boolean;
+  progress?: number;
+  totalCount?: number;
+};

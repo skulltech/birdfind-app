@@ -1,8 +1,12 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { serializeTwitterUser, twitterProfileColumns } from "@twips/common";
+import {
+  JobName,
+  serializeTwitterUser,
+  twitterProfileColumns,
+} from "@twips/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
-import { parseTwitterProfile, TwitterProfile, Filters } from "./helpers";
+import { parseTwitterProfile, TwitterProfile, Filters, Job } from "./helpers";
 
 export const getServiceRoleSupabase = () =>
   createClient(
@@ -286,4 +290,148 @@ export const insertUserEvent = async (
     .from("user_event")
     .insert({ user_id: user.id, type, data })
     .throwOnError();
+};
+
+const parseManageListMembersJob = (job: any): Job => ({
+  id: parseInt(job.id),
+  name: "manage-list-members",
+  label: `Add ${job.member_ids.length} users to list "${job.twitter_list.name}"`,
+  createdAt: new Date(job.created_at),
+  paused: job.paused,
+  progress: (job.member_ids_done.length / job.member_ids.length) * 100,
+});
+
+const parseManageRelationJob = (job: any): Job => ({
+  id: parseInt(job.id),
+  name: "manage-relation",
+  label: `${
+    job.relation == "follow"
+      ? job.add
+        ? "Follow"
+        : "Unfollow"
+      : job.relation == "block"
+      ? job.add
+        ? "Block"
+        : "Unblock"
+      : job.relation == "mute"
+      ? job.add
+        ? "Mute"
+        : "Unmute"
+      : null
+  } ${job.target_ids.length} users`,
+  createdAt: new Date(job.created_at),
+  paused: job.paused,
+  progress: (job.target_ids_done.length / job.target_ids.length) * 100,
+});
+
+const parseLookupRelationJob = (job: any): Job => {
+  const updatedCount: number = job.updated_count;
+  const totalCount: number =
+    job.relation === "followers"
+      ? job.twitter_profile.followers_count
+      : job.relation === "following"
+      ? job.twitter_profile.following_count
+      : null;
+  return {
+    id: parseInt(job.id),
+    name: "lookup-relation",
+    label: `Fetch ${
+      job.relation == "blocking"
+        ? "blocklist"
+        : job.relation == "muting"
+        ? "mutelist"
+        : job.relation
+    } of @${job.twitter_profile.username}`,
+    createdAt: new Date(job.created_at),
+    paused: job.paused,
+    totalCount,
+    progress: totalCount ? (updatedCount / totalCount) * 100 : null,
+  };
+};
+
+export const getJob = async (
+  supabase: SupabaseClient,
+  name: JobName,
+  id: number
+): Promise<Job> => {
+  switch (name) {
+    case "lookup-relation": {
+      const { data } = await supabase
+        .from("lookup_relation_job")
+        .select(
+          `id,created_at,paused,relation,updated_count,finished,
+        twitter_profile (username,followers_count,following_count)`
+        )
+        .eq("id", id)
+        .throwOnError()
+        .maybeSingle();
+      return data ? parseLookupRelationJob(data) : null;
+    }
+    case "manage-list-members": {
+      const { data } = await supabase
+        .from("manage_list_members_job")
+        .select(
+          "id,created_at,paused,member_ids,member_ids_done,twitter_list(name)"
+        )
+        .eq("id", id)
+        .throwOnError()
+        .maybeSingle();
+      return data ? parseManageListMembersJob(data) : null;
+    }
+    case "manage-relation": {
+      const { data } = await supabase
+        .from("manage_relation_job")
+        .select("id,created_at,relation,add,paused,target_ids,target_ids_done")
+        .eq("id", id)
+        .throwOnError()
+        .maybeSingle();
+      return data ? parseManageRelationJob(data) : null;
+    }
+  }
+};
+
+export const getAllJobs = async (
+  supabase: SupabaseClient,
+  userId: string
+): Promise<Job[]> => {
+  // Lookup relation jobs
+  const { data: lookupRelationJobs } = await supabase
+    .from("lookup_relation_job")
+    .select(
+      `id,created_at,paused,relation,updated_count,finished,
+        twitter_profile (username,followers_count,following_count)`
+    )
+    .eq("finished", false)
+    .eq("deleted", false)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .throwOnError();
+
+  // Manage list members jobs
+  const { data: manageListMembersJobs } = await supabase
+    .from("manage_list_members_job")
+    .select(
+      "id,created_at,paused,member_ids,member_ids_done,twitter_list(name)"
+    )
+    .eq("finished", false)
+    .eq("deleted", false)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .throwOnError();
+
+  // Manage relation jobs
+  const { data: manageRelationJobs } = await supabase
+    .from("manage_relation_job")
+    .select("id,created_at,relation,add,paused,target_ids,target_ids_done")
+    .eq("finished", false)
+    .eq("deleted", false)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .throwOnError();
+
+  return [
+    ...lookupRelationJobs.map(parseLookupRelationJob),
+    ...manageListMembersJobs.map(parseManageListMembersJob),
+    ...manageRelationJobs.map(parseManageRelationJob),
+  ];
 };

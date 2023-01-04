@@ -3,23 +3,12 @@ import { useListState } from "@mantine/hooks";
 import { openConfirmModal } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import {
-  RealtimePostgresChangesPayload,
-  SupabaseClient,
-} from "@supabase/supabase-js";
+import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import { JobName, jobNames } from "@twips/common";
 import { createContext, useContext, useEffect, useState } from "react";
+import { Job } from "../utils/helpers";
+import { getAllJobs, getJob } from "../utils/supabase";
 import { useUser } from "./UserProvider";
-
-export type Job = {
-  id: number;
-  name: JobName;
-  createdAt: Date;
-  label: string;
-  paused: boolean;
-  progress?: number;
-  totalCount?: number;
-};
 
 const JobsContext = createContext<{
   jobs: Job[];
@@ -34,72 +23,6 @@ const JobsContext = createContext<{
   deleteJob: async () => {},
   jobsUpdatedMarker: 0,
 });
-
-const getJobs = async (
-  supabase: SupabaseClient,
-  userId: string
-): Promise<Job[]> => {
-  const { data: lookupRelationJobs } = await supabase
-    .from("lookup_relation_job")
-    .select(
-      `id,created_at,paused,relation,updated_count,finished,
-        twitter_profile (username,followers_count,following_count)`
-    )
-    .eq("finished", false)
-    .eq("deleted", false)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .throwOnError();
-
-  const parsedLookupRelationJobs = lookupRelationJobs.map((job: any): Job => {
-    const updatedCount: number = job.updated_count;
-    const totalCount: number =
-      job.relation === "followers"
-        ? job.twitter_profile.followers_count
-        : job.relation === "following"
-        ? job.twitter_profile.following_count
-        : null;
-    return {
-      id: parseInt(job.id),
-      name: "lookup-relation",
-      label: `Fetch ${
-        job.relation == "blocking"
-          ? "blocklist"
-          : job.relation == "muting"
-          ? "mutelist"
-          : job.relation
-      } of @${job.twitter_profile.username}`,
-      createdAt: new Date(job.created_at),
-      paused: job.paused,
-      totalCount,
-      progress: totalCount ? (updatedCount / totalCount) * 100 : null,
-    };
-  });
-
-  const { data: manageListMembersJobs } = await supabase
-    .from("manage_list_members_job")
-    .select(
-      `id,created_at,paused,member_ids,member_ids_done,
-        twitter_list (name)`
-    )
-    .eq("finished", false)
-    .eq("deleted", false)
-    .order("created_at", { ascending: false })
-    .throwOnError();
-
-  const parsedManageListMembersJobs = manageListMembersJobs.map(
-    (job: any): Job => ({
-      id: parseInt(job.id),
-      name: "manage-list-members",
-      label: `Add ${job.member_ids.length} users to list "${job.twitter_list.name}"`,
-      createdAt: new Date(job.created_at),
-      paused: job.paused,
-      progress: (job.member_ids_done.length / job.member_ids.length) * 100,
-    })
-  );
-
-  return [...parsedLookupRelationJobs, ...parsedManageListMembersJobs];
-};
 
 export const JobsProvider = ({ children }) => {
   const [jobs, jobsHandlers] = useListState<Job>([]);
@@ -117,9 +40,9 @@ export const JobsProvider = ({ children }) => {
 
     setLoading(true);
 
-    let jobs: Job[];
     try {
-      jobs = await getJobs(supabase, user.id);
+      const jobs = await getAllJobs(supabase, user.id);
+      jobsHandlers.setState(jobs);
     } catch (error) {
       console.log(error);
       showNotification({
@@ -127,11 +50,8 @@ export const JobsProvider = ({ children }) => {
         message: "Something went wrong",
         color: "red",
       });
-      setLoading(false);
-      return;
     }
 
-    jobsHandlers.setState(jobs);
     setLoading(false);
   };
 
@@ -211,9 +131,18 @@ export const JobsProvider = ({ children }) => {
         // Refresh search results quietly
         setRandomFloat(Math.random());
 
-        if (payload.new.finished)
+        if (payload.new.finished) {
           jobsHandlers.filter((job) => job.id !== payload.new.id);
-        else if (payload.new.deleted)
+
+          if (name != "lookup-relation") {
+            const job = await getJob(supabase, name, payload.new.id);
+            showNotification({
+              title: "Finished job",
+              message: job.label,
+              color: "green",
+            });
+          }
+        } else if (payload.new.deleted)
           jobsHandlers.filter((job) => job.id !== payload.new.id);
         else
           jobsHandlers.applyWhere(
@@ -240,7 +169,16 @@ export const JobsProvider = ({ children }) => {
           );
       }
 
-      if (payload.eventType == "INSERT") fetchJobs();
+      if (payload.eventType == "INSERT") {
+        const job = await getJob(supabase, name, payload.new.id);
+        jobsHandlers.append(job);
+        if (name != "lookup-relation")
+          showNotification({
+            title: "Added job",
+            message: job.label,
+            color: "green",
+          });
+      }
     };
 
     if (user)
