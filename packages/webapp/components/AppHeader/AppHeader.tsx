@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import { IconMoonStars, IconSun } from "@tabler/icons";
 import { useRouter } from "next/router";
-import { useUser } from "../../providers/TwipsUserProvider";
+import { useUser } from "../../providers/UserProvider";
 import { JobMenu } from "./JobMenu";
 import { AccountMenu } from "./AccountMenu";
 import { useEffect, useState } from "react";

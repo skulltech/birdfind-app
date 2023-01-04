@@ -8,14 +8,8 @@ import {
   SupabaseClient,
 } from "@supabase/supabase-js";
 import { JobName, jobNames } from "@twips/common";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { useUser } from "./TwipsUserProvider";
+import { createContext, useContext, useEffect, useState } from "react";
+import { useUser } from "./UserProvider";
 
 export type Job = {
   id: number;

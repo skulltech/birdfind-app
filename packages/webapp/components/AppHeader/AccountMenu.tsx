@@ -10,7 +10,7 @@ import {
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconChevronDown, IconLogout } from "@tabler/icons";
 import { useRouter } from "next/router";
-import { useUser } from "../../providers/TwipsUserProvider";
+import { useUser } from "../../providers/UserProvider";
 import { accountMenuItems } from "../../utils/helpers";
 
 const useStyles = createStyles((theme) => ({

@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { ModalsProvider } from "@mantine/modals";
 import { GoogleAnalytics } from "nextjs-google-analytics";
-import { UserProvider } from "../providers/TwipsUserProvider";
+import { UserProvider } from "../providers/UserProvider";
 import { JobsProvider } from "../providers/JobsProvider";
 import { RouterTransition } from "../components/RouterTransition";
 import { useLocalStorage } from "@mantine/hooks";

@@ -15,7 +15,7 @@ import {
 } from "@tabler/icons";
 import axios from "axios";
 import { ReactNode, useState } from "react";
-import { useUser } from "../../providers/TwipsUserProvider";
+import { useUser } from "../../providers/UserProvider";
 import { SearchResult } from "../../utils/supabase";
 import { openCreateListModal } from "./CreateListModal";
 

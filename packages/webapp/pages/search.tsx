@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { UserTable } from "../components/UserTable/UserTable";
 import { Group } from "@mantine/core";
 import { FilterPanel } from "../components/FilterPanel/FilterPanel";
-import { useUser } from "../providers/TwipsUserProvider";
+import { useUser } from "../providers/UserProvider";
 import { Filters, parseTwitterProfile } from "../utils/helpers";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -131,10 +131,10 @@ const Search = () => {
       return updatedFilters;
     });
 
+  // Add lookup-relation jobs if needed
   useEffect(() => {
     if (!user?.twitter) return;
 
-    // Add lookup-relation jobs if needed
     for (const [filterName, filterValue] of Object.entries(debouncedFilters)) {
       if (filterValue !== undefined && filterValue !== null) {
         if (
@@ -171,7 +171,7 @@ const Search = () => {
 
   // Perform search on Supabase
   const handleSearch = async (silent?: boolean) => {
-    if (!filtersSufficient || !user?.twitter?.id) {
+    if (!filtersSufficient || !user?.twitter) {
       setResults([]);
       setCount(0);
       return;
@@ -189,26 +189,14 @@ const Search = () => {
     setLoading(false);
   };
 
-  // Check if filters are valid and search loudly if so
+  // Search on filter change
   useEffect(() => {
-    // Cases when search is not possible
-    if (!user?.twitter || !filtersSufficient) {
-      setResults([]);
-      setCount(0);
-      return;
-    }
-
     handleSearch();
     setPageIndex(0);
-  }, [debouncedFilters, user]);
+  }, [debouncedFilters]);
 
+  // Search on pagination change
   useEffect(() => {
-    if (!user?.twitter || !filtersSufficient) {
-      setResults([]);
-      setCount(0);
-      return;
-    }
-
     handleSearch();
   }, [debouncedPageIndex]);
 

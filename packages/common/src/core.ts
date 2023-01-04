@@ -49,28 +49,30 @@ export const searchTwitterProfilesColumns = [...twitterProfileColumns];
 
 export const serializeTwitterUser = (
   user: TwitterResponse<findUserByUsername>["data"]
-) => {
-  return {
-    id: user.id,
-    updated_at: new Date().toISOString(),
-    username: user.username,
-    name: user.name,
-    user_created_at: user.created_at,
-    description: user.description,
-    entities: user.entities ?? null,
-    location: user.location ?? null,
-    pinned_tweet_id: user.pinned_tweet_id ?? null,
-    profile_image_url: user.profile_image_url,
-    protected: user.protected,
-    followers_count: user.public_metrics.followers_count,
-    following_count: user.public_metrics.following_count,
-    tweet_count: user.public_metrics.tweet_count,
-    listed_count: user.public_metrics.listed_count,
-    url: user.url ?? null,
-    verified: user.verified,
-    withheld: user.withheld ?? null,
-  };
-};
+) =>
+  JSON.parse(
+    JSON.stringify({
+      id: user.id,
+      updated_at: new Date().toISOString(),
+      username: user.username,
+      name: user.name,
+      user_created_at: user.created_at,
+      description: user.description,
+      entities: user.entities ?? null,
+      location: user.location ?? null,
+      pinned_tweet_id: user.pinned_tweet_id ?? null,
+      profile_image_url: user.profile_image_url,
+      protected: user.protected,
+      followers_count: user.public_metrics.followers_count,
+      following_count: user.public_metrics.following_count,
+      tweet_count: user.public_metrics.tweet_count,
+      listed_count: user.public_metrics.listed_count,
+      url: user.url ?? null,
+      verified: user.verified,
+      withheld: user.withheld ?? null,
+      // Remove Unicode zero character because not supported by Postgres
+    }).replaceAll("\\u0000", "")
+  );
 
 export const lookupRelationJobColumns = [
   "id",
