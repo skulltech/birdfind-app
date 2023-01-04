@@ -23,7 +23,7 @@ const Twitter = () => {
   return (
     <Group>
       <AccountNavbar activePage="settings" />
-      <Container>
+      <Group sx={{ flex: 1 }} position="center" align="top">
         <Paper withBorder p="lg">
           <Stack>
             <Text>You have to connect to a Twitter account to use Twips.</Text>
@@ -44,7 +44,7 @@ const Twitter = () => {
             </Button>
           </Stack>
         </Paper>
-      </Container>
+      </Group>
     </Group>
   );
 };

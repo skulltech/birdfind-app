@@ -34,7 +34,9 @@ export const JobMenu = () => {
       </Menu.Target>
 
       <Menu.Dropdown>
-        <Menu.Label>{jobs.length ? jobs.length : "No"} active jobs</Menu.Label>
+        <Menu.Label>
+          {jobs.length ? jobs.length : "No"} {jobs.length == 1 ? "job" : "job"}
+        </Menu.Label>
 
         <Stack p={0} spacing={0}>
           {jobs.slice(0, numJobsToShow).map((job) => (

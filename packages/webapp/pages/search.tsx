@@ -13,6 +13,7 @@ import {
 import { addLookupRelationJob, twitterProfileColumns } from "@twips/common";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useJobs } from "../providers/JobsProvider";
 
 type Relation = "followers" | "following" | "blocking" | "muting";
 
@@ -69,6 +70,7 @@ const lookupRelationIfNeeded = async (
 
 const Search = () => {
   const { user } = useUser();
+  const { jobsUpdatedMarker } = useJobs();
   const supabase = useSupabaseClient();
 
   // Search inputs
@@ -199,6 +201,11 @@ const Search = () => {
   useEffect(() => {
     handleSearch();
   }, [debouncedPageIndex]);
+
+  // Refresh silently on job updates
+  useEffect(() => {
+    handleSearch(true);
+  }, [jobsUpdatedMarker]);
 
   return (
     <Group noWrap spacing={0} pt="sm" align="start">

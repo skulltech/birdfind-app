@@ -10,7 +10,9 @@ const Jobs = () => {
     <Group>
       <AccountNavbar activePage="jobs" />
       <Stack style={{ flex: 1 }}>
-        <Text pl={2}>{jobs.length ? jobs.length : "No"} active jobs</Text>
+        <Text pl={2}>
+          {jobs.length ? jobs.length : "No"} {jobs.length == 1 ? "job" : "job"}
+        </Text>
         <ScrollArea style={{ height: "80vh" }}>
           <div style={{ position: "relative" }}>
             <LoadingOverlay visible={loading} overlayBlur={2} />

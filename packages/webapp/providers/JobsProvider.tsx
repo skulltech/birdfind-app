@@ -26,11 +26,13 @@ const JobsContext = createContext<{
   loading: boolean;
   pauseJob: (name: JobName, id: number, paused: boolean) => Promise<void>;
   deleteJob: (name: JobName, id: number) => Promise<void>;
+  jobsUpdatedMarker: number;
 }>({
   jobs: [],
   loading: false,
   pauseJob: async () => {},
   deleteJob: async () => {},
+  jobsUpdatedMarker: 0,
 });
 
 const getJobs = async (
@@ -104,6 +106,7 @@ export const JobsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const supabase = useSupabaseClient();
   const { user } = useUser();
+  const [randomFloat, setRandomFloat] = useState(0);
 
   // Fetch jobs and update state
   const fetchJobs = async () => {
@@ -206,7 +209,7 @@ export const JobsProvider = ({ children }) => {
     ) => {
       if (payload.eventType == "UPDATE") {
         // Refresh search results quietly
-        // refresh(true);
+        setRandomFloat(Math.random());
 
         if (payload.new.finished)
           jobsHandlers.filter((job) => job.id !== payload.new.id);
@@ -276,6 +279,7 @@ export const JobsProvider = ({ children }) => {
         loading,
         pauseJob,
         deleteJob,
+        jobsUpdatedMarker: randomFloat,
       }}
     >
       {children}

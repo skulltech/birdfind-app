@@ -82,10 +82,10 @@ export const lookupRelation = async (jobId: number) => {
         : relation == "blocking"
         ? await twitter.users.usersIdBlocking(job.target_id, params)
         : relation == "muting"
-        ? twitter.users.usersIdMuting(job.target_id, params)
+        ? await twitter.users.usersIdMuting(job.target_id, params)
         : null;
 
-    users = page.data;
+    users = page.data ?? [];
     paginationToken = page.meta.next_token ?? null;
   } catch (error) {
     // If rate-limited, delay the job

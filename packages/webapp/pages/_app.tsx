@@ -18,6 +18,7 @@ import { JobsProvider } from "../providers/JobsProvider";
 import { RouterTransition } from "../components/RouterTransition";
 import { useLocalStorage } from "@mantine/hooks";
 import { useRouter } from "next/router";
+import Head from "next/head";
 
 // Monkeypatching BigInt
 BigInt.prototype["toJSON"] = function () {
@@ -54,6 +55,10 @@ export default function App({
 
   return (
     <>
+      <Head>
+        <link rel="shortcut icon" href="/images/icons8-twitter-64.png" />
+        <title>Twips: Search for Tweeps!</title>
+      </Head>
       <GoogleAnalytics trackPageViews />
       <SessionContextProvider
         supabaseClient={supabase}
