@@ -7,6 +7,7 @@ type RelationsCellProps = {
   profile: SearchResult;
   lists: any[];
   refreshLists: () => void;
+  refreshSearch: () => void;
   listsLoading: boolean;
 };
 
@@ -15,6 +16,7 @@ export const RelationsCell = ({
   lists,
   refreshLists,
   listsLoading,
+  refreshSearch,
 }: RelationsCellProps) => {
   // Relation label
   let label: string;
@@ -45,6 +47,7 @@ export const RelationsCell = ({
           </ActionIcon>
         }
         users={[profile]}
+        refreshSearch={refreshSearch}
         lists={lists}
         refreshLists={refreshLists}
         listsLoading={listsLoading}

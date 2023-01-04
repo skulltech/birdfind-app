@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons";
 import { useState } from "react";
-import { Job, useTwipsJobs } from "../providers/TwipsJobsProvider";
+import { Job, useJobs } from "../providers/JobsProvider";
 
 type JobItemProps = {
   job: Job;
@@ -34,14 +34,13 @@ export const JobItem = ({
 }: JobItemProps) => {
   const [pauseLoading, setPauseLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const { pauseJob, deleteJob } = useTwipsJobs();
+  const { pauseJob, deleteJob } = useJobs();
   const { classes } = useStyles();
 
   return (
     <Paper
       withBorder={!compact}
       p="xs"
-      // py={compact ? 2 : "xs"}
       radius="md"
       className={classes.jobItem}
       shadow={compact ? "none" : "md"}
@@ -50,9 +49,9 @@ export const JobItem = ({
         <Group position="apart">
           <Stack spacing={2}>
             <Text size={compact ? "sm" : "md"}>{label}</Text>
-            <Text c="dimmed" size={compact ? "xs" : "md"}>
-              Created at {createdAt.toLocaleString()}
-            </Text>
+            {!compact && (
+              <Text c="dimmed">Created at {createdAt.toLocaleString()}</Text>
+            )}
           </Stack>
           <Group>
             <ActionIcon

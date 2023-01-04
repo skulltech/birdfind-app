@@ -12,11 +12,9 @@ import {
   ActionIcon,
   Button,
   LoadingOverlay,
-  Container,
-  Loader,
 } from "@mantine/core";
 import dayjs from "dayjs";
-import { useEffect, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
   ColumnDef,
   flexRender,
@@ -36,7 +34,6 @@ import {
   IconSortDescending,
 } from "@tabler/icons";
 import { TwitterProfile } from "../../utils/helpers";
-import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
 import { ActionMenu } from "./ActionMenu";
 import { SearchResult } from "../../utils/supabase";
 import { RelationsCell } from "./RelationsCell";
@@ -154,12 +151,31 @@ export const Th = ({
   );
 };
 
-export const UserTable = ({ loading }: { loading: boolean }) => {
+type UserTableProps = {
+  filtersSufficient: boolean;
+  // Search results and pagination
+  results: SearchResult[];
+  count: number;
+  pageIndex: number;
+  setPageIndex: Dispatch<SetStateAction<number>>;
+  // Loading and refresh
+  loading: boolean;
+  refresh: (silent?: boolean) => void;
+};
+
+export const UserTable = ({
+  results,
+  refresh,
+  pageIndex,
+  count,
+  setPageIndex,
+  loading,
+  filtersSufficient,
+}: UserTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const { classes, cx } = useStyles();
   const [scrolled, setScrolled] = useState(false);
-  const { results, refresh, pageIndex, count, setPageIndex } = useTwipsSearch();
 
   const supabase = useSupabaseClient();
   const [lists, setLists] = useState<any[]>(null);
@@ -273,6 +289,7 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
             lists={lists}
             refreshLists={refreshLists}
             listsLoading={refreshListsLoading}
+            refreshSearch={refresh}
           />
         ),
       },
@@ -331,78 +348,88 @@ export const UserTable = ({ loading }: { loading: boolean }) => {
 
   return (
     <Stack spacing={0} sx={{ flex: 1 }}>
-      {rows.length > 0 ? (
-        <>
-          <Group position="apart" p="md" className={classes.headerGroup} pb={0}>
-            <Group>
-              <Text size={14}>
-                {Object.keys(rowSelection).length} of {count} users selected
-              </Text>
-              <ActionMenu
-                users={results.filter((x, i) => rowSelection[i])}
-                target={
-                  <Button compact variant="default">
-                    <Group spacing="xs">
-                      Actions
-                      <IconChevronDown size={14} />
-                    </Group>
-                  </Button>
-                }
-                lists={lists}
-                listsLoading={refreshListsLoading}
-                refreshLists={refreshLists}
-              />
-            </Group>
-            <Group>
-              <ActionIcon size="sm" color="blue" onClick={() => refresh(false)}>
-                <IconRefresh />
-              </ActionIcon>
-              <Pagination
-                size="sm"
-                page={table.getState().pagination.pageIndex + 1}
-                onChange={(page) => setPageIndex(page - 1)}
-                total={table.getPageCount()}
-              />
-            </Group>
-          </Group>
+      <Group position="apart" p="md" className={classes.headerGroup} pb={0}>
+        <Group>
+          <Text size={14}>
+            {Object.keys(rowSelection).length} of {count} users selected
+          </Text>
+          <ActionMenu
+            users={results.filter((x, i) => rowSelection[i])}
+            target={
+              <Button compact variant="default">
+                <Group spacing="xs">
+                  Actions
+                  <IconChevronDown size={14} />
+                </Group>
+              </Button>
+            }
+            lists={lists}
+            listsLoading={refreshListsLoading}
+            refreshLists={refreshLists}
+            refreshSearch={refresh}
+          />
+        </Group>
+        <Group>
+          <ActionIcon size="sm" color="blue" onClick={() => refresh(false)}>
+            <IconRefresh />
+          </ActionIcon>
+          <Pagination
+            size="sm"
+            page={table.getState().pagination.pageIndex + 1}
+            onChange={(page) => setPageIndex(page - 1)}
+            total={table.getPageCount()}
+          />
+        </Group>
+      </Group>
 
-          <div style={{ position: "relative" }}>
-            <LoadingOverlay visible={loading} overlayBlur={2} />
-            <ScrollArea
-              sx={{ height: "82vh" }}
-              onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+      <div style={{ position: "relative" }}>
+        <LoadingOverlay visible={loading} overlayBlur={2} />
+        <ScrollArea
+          sx={{ height: "82vh" }}
+          onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+        >
+          <Table horizontalSpacing="md" verticalSpacing="xs" width="100%">
+            <thead
+              className={cx(classes.header, {
+                [classes.scrolled]: scrolled,
+              })}
+              style={{ zIndex: 1 }}
             >
-              <Table horizontalSpacing="md" verticalSpacing="xs" width="100%">
-                <thead
-                  className={cx(classes.header, {
-                    [classes.scrolled]: scrolled,
-                  })}
-                  style={{ zIndex: 1 }}
-                >
-                  {headers}
-                </thead>
-                <tbody>{rows}</tbody>
-              </Table>
-            </ScrollArea>
-          </div>
-        </>
-      ) : (
-        <Container mt={100}>
-          {loading ? (
-            <Loader />
-          ) : (
-            <Group align="center" spacing="xl">
-              <Group spacing="xs">
-                <IconAlertCircle color="orange" />
-                <Text weight="bold">No users found</Text>
-              </Group>
-              <ActionIcon onClick={() => refresh(false)}>
-                <IconRefresh size={20} />
-              </ActionIcon>
-            </Group>
-          )}
-        </Container>
-      )}
+              {headers}
+            </thead>
+            <tbody>
+              {rows.length > 0 ? (
+                rows
+              ) : !filtersSufficient ? (
+                <tr>
+                  <td colSpan={7}>
+                    <Stack align="center" spacing="xs" mt={100}>
+                      <Group spacing="xs">
+                        <IconAlertCircle color="red" />
+                        <Text weight="bold">Insufficient search filters</Text>
+                      </Group>
+                      <Text>
+                        Select at least one required
+                        <span style={{ color: "red" }}>*</span> filter from the
+                        left panel
+                      </Text>
+                    </Stack>
+                  </td>
+                </tr>
+              ) : (
+                <tr>
+                  <td colSpan={7}>
+                    <Group spacing="xs" position="center" mt={100}>
+                      <IconAlertCircle color="orange" />
+                      <Text weight="bold">No users found</Text>
+                    </Group>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </Table>
+        </ScrollArea>
+      </div>
     </Stack>
   );
 };

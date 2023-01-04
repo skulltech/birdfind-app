@@ -157,11 +157,20 @@ export const searchTwitterProfiles = async ({
   filters,
   pageIndex,
 }: searchTwitterProfilesArgs): Promise<SearchTwitterProfilesResult> => {
-  const { followerOf, followedBy, blockedBy, mutedBy, ...otherFilters } =
-    filters;
+  const {
+    followerOf: followerOfSet,
+    followedBy: followedBySet,
+    blockedByMe,
+    mutedByMe,
+    ...otherFilters
+  } = filters;
+  const blockedBy = blockedByMe ? [userTwitterId] : null;
+  const mutedBy = mutedByMe ? [userTwitterId] : null;
+  const followerOf = followerOfSet ? Array.from(followerOfSet) : null;
+  const followedBy = followedBySet ? Array.from(followedBySet) : null;
 
   const appendFilterFunctions: Record<
-    keyof Omit<Filters, "followerOf" | "followedBy" | "blockedBy" | "mutedBy">,
+    keyof typeof otherFilters,
     (query: any, value: any) => any
   > = {
     followersCountLessThan: (query, value: number) =>

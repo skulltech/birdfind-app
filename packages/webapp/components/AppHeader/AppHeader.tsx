@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import { IconMoonStars, IconSun } from "@tabler/icons";
 import { useRouter } from "next/router";
-import { useTwipsUser } from "../../providers/TwipsUserProvider";
+import { useUser } from "../../providers/TwipsUserProvider";
 import { JobMenu } from "./JobMenu";
 import { AccountMenu } from "./AccountMenu";
 import { useEffect, useState } from "react";
@@ -82,7 +82,7 @@ const getRandomElement = <T,>(arg: T[]) =>
 export const AppHeader = ({ ...others }: AppHeaderProps) => {
   const router = useRouter();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
-  const { user } = useTwipsUser();
+  const { user } = useUser();
   const dark = colorScheme === "dark";
 
   const { classes, cx } = useStyles();

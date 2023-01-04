@@ -23,7 +23,6 @@ import {
   parseTwitterProfile,
   TwitterProfile,
 } from "../../../utils/helpers";
-import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
 import { useDebouncedValue } from "@mantine/hooks";
 
 interface UsernameInputProps extends FilterInputProps {
@@ -41,12 +40,14 @@ const lookupUser = async (username: string): Promise<TwitterProfile> => {
   return parseTwitterProfile(response.data.profile);
 };
 
-export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
+export const UsernameInput = ({
+  direction,
+  label,
+  addFilters,
+}: UsernameInputProps) => {
   const [username, setUsername] = useState("");
-  const { addFilters } = useTwipsSearch();
   const supabase = useSupabaseClient();
   const [autocompleteOptions, setAutocompleteOptions] = useState([]);
-  const [addFiltersLoading, setAddFiltersLoading] = useState(false);
   const [debouncedUsername] = useDebouncedValue(username, 300);
 
   // Checking if username exists
@@ -92,7 +93,7 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
       setUser(null);
       if (!valid || !Boolean(debouncedUsername.length)) return;
 
-      // Lookup user on Twips
+      // Lookup user
       setLookupLoading(true);
       try {
         const user = await lookupUser(debouncedUsername);
@@ -111,12 +112,12 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
   }, [debouncedUsername, valid]);
 
   const handleSubmit = async () => {
-    setAddFiltersLoading(true);
-    await addFilters({
-      [direction == "followers" ? "followerOf" : "followedBy"]: [username],
+    addFilters({
+      [direction == "followers" ? "followerOf" : "followedBy"]: new Set([
+        username,
+      ]),
     });
     setUsername("");
-    setAddFiltersLoading(false);
   };
 
   return (
@@ -161,18 +162,14 @@ export const UsernameInput = ({ direction, label }: UsernameInputProps) => {
           }
         />
         {valid && user && <Avatar src={user.profileImageUrl} radius="xl" />}
-        {addFiltersLoading ? (
-          <Loader size="md" />
-        ) : (
-          <ActionIcon
-            size="lg"
-            variant="default"
-            disabled={!valid || !user || user.protected}
-            onClick={handleSubmit}
-          >
-            <IconArrowNarrowRight size={16} />
-          </ActionIcon>
-        )}
+        <ActionIcon
+          size="lg"
+          variant="default"
+          disabled={!valid || !user || user.protected}
+          onClick={handleSubmit}
+        >
+          <IconArrowNarrowRight size={16} />
+        </ActionIcon>
       </Group>
     </Stack>
   );

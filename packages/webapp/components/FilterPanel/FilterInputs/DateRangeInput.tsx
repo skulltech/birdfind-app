@@ -3,7 +3,6 @@ import { DatePicker } from "@mantine/dates";
 import { IconArrowNarrowRight } from "@tabler/icons";
 import { useState } from "react";
 import { FilterInputProps } from "../../../utils/helpers";
-import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
 
 interface DateRangeInputProps extends FilterInputProps {}
 
@@ -12,10 +11,9 @@ const max = (arg1: Date, arg2?: Date) => {
   return arg1;
 };
 
-export const DateRangeInput = ({ label }: DateRangeInputProps) => {
+export const DateRangeInput = ({ label, addFilters }: DateRangeInputProps) => {
   const [minDate, setMinDate] = useState<Date>(undefined);
   const [maxDate, setMaxDate] = useState<Date>(undefined);
-  const { addFilters } = useTwipsSearch();
 
   return (
     <Stack spacing={2}>

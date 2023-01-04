@@ -27,7 +27,7 @@ export const middleware = async (req: NextRequest) => {
     return unauthorized();
   }
 
-  // Twips backend API routes
+  // Backend API routes
   if (path.startsWith("/api/twips")) {
     if (user && userTwitter) return;
     return unauthorized();

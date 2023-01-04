@@ -1,50 +1,70 @@
 import { Checkbox, Loader, Group, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { FilterInputProps } from "../../../utils/helpers";
-import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
-import { useTwipsUser } from "../../../providers/TwipsUserProvider";
+import { useUser } from "../../../providers/TwipsUserProvider";
 
 interface CheckboxInputProps extends FilterInputProps {
   relation: "blocked" | "muted" | "follower" | "followed";
 }
 
-export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
+export const CheckboxInput = ({
+  label,
+  relation,
+  filters,
+  addFilters,
+  removeFilters,
+}: CheckboxInputProps) => {
   const [checked, setChecked] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const { user } = useTwipsUser();
-  const { filters, addFilters, removeFilters } = useTwipsSearch();
+  const { user } = useUser();
 
-  const addFilter = async () => {
-    setLoading(true);
-    if (relation == "blocked")
-      await addFilters({ blockedBy: [user.twitter.username] });
-    else if (relation == "muted")
-      await addFilters({ mutedBy: [user.twitter.username] });
-    else if (relation == "follower")
-      await addFilters({ followerOf: [user.twitter.username] });
-    else if (relation == "followed")
-      await addFilters({ followedBy: [user.twitter.username] });
-    setLoading(false);
+  const handleMarkChecked = () => {
+    addFilters(
+      relation == "blocked"
+        ? { blockedByMe: true }
+        : relation == "muted"
+        ? { mutedByMe: true }
+        : relation == "followed"
+        ? { followedBy: new Set([user.twitter.username]) }
+        : relation == "follower"
+        ? { followerOf: new Set([user.twitter.username]) }
+        : null
+    );
   };
 
-  const removeFilter = () => {
-    if (relation == "blocked")
-      removeFilters({ blockedBy: [user.twitter.username] });
-    else if (relation == "muted")
-      removeFilters({ mutedBy: [user.twitter.username] });
-    else if (relation == "follower")
-      removeFilters({ followerOf: [user.twitter.username] });
-    else if (relation == "followed")
-      removeFilters({ followedBy: [user.twitter.username] });
+  const handleMarkUnchecked = () => {
+    removeFilters(
+      relation == "blocked"
+        ? { name: "blockedByMe" }
+        : relation == "muted"
+        ? { name: "mutedByMe" }
+        : relation == "followed"
+        ? {
+            name: "followedBy",
+            value: new Set([user.twitter.username]),
+          }
+        : relation == "follower"
+        ? {
+            name: "followerOf",
+            value: new Set([user.twitter.username]),
+          }
+        : null
+    );
   };
 
   useEffect(() => {
-    if (relation == "blocked") setChecked(Boolean(filters.blockedBy?.length));
-    else if (relation == "muted") setChecked(Boolean(filters.mutedBy?.length));
-    else if (relation == "followed")
-      setChecked(filters.followedBy?.includes(user.twitter.username) ?? false);
-    else if (relation == "follower")
-      setChecked(filters.followerOf?.includes(user.twitter.username) ?? false);
+    setChecked(
+      Boolean(
+        relation == "blocked"
+          ? filters.blockedByMe
+          : relation == "muted"
+          ? filters.mutedByMe
+          : relation == "followed"
+          ? filters.followedBy?.has(user.twitter.username)
+          : relation == "follower"
+          ? filters.followerOf?.has(user.twitter.username)
+          : null
+      )
+    );
   }, [filters]);
 
   return (
@@ -54,13 +74,13 @@ export const CheckboxInput = ({ label, relation }: CheckboxInputProps) => {
           <Text>
             {label} <span style={{ color: "red" }}>*</span>
           </Text>
-          {loading && <Loader variant="dots" />}
         </Group>
       }
       checked={checked}
-      indeterminate={loading}
       onChange={(event) =>
-        event.currentTarget.checked ? addFilter() : removeFilter()
+        event.currentTarget.checked
+          ? handleMarkChecked()
+          : handleMarkUnchecked()
       }
     />
   );

@@ -1,14 +1,15 @@
 import { Button, Center, Indicator, Menu, Stack, Text } from "@mantine/core";
 import { IconChevronDown, IconSubtask } from "@tabler/icons";
 import { useRouter } from "next/router";
-import { useTwipsJobs } from "../../providers/TwipsJobsProvider";
+import { useJobs } from "../../providers/JobsProvider";
 import { JobItem } from "../JobItem";
 
 const numJobsToShow = 3;
 
 export const JobMenu = () => {
-  const { jobs } = useTwipsJobs();
+  const { jobs } = useJobs();
   const router = useRouter();
+  const allJobsPaused = jobs.filter((x) => !x.paused).length == 0;
 
   return (
     <Menu shadow="md">
@@ -17,7 +18,8 @@ export const JobMenu = () => {
           label={jobs.length}
           inline
           size={16}
-          processing
+          processing={allJobsPaused ? false : true}
+          color={allJobsPaused ? "yellow" : "blue"}
           showZero={false}
           dot={false}
         >

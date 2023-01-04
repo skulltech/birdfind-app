@@ -15,9 +15,7 @@ import {
 } from "@tabler/icons";
 import axios from "axios";
 import { ReactNode, useState } from "react";
-import { useTwipsJobs } from "../../providers/TwipsJobsProvider";
-import { useTwipsSearch } from "../../providers/TwipsSearchProvider";
-import { useTwipsUser } from "../../providers/TwipsUserProvider";
+import { useUser } from "../../providers/TwipsUserProvider";
 import { SearchResult } from "../../utils/supabase";
 import { openCreateListModal } from "./CreateListModal";
 
@@ -27,6 +25,7 @@ interface ActionMenuProps {
   lists: any[];
   refreshLists: () => void;
   listsLoading: boolean;
+  refreshSearch: (silent?: boolean) => void;
 }
 
 type Relation = "follow" | "block" | "mute";
@@ -93,8 +92,7 @@ export const ActionMenu = ({
 }: ActionMenuProps) => {
   const [menuOpened, setMenuOpened] = useState(false);
   const supabase = useSupabaseClient();
-  const { user } = useTwipsUser();
-  const { refresh: refreshSearch } = useTwipsSearch();
+  const { user } = useUser();
   const singleInputUser = users.length == 1 ? users[0] : null;
 
   // Add or remove relation
@@ -146,7 +144,7 @@ export const ActionMenu = ({
         } @${singleInputUser.username}`,
         color: "green",
       });
-      refreshSearch();
+      // refreshSearch();
     }
   };
 

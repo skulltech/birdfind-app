@@ -1,14 +1,8 @@
-import { SupabaseClient } from "@supabase/supabase-js";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { getUserDetails, UserDetails } from "../utils/supabase";
 
-const TwipsUserContext = createContext<{
+const UserContext = createContext<{
   user: UserDetails;
   loading: boolean;
   refresh: () => void;
@@ -18,18 +12,11 @@ const TwipsUserContext = createContext<{
   refresh: () => {},
 });
 
-interface TwipsUserProviderProps {
-  supabase: SupabaseClient;
-  children: ReactNode;
-}
-
-export const TwipsUserProvider = ({
-  supabase,
-  children,
-}: TwipsUserProviderProps) => {
+export const UserProvider = ({ children }) => {
   const [user, setUser] = useState<UserDetails>(null);
   const [loading, setLoading] = useState(false);
   const [randomFloat, setRandomFloat] = useState(0);
+  const supabase = useSupabaseClient();
 
   // Load user details
   useEffect(() => {
@@ -45,7 +32,7 @@ export const TwipsUserProvider = ({
   }, [supabase, randomFloat]);
 
   return (
-    <TwipsUserContext.Provider
+    <UserContext.Provider
       value={{
         user,
         loading,
@@ -53,8 +40,8 @@ export const TwipsUserProvider = ({
       }}
     >
       {children}
-    </TwipsUserContext.Provider>
+    </UserContext.Provider>
   );
 };
 
-export const useTwipsUser = () => useContext(TwipsUserContext);
+export const useUser = () => useContext(UserContext);

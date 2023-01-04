@@ -6,10 +6,11 @@ import {
 } from "@tabler/icons";
 import camelcase from "camelcase";
 import { z } from "zod";
+import { RemoveFiltersArg } from "../pages/search";
 
 export type Filters = {
-  followedBy?: string[];
-  followerOf?: string[];
+  followedBy?: Set<string>;
+  followerOf?: Set<string>;
   followersCountLessThan?: number;
   followersCountGreaterThan?: number;
   followingCountLessThan?: number;
@@ -18,12 +19,18 @@ export type Filters = {
   tweetCountGreaterThan?: number;
   createdBefore?: Date;
   createdAfter?: Date;
-  blockedBy?: string[];
-  mutedBy?: string[];
+  blockedByMe?: boolean;
+  mutedByMe?: boolean;
   searchText?: string;
 };
 
-export interface FilterInputProps {
+export interface FilterProps {
+  filters: Filters;
+  addFilters: (arg: Filters) => void;
+  removeFilters: (...arg: RemoveFiltersArg[]) => void;
+}
+
+export interface FilterInputProps extends FilterProps {
   label: string;
 }
 

@@ -2,16 +2,18 @@ import { ActionIcon, Group, NumberInput, Stack, Text } from "@mantine/core";
 import { IconArrowNarrowRight } from "@tabler/icons";
 import { useState } from "react";
 import { FilterInputProps } from "../../../utils/helpers";
-import { useTwipsSearch } from "../../../providers/TwipsSearchProvider";
 
 interface NumberRangeInputProps extends FilterInputProps {
   metric: "tweet" | "followers" | "following";
 }
 
-export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
+export const NumberRangeInput = ({
+  label,
+  metric,
+  addFilters,
+}: NumberRangeInputProps) => {
   const [minValue, setMinValue] = useState<number>(undefined);
   const [maxValue, setMaxValue] = useState<number>(undefined);
-  const { addFilters } = useTwipsSearch();
 
   return (
     <Stack spacing={2}>
@@ -37,21 +39,24 @@ export const NumberRangeInput = ({ label, metric }: NumberRangeInputProps) => {
           size="lg"
           variant="default"
           onClick={() => {
-            if (metric == "followers")
-              addFilters({
-                followersCountLessThan: maxValue,
-                followersCountGreaterThan: minValue,
-              });
-            if (metric == "following")
-              addFilters({
-                followingCountLessThan: maxValue,
-                followingCountGreaterThan: minValue,
-              });
-            if (metric == "tweet")
-              addFilters({
-                tweetCountLessThan: maxValue,
-                tweetCountGreaterThan: minValue,
-              });
+            addFilters(
+              metric == "followers"
+                ? {
+                    followersCountLessThan: maxValue,
+                    followersCountGreaterThan: minValue,
+                  }
+                : metric == "following"
+                ? {
+                    followingCountLessThan: maxValue,
+                    followingCountGreaterThan: minValue,
+                  }
+                : metric == "tweet"
+                ? {
+                    tweetCountLessThan: maxValue,
+                    tweetCountGreaterThan: minValue,
+                  }
+                : null
+            );
           }}
         >
           <IconArrowNarrowRight size={16} />

@@ -1,10 +1,10 @@
 import { Group, LoadingOverlay, ScrollArea, Stack, Text } from "@mantine/core";
 import { AccountNavbar } from "../../components/AccountNavbar";
 import { JobItem } from "../../components/JobItem";
-import { useTwipsJobs } from "../../providers/TwipsJobsProvider";
+import { useJobs } from "../../providers/JobsProvider";
 
 const Jobs = () => {
-  const { jobs, loading } = useTwipsJobs();
+  const { jobs, loading } = useJobs();
 
   return (
     <Group>
