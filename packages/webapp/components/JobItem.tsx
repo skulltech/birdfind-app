@@ -19,10 +19,13 @@ type JobItemProps = {
 
 const useStyles = createStyles((theme) => ({
   jobItem: {
+    backgroundColor:
+      theme.colorScheme === "dark" ? theme.colors.dark[6] : theme.colors.white,
+
     "&:hover": {
       backgroundColor:
         theme.colorScheme === "dark"
-          ? theme.colors.dark[6]
+          ? theme.colors.dark[4]
           : theme.colors.gray[0],
     },
   },
