@@ -344,7 +344,11 @@ const parseLookupRelationJob = (job: any): Job => {
     } of @${job.twitter_profile.username}`,
     createdAt: new Date(job.created_at),
     paused: job.paused,
-    totalCount,
+    metadata: {
+      totalCount,
+      relation: job.relation,
+      username: job.twitter_profile.username,
+    },
     progress: totalCount ? (updatedCount / totalCount) * 100 : null,
   };
 };

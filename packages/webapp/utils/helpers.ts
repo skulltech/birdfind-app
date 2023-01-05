@@ -126,5 +126,9 @@ export type Job = {
   label: string;
   paused: boolean;
   progress?: number;
-  totalCount?: number;
+  metadata?: {
+    totalCount: number;
+    relation: "followers" | "following" | "muting" | "blocking";
+    username: string;
+  };
 };

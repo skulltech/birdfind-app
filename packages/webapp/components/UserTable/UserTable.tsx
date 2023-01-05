@@ -12,6 +12,7 @@ import {
   ActionIcon,
   Button,
   LoadingOverlay,
+  Loader,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -33,13 +34,14 @@ import {
   IconSortAscending,
   IconSortDescending,
 } from "@tabler/icons";
-import { TwitterProfile } from "../../utils/helpers";
+import { Job, TwitterProfile } from "../../utils/helpers";
 import { ActionMenu } from "./ActionMenu";
 import { SearchResult } from "../../utils/supabase";
 import { RelationsCell } from "./RelationsCell";
 import axios from "axios";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useJobs } from "../../providers/JobsProvider";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -112,6 +114,7 @@ interface ThProps {
   sorted: false | "asc" | "desc";
   isSortable: boolean;
   onSort: (event: unknown) => void;
+  isSelect: boolean;
 }
 
 export const Th = ({
@@ -119,7 +122,7 @@ export const Th = ({
   sorted,
   isSortable,
   onSort,
-  ...others
+  isSelect,
 }: ThProps) => {
   const { classes } = useStyles();
 
@@ -129,8 +132,10 @@ export const Th = ({
       : IconSortDescending
     : IconArrowsSort;
   return (
-    <th className={classes.th} {...others}>
-      {isSortable ? (
+    <th className={classes.th}>
+      {isSelect ? (
+        <Center className={classes.control}>{children}</Center>
+      ) : isSortable ? (
         <UnstyledButton onClick={onSort} className={classes.control}>
           <Group position="apart" noWrap spacing={0}>
             <Text weight={500} size="sm" sx={{ whiteSpace: "nowrap" }}>
@@ -162,6 +167,7 @@ type UserTableProps = {
   // Loading and refresh
   loading: boolean;
   refresh: (silent?: boolean) => void;
+  searchInProgress: boolean;
 };
 
 export const UserTable = ({
@@ -172,6 +178,7 @@ export const UserTable = ({
   setPageIndex,
   loading,
   filtersSufficient,
+  searchInProgress,
 }: UserTableProps) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
@@ -330,22 +337,17 @@ export const UserTable = ({
 
   const headers = table.getHeaderGroups().map((headerGroup) => (
     <tr key={headerGroup.id}>
-      {headerGroup.headers.map((header) => {
-        return header.id == "select" ? (
-          <Center className={classes.control}>
-            {flexRender(header.column.columnDef.header, header.getContext())}
-          </Center>
-        ) : (
-          <Th
-            key={header.id}
-            sorted={header.column.getIsSorted()}
-            isSortable={header.column.getCanSort()}
-            onSort={header.column.getToggleSortingHandler()}
-          >
-            {flexRender(header.column.columnDef.header, header.getContext())}
-          </Th>
-        );
-      })}
+      {headerGroup.headers.map((header) => (
+        <Th
+          key={header.id}
+          sorted={header.column.getIsSorted()}
+          isSortable={header.column.getCanSort()}
+          onSort={header.column.getToggleSortingHandler()}
+          isSelect={header.id == "select"}
+        >
+          {flexRender(header.column.columnDef.header, header.getContext())}
+        </Th>
+      ))}
     </tr>
   ));
 
@@ -370,6 +372,10 @@ export const UserTable = ({
     .getSelectedRowModel()
     .rows.map(({ original }) => original);
 
+  useEffect(() => {
+    console.log(searchInProgress);
+  }, [searchInProgress]);
+
   return (
     <Stack spacing={0} sx={{ flex: 1 }}>
       <Group position="apart" p="md" className={classes.headerGroup}>
@@ -391,6 +397,7 @@ export const UserTable = ({
             refreshSearch={refresh}
           />
         </Group>
+        {searchInProgress ? <Loader variant="dots" /> : null}
         <Group>
           <Text size={14}>
             Showing {Math.min(pageIndex * 100 + 1, count)} -{" "}

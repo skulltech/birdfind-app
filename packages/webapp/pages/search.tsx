@@ -3,7 +3,7 @@ import { UserTable } from "../components/UserTable/UserTable";
 import { Group } from "@mantine/core";
 import { FilterPanel } from "../components/FilterPanel/FilterPanel";
 import { useUser } from "../providers/UserProvider";
-import { Filters, parseTwitterProfile } from "../utils/helpers";
+import { Filters, Job, parseTwitterProfile } from "../utils/helpers";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   SearchResult,
@@ -94,6 +94,34 @@ const Search = () => {
   // Search results
   const [results, setResults] = useState<SearchResult[]>([]);
   const [count, setCount] = useState(0);
+
+  // Indicates whether there are jobs associated with the search
+  const [searchInProgress, setSearchInProgress] = useState(false);
+  const { jobs } = useJobs();
+
+  useEffect(() => {
+    const isMetadataMatching = (metadata: Job["metadata"]) =>
+      filters.blockedByMe && metadata.relation == "blocking"
+        ? true
+        : filters.blockedByMe && metadata.relation == "blocking"
+        ? true
+        : filters.followedBy &&
+          metadata.relation == "following" &&
+          filters.followedBy.has(metadata.username)
+        ? true
+        : filters.followerOf &&
+          metadata.relation == "followers" &&
+          filters.followerOf.has(metadata.username)
+        ? true
+        : false;
+
+    setSearchInProgress(
+      jobs.filter(
+        (job) =>
+          job.name == "lookup-relation" && isMetadataMatching(job.metadata)
+      ).length > 0
+    );
+  }, [jobs, filters]);
 
   // Reducer function for adding filters
   const addFilters = (arg: Filters) =>
@@ -219,6 +247,7 @@ const Search = () => {
           loading,
           filtersSufficient,
           setPageIndex,
+          searchInProgress,
         }}
       />
     </Group>

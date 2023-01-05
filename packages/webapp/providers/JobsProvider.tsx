@@ -153,8 +153,9 @@ export const JobsProvider = ({ children }) => {
               progress:
                 // Set progress
                 name == "lookup-relation"
-                  ? job.totalCount
-                    ? (payload.new.updated_count / job.totalCount) * 100
+                  ? job.metadata.totalCount
+                    ? (payload.new.updated_count / job.metadata.totalCount) *
+                      100
                     : null
                   : name == "manage-list-members"
                   ? (payload.new.member_ids_done.length /
