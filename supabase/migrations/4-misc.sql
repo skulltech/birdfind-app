@@ -6,14 +6,15 @@ create table if not exists user_event (
 
     user_id uuid references auth.users not null,
 
-    type text not null check (type in 
-      ('search-filters', 'manage-relation', 'manage-list-member', 'prompt-to-filters')),
+    type text not null check (type in (
+      'search-filters', 'manage-relation', 'manage-list-member', 'prompt-to-filters'
+    )),
     data jsonb
 );
 
 alter table user_event enable row level security;
 
-create policy "Users can insert events for themselves."
+create policy "Users can insert their own events."
   on user_event for insert
   with check ( auth.uid() = user_id );
 

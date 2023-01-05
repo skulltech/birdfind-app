@@ -1,6 +1,4 @@
--- Long running background jobs
-
--- Rate limit information
+-- Long running background jobs and rate limit information
 
 create table if not exists twitter_api_rate_limit (
   user_twitter_id bigint references twitter_profile not null,
@@ -16,6 +14,13 @@ create table if not exists twitter_api_rate_limit (
 );
 
 alter table twitter_api_rate_limit enable row level security;
+
+create policy "Users can view their own rate limits."
+  on twitter_api_rate_limit for select
+  using ( auth.uid() in (
+      select user_profile.id from user_profile
+      where user_profile.twitter_id = twitter_api_rate_limit.user_twitter_id
+  ));
 
 
 -- Lookup relation jobs
@@ -39,17 +44,19 @@ create table if not exists lookup_relation_job (
     updated_count integer default 0 not null
 );
 
+alter publication supabase_realtime add table lookup_relation_job;
+
 alter table lookup_relation_job enable row level security;
 
-create policy "Users can create lookup-relation jobs that will use their own tokens"
+create policy "Users can insert their own lookup relation jobs."
   on lookup_relation_job for insert
   with check ( auth.uid() = user_id );
 
-create policy "lookup-relation Jobs are viewable by users who created them"
+create policy "Users can view their own lookup relation jobs."
   on lookup_relation_job for select
   using ( auth.uid() = user_id );
 
-create policy "Users can update lookup-relation jobs they created"
+create policy "Users can update their own lookup relation jobs."
   on lookup_relation_job for update
   using ( auth.uid() = user_id );
 
@@ -75,17 +82,19 @@ create table if not exists manage_list_members_job (
     member_ids_done bigint[] default array[]::bigint[]
 );
 
+alter publication supabase_realtime add table manage_list_members_job;
+
 alter table manage_list_members_job enable row level security;
 
-create policy "Users can create manage-list-members jobs that will use their own tokens"
+create policy "Users can insert their own manage list members jobs."
   on manage_list_members_job for insert
   with check ( auth.uid() = user_id );
 
-create policy "manage-list-members Jobs are viewable by users who created them"
+create policy "Users can view their own manage list members jobs."
   on manage_list_members_job for select
   using ( auth.uid() = user_id );
 
-create policy "Users can update manage-list-members jobs they created"
+create policy "Users can update their own manage list members jobs."
   on manage_list_members_job for update
   using ( auth.uid() = user_id );
 
@@ -110,6 +119,23 @@ create table if not exists manage_relation_job (
     deleted boolean default false not null,
     target_ids_done bigint[] default array[]::bigint[]
 );
+
+alter publication supabase_realtime add table manage_relation_job;
+
+alter table manage_relation_job enable row level security;
+
+create policy "Users can insert their own manage relation jobs."
+  on manage_relation_job for insert
+  with check ( auth.uid() = user_id );
+
+create policy "Users can view their own manage relation jobs."
+  on manage_relation_job for select
+  using ( auth.uid() = user_id );
+
+create policy "Users can update their own manage relation jobs."
+  on manage_relation_job for update
+  using ( auth.uid() = user_id );
+
 
 -- Function to get the next lookup-relation jobs to execute
 

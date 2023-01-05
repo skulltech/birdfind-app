@@ -19,7 +19,7 @@ create table if not exists twitter_list (
 
 alter table twitter_list enable row level security;
 
-create policy "Twitter lists are viewable by owner."
+create policy "Users can view their own Twitter lists."
     on twitter_list for select
     to authenticated
     using (
@@ -28,7 +28,7 @@ create policy "Twitter lists are viewable by owner."
       where user_profile.twitter_id = twitter_list.owner_id
     ));
 
-create policy "Twitter lists can be created by owner."
+create policy "Users can insert their own Twitter lists."
     on twitter_list for insert
     to authenticated
     with check (
@@ -37,7 +37,7 @@ create policy "Twitter lists can be created by owner."
       where user_profile.twitter_id = twitter_list.owner_id
     ));
 
-create policy "Twitter lists can be updated by owner."
+create policy "Users can update their own Twitter lists."
     on twitter_list for update
     to authenticated
     using (
@@ -46,7 +46,7 @@ create policy "Twitter lists can be updated by owner."
       where user_profile.twitter_id = twitter_list.owner_id
     ));
 
-create policy "Twitter lists can be deleted by owner."
+create policy "Users can delete their own Twitter lists."
     on twitter_list for delete
     to authenticated
     using (

@@ -48,21 +48,18 @@ create table if not exists user_profile (
 
 alter table user_profile enable row level security;
 
-create policy "Profiles are viewable by users who created them."
+create policy "Users can view their own profiles."
   on user_profile for select
   using ( auth.uid() = id );
 
-create policy "Users can insert their own profile."
-  on user_profile for insert
-  with check ( auth.uid() = id );
-
-create policy "Users can update own profile."
+create policy "Users can update their own profiles."
   on user_profile for update
   using ( auth.uid() = id );
 
 
--- Inserts a row into user_profile
-create function public.handle_new_user()
+-- Inserts a row into user_profile everytime an user registers
+
+create function handle_new_user()
     returns trigger
     language plpgsql
     security definer set search_path = public
@@ -74,21 +71,21 @@ begin
 end;
 $$;
 
--- Trigger the function every time a user is created
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute procedure public.handle_new_user();
+  for each row execute procedure handle_new_user();
 
 -- Policies for twitter_profile
+
 alter table twitter_profile enable row level security;
 
-create policy "Twitter profiles are viewable by authenticated users."
+create policy "Authenticated users can view all Twitter profiles."
     on twitter_profile for select
     to authenticated
     using (true);
 
 create policy "Users can update their own Twitter profiles."
-    on twitter_profile for update
+    on twitter_profile for select
     to authenticated
     using (
       auth.uid() in (
