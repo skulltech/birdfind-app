@@ -16,6 +16,7 @@ alter table user_event enable row level security;
 
 create policy "Users can insert their own events."
   on user_event for insert
+  to authenticated
   with check ( auth.uid() = user_id );
 
 

@@ -17,6 +17,7 @@ alter table twitter_api_rate_limit enable row level security;
 
 create policy "Users can view their own rate limits."
   on twitter_api_rate_limit for select
+  to authenticated
   using ( auth.uid() in (
       select user_profile.id from user_profile
       where user_profile.twitter_id = twitter_api_rate_limit.user_twitter_id
@@ -54,10 +55,12 @@ create policy "Users can insert their own lookup relation jobs."
 
 create policy "Users can view their own lookup relation jobs."
   on lookup_relation_job for select
+  to authenticated
   using ( auth.uid() = user_id );
 
 create policy "Users can update their own lookup relation jobs."
   on lookup_relation_job for update
+  to authenticated
   using ( auth.uid() = user_id );
 
 
@@ -88,14 +91,17 @@ alter table manage_list_members_job enable row level security;
 
 create policy "Users can insert their own manage list members jobs."
   on manage_list_members_job for insert
+  to authenticated
   with check ( auth.uid() = user_id );
 
 create policy "Users can view their own manage list members jobs."
   on manage_list_members_job for select
+  to authenticated
   using ( auth.uid() = user_id );
 
 create policy "Users can update their own manage list members jobs."
   on manage_list_members_job for update
+  to authenticated
   using ( auth.uid() = user_id );
 
 
@@ -126,14 +132,17 @@ alter table manage_relation_job enable row level security;
 
 create policy "Users can insert their own manage relation jobs."
   on manage_relation_job for insert
+  to authenticated
   with check ( auth.uid() = user_id );
 
 create policy "Users can view their own manage relation jobs."
   on manage_relation_job for select
+  to authenticated
   using ( auth.uid() = user_id );
 
 create policy "Users can update their own manage relation jobs."
   on manage_relation_job for update
+  to authenticated
   using ( auth.uid() = user_id );
 
 

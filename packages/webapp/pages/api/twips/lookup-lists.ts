@@ -46,12 +46,11 @@ export default async function handler(
   for await (const page of response) userOwnedLists.push(...page.data);
 
   // Mark rows for delete
-  const { error } = await supabase
+  await supabase
     .from("twitter_list")
     .update({ to_delete: true })
-    .eq("owner_id", userDetails.twitter.id);
-  // TODO: fix this hack
-  if (error?.message) throw error;
+    .eq("owner_id", userDetails.twitter.id)
+    .throwOnError();
 
   // Insert to supabase
   const { data: lists } = await supabase

@@ -1,10 +1,6 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  getServiceRoleSupabase,
-  getUserDetails,
-  insertUserEvent,
-} from "../../../utils/supabase";
+import { getUserDetails } from "../../../utils/supabase";
 import { z } from "zod";
 import { getTwitterClient } from "@twips/common";
 import { twitterSecrets } from "../../../utils/twitter";
@@ -69,11 +65,10 @@ export default async function handler(
   }
 
   // Update relation on Supabase
-  const serviceRoleSupabase = getServiceRoleSupabase();
   const table = `twitter_${relation}`;
 
   if (add)
-    await serviceRoleSupabase
+    await supabase
       .from(table)
       .upsert({
         source_id: userTwitterId,
@@ -82,7 +77,7 @@ export default async function handler(
       })
       .throwOnError();
   else
-    await serviceRoleSupabase
+    await supabase
       .from(table)
       .delete()
       .eq("source_id", userTwitterId)

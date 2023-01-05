@@ -50,10 +50,12 @@ alter table user_profile enable row level security;
 
 create policy "Users can view their own profiles."
   on user_profile for select
+  to authenticated
   using ( auth.uid() = id );
 
 create policy "Users can update their own profiles."
   on user_profile for update
+  to authenticated
   using ( auth.uid() = id );
 
 
@@ -85,7 +87,7 @@ create policy "Authenticated users can view all Twitter profiles."
     using (true);
 
 create policy "Users can update their own Twitter profiles."
-    on twitter_profile for select
+    on twitter_profile for update
     to authenticated
     using (
       auth.uid() in (
