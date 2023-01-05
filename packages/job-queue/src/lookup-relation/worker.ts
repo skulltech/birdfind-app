@@ -36,15 +36,17 @@ export const lookupRelation = async (jobId: number) => {
   const endpoint = "lookup-" + relation;
 
   // If this is the first iteration, mark rows for delete
-  if (job.updated_count === 0)
-    await supabase
+  if (job.updated_count === 0) {
+    const { error } = await supabase
       .from(relationTable)
       .update({ to_delete: true })
       .eq(
         job.relation == "followers" ? "target_id" : "source_id",
         job.target_id
-      )
-      .throwOnError();
+      );
+    // TODO: Find a better way. Ref: https://www.postgresql.org/docs/current/sql-createpolicy.html
+    if (error?.message && error.message.length != 0) throw error;
+  }
 
   // Get twitter client of user
   const { data: userProfileData } = await supabase

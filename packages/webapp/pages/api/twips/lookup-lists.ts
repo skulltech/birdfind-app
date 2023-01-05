@@ -46,11 +46,12 @@ export default async function handler(
   for await (const page of response) userOwnedLists.push(...page.data);
 
   // Mark rows for delete
-  await supabase
+  const { error } = await supabase
     .from("twitter_list")
     .update({ to_delete: true })
-    .eq("owner_id", userDetails.twitter.id)
-    .throwOnError();
+    .eq("owner_id", userDetails.twitter.id);
+  // TODO: Find a better way. Ref: https://www.postgresql.org/docs/current/sql-createpolicy.html
+  if (error?.message && error.message.length != 0) throw error;
 
   // Insert to supabase
   const { data: lists } = await supabase
