@@ -63,7 +63,7 @@ export const UsernameInput = ({
       const { data } = await supabase
         .from("twitter_profile")
         .select("username")
-        .like("username", `${username}%`)
+        .ilike("username", `%${username}%`)
         .order("followers_count", { ascending: false })
         .limit(5)
         .throwOnError();
@@ -163,7 +163,15 @@ export const UsernameInput = ({
             ) : null
           }
         />
-        {valid && user && <Avatar src={user.profileImageUrl} radius="xl" />}
+        {valid && user && (
+          <Avatar
+            component="a"
+            href={`https://twitter.com/${user.username}`}
+            target="_blank"
+            src={user.profileImageUrl}
+            radius="xl"
+          />
+        )}
         <ActionIcon
           size="lg"
           variant="default"

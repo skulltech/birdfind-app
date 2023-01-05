@@ -2,7 +2,6 @@ import {
   Avatar,
   createStyles,
   Group,
-  Indicator,
   Menu,
   Text,
   UnstyledButton,

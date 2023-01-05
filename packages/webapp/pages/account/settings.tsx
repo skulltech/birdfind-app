@@ -1,4 +1,4 @@
-import { Button, Container, Group, Paper, Stack, Text } from "@mantine/core";
+import { Button, Group, Paper, Stack, Text } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandTwitter } from "@tabler/icons";
 import { useRouter } from "next/router";

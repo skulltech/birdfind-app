@@ -34,14 +34,13 @@ import {
   IconSortAscending,
   IconSortDescending,
 } from "@tabler/icons";
-import { Job, TwitterProfile } from "../../utils/helpers";
+import { TwitterProfile } from "../../utils/helpers";
 import { ActionMenu } from "./ActionMenu";
 import { SearchResult } from "../../utils/supabase";
 import { RelationsCell } from "./RelationsCell";
 import axios from "axios";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { useJobs } from "../../providers/JobsProvider";
 
 const useStyles = createStyles((theme) => ({
   th: {
@@ -372,10 +371,6 @@ export const UserTable = ({
     .getSelectedRowModel()
     .rows.map(({ original }) => original);
 
-  useEffect(() => {
-    console.log(searchInProgress);
-  }, [searchInProgress]);
-
   return (
     <Stack spacing={0} sx={{ flex: 1 }}>
       <Group position="apart" p="md" className={classes.headerGroup}>
@@ -416,7 +411,10 @@ export const UserTable = ({
       </Group>
 
       <div style={{ position: "relative" }}>
-        <LoadingOverlay visible={loading} overlayBlur={2} />
+        <LoadingOverlay
+          visible={loading || (rows.length == 0 && searchInProgress)}
+          overlayBlur={2}
+        />
         <ScrollArea
           sx={{
             height:

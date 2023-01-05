@@ -1,4 +1,4 @@
-import { Checkbox, Loader, Group, Text } from "@mantine/core";
+import { Checkbox, Group, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { FilterInputProps } from "../../../utils/helpers";
 import { useUser } from "../../../providers/UserProvider";
