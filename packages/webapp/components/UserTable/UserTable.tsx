@@ -414,8 +414,7 @@ export const UserTable = ({
         <LoadingOverlay visible={loading} overlayBlur={2} />
         <ScrollArea
           sx={{
-            height:
-              "calc(100vh - var(--mantine-header-height, 0px) - var(--mantine-footer-height, 0px) - 54px)",
+            height: "calc(100vh - var(--mantine-header-height, 0px) - 54px)",
           }}
           onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
         >

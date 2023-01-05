@@ -43,7 +43,8 @@ export default async function handler(
       "list.fields": twitterListFields,
     }
   );
-  for await (const page of response) userOwnedLists.push(...page.data);
+  for await (const page of response)
+    if (page.data) userOwnedLists.push(...page.data);
 
   // Mark rows for delete
   const { error } = await supabase

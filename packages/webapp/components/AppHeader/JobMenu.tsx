@@ -28,14 +28,14 @@ export const JobMenu = () => {
             leftIcon={<IconSubtask size={16} stroke={1.5} />}
             rightIcon={<IconChevronDown size={16} />}
           >
-            Background jobs
+            Jobs
           </Button>
         </Indicator>
       </Menu.Target>
 
       <Menu.Dropdown>
         <Menu.Label>
-          {jobs.length ? jobs.length : "No"} {jobs.length == 1 ? "job" : "job"}
+          {jobs.length ? jobs.length : "No"} {jobs.length == 1 ? "job" : "jobs"}
         </Menu.Label>
 
         <Stack p={0} spacing={0}>

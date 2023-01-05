@@ -28,6 +28,7 @@ const userDetailsFields = [
   "twitter_username",
   "twitter_oauth_token",
   "twitter_profile_image_url",
+  "twitter_name",
 ];
 
 export type List = {
@@ -43,6 +44,7 @@ export type UserDetails = {
     username: string;
     profileImageUrl: string;
     oauthToken: any;
+    name: string;
   } | null;
 };
 
@@ -61,6 +63,7 @@ const parseUserDetails = (row: any) => {
           username: camelCaseRow.twitterUsername,
           profileImageUrl: camelCaseRow.twitterProfileImageUrl,
           oauthToken: camelCaseRow.twitterOauthToken,
+          name: camelCaseRow.twitterName,
         }
       : null,
   };

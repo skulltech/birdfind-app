@@ -1,50 +1,61 @@
-import { Button, Group, Paper, Stack, Text } from "@mantine/core";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import {
+  Anchor,
+  Avatar,
+  Button,
+  Group,
+  Paper,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { IconBrandTwitter } from "@tabler/icons";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import { AccountNavbar } from "../../components/AccountNavbar";
-import { getUserDetails, UserDetails } from "../../utils/supabase";
+import { useUser } from "../../providers/UserProvider";
 
 const Twitter = () => {
   const router = useRouter();
-  const supabase = useSupabaseClient();
-  const [user, setUser] = useState<UserDetails>(null);
-  const [loading, setLoading] = useState(false);
-
-  // Load user details
-  useEffect(() => {
-    const loadUserDetails = async () => {
-      setUser(await getUserDetails(supabase));
-    };
-    loadUserDetails();
-  }, [supabase]);
+  const { user } = useUser();
 
   return (
-    <Group>
+    <Group align="flex-start">
       <AccountNavbar activePage="settings" />
-      <Group sx={{ flex: 1 }} position="center" align="top">
-        <Paper withBorder p="lg">
-          <Stack>
-            <Text>You have to connect to a Twitter account to use Twips.</Text>
-            {user?.twitter && (
-              <Text>Currently connected to @{user?.twitter?.username}</Text>
+      {user && (
+        <Stack sx={{ flex: 1 }} align="center" p="md">
+          <Avatar
+            src={user.twitter?.profileImageUrl?.replace("_normal", "")}
+            size="xl"
+            variant="outline"
+          />
+          <Stack p="sm" spacing={0} align="center">
+            {user.twitter && <Text>{user?.twitter.name}</Text>}
+            <Text c="dimmed">{user.email}</Text>
+            {user.twitter && (
+              <Anchor
+                href={`https://twitter.com/${user?.twitter?.username}`}
+                target="_blank"
+              >
+                @{user.twitter.username}
+              </Anchor>
+            )}
+          </Stack>
+          <Stack spacing="sm">
+            {!user.twitter && (
+              <Text weight="bold">
+                You have to connect to a Twitter account to use Twips.
+              </Text>
             )}
             <Button
-              onClick={() => {
-                setLoading(true);
-                router.push("/api/auth/twitter/signin");
-              }}
+              onClick={() => router.push("/api/auth/twitter/signin")}
               leftIcon={<IconBrandTwitter />}
-              loading={loading}
+              variant={user.twitter ? "outline" : "filled"}
             >
-              {user?.twitter
+              {user.twitter
                 ? "Connect to a different Twitter account"
                 : "Connect Twitter"}
             </Button>
           </Stack>
-        </Paper>
-      </Group>
+        </Stack>
+      )}
     </Group>
   );
 };

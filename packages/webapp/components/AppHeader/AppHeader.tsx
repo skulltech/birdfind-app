@@ -126,7 +126,7 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
             </Group>
           </UnstyledButton>
           {user && (
-            <Group spacing="xs" align="center">
+            <Group spacing={0} align="center">
               {links.map((item) => (
                 <UnstyledButton
                   component="a"

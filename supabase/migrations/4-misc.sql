@@ -114,11 +114,12 @@ create or replace function get_user_details(id uuid default null)
     twitter_id bigint,
     twitter_oauth_token jsonb,
     twitter_username text,
+    twitter_name text,
     twitter_profile_image_url text
   )
   as $$
 
-select user_profile.id, user_profile.email, user_profile.twitter_id, user_profile.twitter_oauth_token, twitter_profile.username as twitter_username, twitter_profile.profile_image_url as twitter_profile_image_url
+select user_profile.id, user_profile.email, user_profile.twitter_id, user_profile.twitter_oauth_token, twitter_profile.username as twitter_username, twitter_profile.name as twitter_name, twitter_profile.profile_image_url as twitter_profile_image_url
   from user_profile 
     left join twitter_profile on user_profile.twitter_id = twitter_profile.id
   where (get_user_details.id is null or user_profile.id = get_user_details.id)

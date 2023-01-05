@@ -132,7 +132,9 @@ export const JobsProvider = ({ children }) => {
         setRandomFloat(Math.random());
 
         if (payload.new.finished) {
-          jobsHandlers.filter((job) => job.id !== payload.new.id);
+          jobsHandlers.filter(
+            (job) => job.id !== payload.new.id && job.name === name
+          );
 
           if (name != "lookup-relation") {
             const job = await getJob(supabase, name, payload.new.id);
@@ -143,7 +145,9 @@ export const JobsProvider = ({ children }) => {
             });
           }
         } else if (payload.new.deleted)
-          jobsHandlers.filter((job) => job.id !== payload.new.id);
+          jobsHandlers.filter(
+            (job) => job.id !== payload.new.id && job.name === name
+          );
         else
           jobsHandlers.applyWhere(
             (job) => job.id == payload.new.id && job.name == name,
