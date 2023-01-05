@@ -223,7 +223,7 @@ export const UserTable = ({
     const fetchLists = async () => {
       const { data } = await supabase
         .from("twitter_list")
-        .select("id::text,name")
+        .select("id::text,name,private")
         .throwOnError();
 
       const lists = data.map((x: any) => {
@@ -392,7 +392,7 @@ export const UserTable = ({
             refreshSearch={refresh}
           />
         </Group>
-        {searchInProgress ? <Loader variant="dots" /> : null}
+        {searchInProgress && <Loader variant="dots" />}
         <Group>
           <Text size={14}>
             Showing {Math.min(pageIndex * 100 + 1, count)} -{" "}
@@ -411,10 +411,7 @@ export const UserTable = ({
       </Group>
 
       <div style={{ position: "relative" }}>
-        <LoadingOverlay
-          visible={loading || (rows.length == 0 && searchInProgress)}
-          overlayBlur={2}
-        />
+        <LoadingOverlay visible={loading} overlayBlur={2} />
         <ScrollArea
           sx={{
             height:
@@ -455,7 +452,13 @@ export const UserTable = ({
                   <td colSpan={7}>
                     <Group spacing="xs" position="center" mt={100}>
                       <IconAlertCircle color="orange" />
-                      <Text weight="bold">No users found</Text>
+                      <Text weight="bold">
+                        No users found{" "}
+                        {rows.length == 0 && searchInProgress && "yet"}
+                      </Text>
+                      {rows.length == 0 && searchInProgress && (
+                        <Loader variant="dots" />
+                      )}
                     </Group>
                   </td>
                 </tr>

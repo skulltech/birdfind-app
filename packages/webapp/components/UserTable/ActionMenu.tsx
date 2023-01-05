@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Loader, Menu, Text } from "@mantine/core";
+import { ActionIcon, Badge, Group, Loader, Menu, Text } from "@mantine/core";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
@@ -6,6 +6,7 @@ import {
   IconCircleCheck,
   IconForbid2,
   IconList,
+  IconLock,
   IconRefresh,
   IconSquarePlus,
   IconUserPlus,
@@ -61,11 +62,13 @@ const ManageRelationMenuItem = ({
 type ManageListMembersMenuItemsProps = {
   onClick: () => Promise<void>;
   label: string;
+  isPrivate: boolean;
 };
 
 const ManageListMembersMenuItem = ({
   onClick,
   label,
+  isPrivate,
 }: ManageListMembersMenuItemsProps) => {
   const [loading, setLoading] = useState(false);
 
@@ -78,7 +81,14 @@ const ManageListMembersMenuItem = ({
       }}
       rightSection={loading ?? <Loader size={14} />}
     >
-      {label}
+      <Group>
+        <Text>{label}</Text>
+        {isPrivate && (
+          <Badge size="xs" sx={{ textTransform: "none" }}>
+            Private
+          </Badge>
+        )}
+      </Group>
     </Menu.Item>
   );
 };
@@ -151,14 +161,23 @@ export const ActionMenu = ({
 
   // Add or remove list members
   const manageListMembers = async (listId: BigInt, add: boolean) => {
-    const { error } = await supabase.from("manage_list_members_job").insert({
-      user_id: user.id,
-      list_id: listId,
-      member_ids: users.map((x) => x.id),
-      priority: 10000,
-      add,
-    });
-    if (error) {
+    try {
+      if (singleInputUser)
+        await axios.get("/api/twips/manage-list-members", {
+          params: { memberId: singleInputUser.id, listId, add },
+        });
+      else
+        await supabase
+          .from("manage_list_members_job")
+          .insert({
+            user_id: user.id,
+            list_id: listId,
+            member_ids: users.map((x) => x.id),
+            priority: 10000,
+            add,
+          })
+          .throwOnError();
+    } catch (error) {
       console.log(error);
       showNotification({
         title: "Error",
@@ -166,6 +185,15 @@ export const ActionMenu = ({
         color: "red",
       });
     }
+
+    if (singleInputUser)
+      showNotification({
+        title: "Success",
+        message: `Successfully ${add ? "added" : "removed"} @${
+          singleInputUser.username
+        } ${add ? "to" : "from"} list`,
+        color: "green",
+      });
   };
 
   return (
@@ -272,6 +300,7 @@ export const ActionMenu = ({
                       key={list.id.toString()}
                       onClick={() => manageListMembers(list.id, true)}
                       label={list.name}
+                      isPrivate={list.private}
                     />
                   ))}
                   <Menu.Divider />

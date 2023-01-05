@@ -72,7 +72,7 @@ export default async function handler(
         };
       })
     )
-    .select("*")
+    .select("id::text,name,private")
     .throwOnError();
 
   // Delete the ones still marked for delete
