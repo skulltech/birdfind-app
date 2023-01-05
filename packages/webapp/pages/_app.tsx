@@ -39,6 +39,7 @@ export default function App({
   });
   const toggleColorScheme = (value?: ColorScheme) =>
     setColorScheme(value || (colorScheme === "dark" ? "light" : "dark"));
+
   const horizontalPadding = 100;
 
   // To check if user is signed out, to bypass middleware's limitation
@@ -51,7 +52,7 @@ export default function App({
       if (!session) router.push("/auth/signin");
     };
     loadUser();
-  }, [supabase]);
+  }, []);
 
   return (
     <>

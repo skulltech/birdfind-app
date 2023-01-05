@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, userAgent } from "next/server";
 import type { NextRequest } from "next/server";
 import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getUserDetails } from "./utils/supabase";
@@ -14,6 +14,12 @@ export const middleware = async (req: NextRequest) => {
 
   // To fix bug with latest NextJS
   if (path.startsWith("/_next")) return;
+
+  // Redirect to unsupported-device page when accessed from mobile
+  if (path.startsWith("/unsupported-device")) return;
+  const { device } = userAgent(req);
+  if (device.type == "mobile")
+    return NextResponse.redirect(new URL("/", req.url));
 
   const res = NextResponse.next();
   const supabase = createMiddlewareSupabaseClient({ req, res });

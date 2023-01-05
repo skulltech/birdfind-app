@@ -42,7 +42,7 @@ const SignIn = () => {
     };
 
     loadUser();
-  }, [router, supabase]);
+  }, []);
 
   const handleEmailSignIn = async (email: string) => {
     setLoading(true);
