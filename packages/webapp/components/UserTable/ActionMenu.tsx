@@ -89,6 +89,7 @@ export const ActionMenu = ({
   lists,
   listsLoading,
   refreshLists,
+  refreshSearch,
 }: ActionMenuProps) => {
   const [menuOpened, setMenuOpened] = useState(false);
   const supabase = useSupabaseClient();
@@ -144,7 +145,7 @@ export const ActionMenu = ({
         } @${singleInputUser.username}`,
         color: "green",
       });
-      // refreshSearch();
+      refreshSearch(true);
     }
   };
 

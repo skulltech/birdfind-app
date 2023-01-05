@@ -92,7 +92,7 @@ export const AccountNavbar = ({ activePage }: AccountNavbarProps) => {
   const supabase = useSupabaseClient();
 
   return (
-    <Navbar height={680} width={{ sm: 300 }} p="md">
+    <Navbar width={{ sm: 300 }} p="md">
       <Navbar.Section grow>
         {accountMenuItems.map((item) => (
           <a

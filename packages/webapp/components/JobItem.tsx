@@ -10,7 +10,8 @@ import {
 } from "@mantine/core";
 import { IconPlayerPause, IconPlayerPlay } from "@tabler/icons";
 import { useState } from "react";
-import { Job, useJobs } from "../providers/JobsProvider";
+import { useJobs } from "../providers/JobsProvider";
+import { Job } from "../utils/helpers";
 
 type JobItemProps = {
   job: Job;

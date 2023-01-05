@@ -64,6 +64,7 @@ export const UsernameInput = ({
         .from("twitter_profile")
         .select("username")
         .like("username", `${username}%`)
+        .order("followers_count", { ascending: false })
         .limit(5)
         .throwOnError();
 
@@ -145,6 +146,7 @@ export const UsernameInput = ({
                 : "Username is not valid"
               : false
           }
+          placeholder="Twitter username"
           rightSection={
             lookupLoading ? (
               <Loader size="xs" />

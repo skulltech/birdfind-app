@@ -51,7 +51,7 @@ export default function App({
       if (!session) router.push("/auth/signin");
     };
     loadUser();
-  }, [router, supabase]);
+  }, [supabase]);
 
   return (
     <>

@@ -10,7 +10,7 @@ import { UsernameInput } from "./FilterInputs/UsernameInput";
 export const FilterPanel = (props: FilterProps) => {
   return (
     <Navbar width={{ base: 300 }} p="xs" pr={0}>
-      <ScrollArea pr="md" style={{ height: "85vh" }}>
+      <ScrollArea pr="md">
         <Navbar.Section>
           <Stack style={{ fontSize: 14 }}>
             {Boolean(Object.keys(props.filters).length) && (

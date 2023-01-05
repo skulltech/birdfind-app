@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Text } from "@mantine/core";
+import { ActionIcon, Group, Text, Tooltip } from "@mantine/core";
 import { IconSettings } from "@tabler/icons";
 import { SearchResult } from "../../utils/supabase";
 import { ActionMenu } from "./ActionMenu";
@@ -20,26 +20,51 @@ export const RelationsCell = ({
 }: RelationsCellProps) => {
   // Relation label
   let label: string;
+  let tooltipLabel: string;
 
   if (profile.isBlocked) {
-    if (profile.isMuted) label = "Blocked and muted";
-    else label = "Blocked";
+    if (profile.isMuted)
+      [label, tooltipLabel] = [
+        "Blocked, muted",
+        "You have blocked and muted this user",
+      ];
+    else [label, tooltipLabel] = ["Blocked", "You have blocked this user"];
   } else {
     if (profile.isMuted) {
-      if (profile.isFollower && profile.isFollowing) label = "Mutual, muted";
-      else if (profile.isFollower) label = "Follows you, muted";
-      else if (profile.isFollowing) label = "Followed by you, muted";
-      else label = "muted";
+      if (profile.isFollower && profile.isFollowing)
+        [label, tooltipLabel] = [
+          "Mutual, muted",
+          "You and this user follow each other, and you have muted them",
+        ];
+      else if (profile.isFollower)
+        [label, tooltipLabel] = [
+          "Follower, muted",
+          "This user follows you, and you have muted them",
+        ];
+      else if (profile.isFollowing)
+        [label, tooltipLabel] = [
+          "Following, muted",
+          "You follow this user and you have muted them",
+        ];
+      else label = "Muted";
     } else {
-      if (profile.isFollower && profile.isFollowing) label = "Mutual";
-      else if (profile.isFollower) label = "Follows you";
-      else if (profile.isFollowing) label = "Followed by you";
+      if (profile.isFollower && profile.isFollowing)
+        [label, tooltipLabel] = [
+          "Mutual",
+          "You and this user follow each other",
+        ];
+      else if (profile.isFollower)
+        [label, tooltipLabel] = ["Follower", "This user follows you"];
+      else if (profile.isFollowing)
+        [label, tooltipLabel] = ["Following", "You follow this user"];
     }
   }
 
   return (
     <Group position="apart" noWrap spacing={1}>
-      <Text>{label}</Text>
+      <Tooltip label={tooltipLabel}>
+        <Text sx={{ whiteSpace: "nowrap" }}>{label}</Text>
+      </Tooltip>
       <ActionMenu
         target={
           <ActionIcon>

@@ -89,7 +89,8 @@ const useStyles = createStyles((theme) => ({
 
   control: {
     width: "100%",
-    padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+    padding: `${theme.spacing.xs}px ${theme.spacing.xs}px`,
+    color: "inherit",
 
     "&:hover": {
       backgroundColor:
@@ -131,7 +132,7 @@ export const Th = ({
     <th className={classes.th} {...others}>
       {isSortable ? (
         <UnstyledButton onClick={onSort} className={classes.control}>
-          <Group position="apart" noWrap spacing="xs">
+          <Group position="apart" noWrap spacing={0}>
             <Text weight={500} size="sm" sx={{ whiteSpace: "nowrap" }}>
               {children}
             </Text>
@@ -235,10 +236,17 @@ export const UserTable = ({
         header: ({ table }) => (
           <Checkbox
             size="sm"
-            checked={table.getIsAllRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
             transitionDuration={0}
-            indeterminate={table.getIsSomeRowsSelected()}
+            indeterminate={table.getIsSomePageRowsSelected()}
+            styles={{
+              root: {
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            }}
           />
         ),
         cell: ({ row }) => (
@@ -247,6 +255,13 @@ export const UserTable = ({
             checked={row.getIsSelected()}
             onChange={row.getToggleSelectedHandler()}
             transitionDuration={0}
+            styles={{
+              root: {
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            }}
           />
         ),
         enableSorting: false,
@@ -310,12 +325,17 @@ export const UserTable = ({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.id.toString(),
   });
 
   const headers = table.getHeaderGroups().map((headerGroup) => (
     <tr key={headerGroup.id}>
       {headerGroup.headers.map((header) => {
-        return (
+        return header.id == "select" ? (
+          <Center className={classes.control}>
+            {flexRender(header.column.columnDef.header, header.getContext())}
+          </Center>
+        ) : (
           <Th
             key={header.id}
             sorted={header.column.getIsSorted()}
@@ -337,7 +357,7 @@ export const UserTable = ({
       >
         {row.getAllCells().map((cell) => {
           return (
-            <td key={cell.id}>
+            <td key={cell.id} style={{ paddingLeft: 10, paddingRight: 10 }}>
               {flexRender(cell.column.columnDef.cell, cell.getContext())}
             </td>
           );
@@ -346,15 +366,17 @@ export const UserTable = ({
     );
   });
 
+  const selectedUsers = table
+    .getSelectedRowModel()
+    .rows.map(({ original }) => original);
+
   return (
     <Stack spacing={0} sx={{ flex: 1 }}>
-      <Group position="apart" p="md" className={classes.headerGroup} pb={0}>
+      <Group position="apart" p="md" className={classes.headerGroup}>
         <Group>
-          <Text size={14}>
-            {Object.keys(rowSelection).length} of {count} users selected
-          </Text>
+          <Text size={14}>{selectedUsers.length} users selected</Text>
           <ActionMenu
-            users={results.filter((x, i) => rowSelection[i])}
+            users={selectedUsers}
             target={
               <Button compact variant="default">
                 <Group spacing="xs">
@@ -370,22 +392,29 @@ export const UserTable = ({
           />
         </Group>
         <Group>
-          <ActionIcon size="sm" color="blue" onClick={() => refresh(false)}>
-            <IconRefresh />
-          </ActionIcon>
+          <Text size={14}>
+            Showing {Math.min(pageIndex * 100 + 1, count)} -{" "}
+            {Math.min((pageIndex + 1) * 100, count)} of {count} results
+          </Text>
           <Pagination
             size="sm"
             page={table.getState().pagination.pageIndex + 1}
             onChange={(page) => setPageIndex(page - 1)}
             total={table.getPageCount()}
           />
+          <ActionIcon size="sm" color="blue" onClick={() => refresh(false)}>
+            <IconRefresh />
+          </ActionIcon>
         </Group>
       </Group>
 
       <div style={{ position: "relative" }}>
         <LoadingOverlay visible={loading} overlayBlur={2} />
         <ScrollArea
-          sx={{ height: "82vh" }}
+          sx={{
+            height:
+              "calc(100vh - var(--mantine-header-height, 0px) - var(--mantine-footer-height, 0px) - 54px)",
+          }}
           onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
         >
           <Table horizontalSpacing="md" verticalSpacing="xs" width="100%">
