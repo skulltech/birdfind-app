@@ -6,7 +6,7 @@
     "test": "ts-node src/test.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.1.1",
+    "@supabase/supabase-js": "^2.2.3",
     "@twips/common": "^1.0.0",
     "cli-progress": "^3.11.2",
     "dotenv": "^16.0.3",
