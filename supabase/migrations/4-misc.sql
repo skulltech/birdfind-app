@@ -138,5 +138,6 @@ alter publication supabase_realtime add table
   twitter_api_rate_limit,
   lookup_relation_job,
   manage_list_members_job,
-  manage_relation_job
+  manage_relation_job,
+  user_profile
 ;

@@ -1,17 +1,10 @@
 import * as dotenv from "dotenv";
 import winston from "winston";
 import TelegramLogger from "winston-telegram";
-import {
-  createClient,
-  RealtimePostgresInsertPayload,
-  RealtimePostgresUpdatePayload,
-} from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
 import { JobName } from "@twips/common";
-import { createLookupRelationJobEventMetadata } from "./lookup-relation/utils";
-import { createAddListMembersJobEventMetadata } from "./manage-list-members/utils";
-import { createManageRelationJobEventMetadata } from "./manage-relation/utils";
 dotenv.config();
 
 // To suppress warnings
@@ -142,61 +135,38 @@ export const runAddJobsLoop = async (name: JobName) => {
   }
 };
 
-const handleJobEvent = async (
-  name: JobName,
-  payload:
-    | RealtimePostgresInsertPayload<{ [key: string]: any }>
-    | RealtimePostgresUpdatePayload<{ [key: string]: any }>
-) => {
-  try {
-    logger.info(
-      `${name} job ${
-        payload.eventType == "INSERT"
-          ? "added"
-          : payload.new.finished
-          ? "finished"
-          : "progressed"
-      }`,
-      {
-        metadata:
-          name == "lookup-relation"
-            ? await createLookupRelationJobEventMetadata(payload.new.id)
-            : name == "manage-list-members"
-            ? await createAddListMembersJobEventMetadata(payload.new.id)
-            : name == "manage-relation"
-            ? await createManageRelationJobEventMetadata(payload.new.id)
-            : null,
-      }
-    );
-  } catch (error) {
-    logger.error("Error at daemon while logging event", {
-      metadata: { error },
-    });
-  }
-};
-
-export const getJobEventListener = (name: JobName) => {
-  const table =
-    name == "lookup-relation"
-      ? "lookup_relation_job"
-      : name == "manage-list-members"
-      ? "manage_list_members_job"
-      : name == "manage-relation"
-      ? "manage_relation_job"
-      : null;
-  return supabase
-    .channel(`public:${table}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table },
-      (payload) => handleJobEvent(name, payload)
-    )
-    .on(
-      "postgres_changes",
-      { event: "UPDATE", schema: "public", table },
-      (payload) => handleJobEvent(name, payload)
-    );
-};
-
 export const formatDate = (str: string) =>
   new Date(str).toLocaleString("en-IN");
+
+export const getUserProfileEventListener = () =>
+  supabase
+    .channel("public:user_profile")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "user_profile" },
+      async (payload) => {
+        if (payload.eventType == "INSERT" || payload.eventType == "UPDATE") {
+          const { data: userDetails } = await supabase
+            .rpc("get_user_details", {
+              id: payload.new.id,
+            })
+            .select("email,twitter_username,twitter_name")
+            .throwOnError()
+            .single();
+          logger.info(
+            payload.eventType == "INSERT" ? "User registered" : "User updated",
+            {
+              metadata: {
+                email: userDetails.email,
+                twitter: userDetails.twitter_username
+                  ? {
+                      username: "@" + userDetails.twitter_username,
+                      name: userDetails.twitter_name,
+                    }
+                  : null,
+              },
+            }
+          );
+        }
+      }
+    );
