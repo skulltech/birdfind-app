@@ -94,11 +94,13 @@ export const JobItem = ({
             />
           </Group>
         </Group>
-        <Progress
-          value={progress}
-          label={compact ? null : progress.toFixed(0) + "%"}
-          size={compact ? "md" : "lg"}
-        />
+        {progress != null && (
+          <Progress
+            value={progress}
+            label={compact ? null : progress.toFixed(0) + "%"}
+            size={compact ? "md" : "lg"}
+          />
+        )}
       </Stack>
     </Paper>
   );

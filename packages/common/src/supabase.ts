@@ -23,6 +23,7 @@ export const addLookupRelationJob = async ({
     .eq("target_id", targetTwitterId)
     .eq("relation", relation)
     .eq("finished", false)
+    .eq("deleted", false)
     .throwOnError()
     .maybeSingle();
 
@@ -33,7 +34,6 @@ export const addLookupRelationJob = async ({
       .update({
         priority: priority > data.priority ? priority : data.priority,
         paused: false,
-        deleted: false,
       })
       .eq("id", data.id)
       .throwOnError();
