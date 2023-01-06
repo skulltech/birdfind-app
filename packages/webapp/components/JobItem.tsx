@@ -33,7 +33,7 @@ const useStyles = createStyles((theme) => ({
 }));
 
 export const JobItem = ({
-  job: { id, name, label, paused, progress, createdAt },
+  job: { id, name, label, paused, progress, createdAt, rateLimitResetsAt },
   compact,
 }: JobItemProps) => {
   const [pauseLoading, setPauseLoading] = useState(false);
@@ -55,6 +55,16 @@ export const JobItem = ({
             <Text size={compact ? "sm" : "md"}>{label}</Text>
             {!compact && (
               <Text c="dimmed">Created at {createdAt.toLocaleString()}</Text>
+            )}
+            {!compact && (
+              <Text c="dimmed">
+                Status:{" "}
+                {paused
+                  ? "Paused"
+                  : rateLimitResetsAt
+                  ? `Rate limited, resets at ${rateLimitResetsAt.toLocaleTimeString()}`
+                  : "Running"}
+              </Text>
             )}
           </Stack>
           <Group>

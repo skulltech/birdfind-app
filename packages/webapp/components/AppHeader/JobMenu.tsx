@@ -60,7 +60,7 @@ export const JobMenu = () => {
             router.push("/account/jobs");
           }}
         >
-          Manage all jobs
+          More job details
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>

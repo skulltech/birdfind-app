@@ -4,7 +4,6 @@ import {
   IconSubtask,
   TablerIcon,
 } from "@tabler/icons";
-import { JobName } from "@twips/common";
 import camelcase from "camelcase";
 import { z } from "zod";
 import { RemoveFiltersArg } from "../pages/search";
@@ -119,16 +118,33 @@ export const twitterListFields = [
   "private",
 ];
 
-export type Job = {
+interface CommonJob {
   id: number;
-  name: JobName;
   createdAt: Date;
   label: string;
   paused: boolean;
+  rateLimitResetsAt?: Date;
+}
+
+export interface LookupRelationJob extends CommonJob {
+  name: "lookup-relation";
+  relation: "followers" | "following" | "muting" | "blocking";
+  username: string;
+  totalCount?: number;
   progress?: number;
-  metadata?: {
-    totalCount: number;
-    relation: "followers" | "following" | "muting" | "blocking";
-    username: string;
-  };
-};
+}
+
+export interface ManageRelationJob extends CommonJob {
+  name: "manage-relation";
+  relation: "follow" | "block" | "mute";
+  add: boolean;
+  progress: number;
+}
+
+export interface ManageListMembersJob extends CommonJob {
+  name: "manage-list-members";
+  add: boolean;
+  progress: number;
+}
+
+export type Job = LookupRelationJob | ManageRelationJob | ManageListMembersJob;

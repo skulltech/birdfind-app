@@ -41,7 +41,7 @@ export const JobsProvider = ({ children }) => {
     setLoading(true);
 
     try {
-      const jobs = await getAllJobs(supabase, user.id);
+      const jobs = await getAllJobs(supabase);
       jobsHandlers.setState(jobs);
     } catch (error) {
       console.log(error);
@@ -123,7 +123,7 @@ export const JobsProvider = ({ children }) => {
 
   // Set event handlers
   useEffect(() => {
-    const handlePayload = async (
+    const handleJobPayload = async (
       name: JobName,
       payload: RealtimePostgresChangesPayload<any>
     ) => {
@@ -156,16 +156,15 @@ export const JobsProvider = ({ children }) => {
               paused: payload.new.paused,
               progress:
                 // Set progress
-                name == "lookup-relation"
-                  ? job.metadata.totalCount
-                    ? (payload.new.updated_count / job.metadata.totalCount) *
-                      100
+                job.name == "lookup-relation"
+                  ? job.totalCount
+                    ? (payload.new.updated_count / job.totalCount) * 100
                     : null
-                  : name == "manage-list-members"
+                  : job.name == "manage-list-members"
                   ? (payload.new.member_ids_done.length /
                       payload.new.member_ids.length) *
                     100
-                  : name == "manage-relation"
+                  : job.name == "manage-relation"
                   ? (payload.new.target_ids_done.length /
                       payload.new.target_ids.length) *
                     100
@@ -186,7 +185,33 @@ export const JobsProvider = ({ children }) => {
       }
     };
 
-    if (user)
+    const handleRateLimitPayload = async (
+      payload: RealtimePostgresChangesPayload<any>
+    ) => {
+      console.log(payload);
+      jobsHandlers.applyWhere(
+        (job) =>
+          payload.new.endpoint ==
+          (job.name == "lookup-relation"
+            ? `lookup-${job.relation}`
+            : job.name == "manage-list-members"
+            ? `${job.add ? "add" : "remove"}-list-members`
+            : job.name == "manage-relation"
+            ? `${job.add ? "add" : "remove"}-${job.relation}`
+            : null),
+        (job) => ({
+          ...job,
+          rateLimitResetsAt:
+            payload.eventType == "DELETE"
+              ? null
+              : payload.new.resets_at
+              ? new Date(payload.new.resets_at)
+              : null,
+        })
+      );
+    };
+
+    if (user) {
       for (const name of jobNames) {
         const table =
           name == "lookup-relation"
@@ -196,23 +221,36 @@ export const JobsProvider = ({ children }) => {
             : name == "manage-relation"
             ? "manage_relation_job"
             : null;
-        const filter = `user_id=eq.${user.id}`;
 
         // Subscribe to channel
         supabase
-          .channel(`public:${table}:${filter}`)
+          .channel(`public:${table}`)
           .on(
             "postgres_changes",
             {
               event: "*",
               schema: "public",
               table,
-              filter,
             },
-            (payload) => handlePayload(name, payload)
+            (payload) => handleJobPayload(name, payload)
           )
           .subscribe();
       }
+
+      // Subscribe to channel
+      supabase
+        .channel("public:twitter_api_rate_limit")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "twitter_api_rate_limit",
+          },
+          handleRateLimitPayload
+        )
+        .subscribe();
+    }
   }, [user]);
 
   return (

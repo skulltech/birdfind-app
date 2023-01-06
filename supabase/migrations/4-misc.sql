@@ -126,3 +126,13 @@ select user_profile.id, user_profile.email, user_profile.twitter_id, user_profil
 ;
 
 $$ language sql;
+
+
+-- Enable realtime publications for select tables
+
+alter publication supabase_realtime add table
+  twitter_api_rate_limit,
+  lookup_relation_job,
+  manage_list_members_job,
+  manage_relation_job
+;

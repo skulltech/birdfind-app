@@ -3,7 +3,11 @@ import { UserTable } from "../components/UserTable/UserTable";
 import { Group } from "@mantine/core";
 import { FilterPanel } from "../components/FilterPanel/FilterPanel";
 import { useUser } from "../providers/UserProvider";
-import { Filters, Job, parseTwitterProfile } from "../utils/helpers";
+import {
+  Filters,
+  LookupRelationJob,
+  parseTwitterProfile,
+} from "../utils/helpers";
 import { SupabaseClient } from "@supabase/supabase-js";
 import {
   SearchResult,
@@ -100,25 +104,24 @@ const Search = () => {
   const { jobs } = useJobs();
 
   useEffect(() => {
-    const isMetadataMatching = (metadata: Job["metadata"]) =>
-      filters.blockedByMe && metadata.relation == "blocking"
+    const isMetadataMatching = (job: LookupRelationJob) =>
+      filters.blockedByMe && job.relation == "blocking"
         ? true
-        : filters.blockedByMe && metadata.relation == "blocking"
+        : filters.blockedByMe && job.relation == "blocking"
         ? true
         : filters.followedBy &&
-          metadata.relation == "following" &&
-          filters.followedBy.has(metadata.username)
+          job.relation == "following" &&
+          filters.followedBy.has(job.username)
         ? true
         : filters.followerOf &&
-          metadata.relation == "followers" &&
-          filters.followerOf.has(metadata.username)
+          job.relation == "followers" &&
+          filters.followerOf.has(job.username)
         ? true
         : false;
 
     setSearchInProgress(
       jobs.filter(
-        (job) =>
-          job.name == "lookup-relation" && isMetadataMatching(job.metadata)
+        (job) => job.name == "lookup-relation" && isMetadataMatching(job)
       ).length > 0
     );
   }, [jobs, filters]);

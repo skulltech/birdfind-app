@@ -45,8 +45,6 @@ create table if not exists lookup_relation_job (
     updated_count integer default 0 not null
 );
 
-alter publication supabase_realtime add table lookup_relation_job;
-
 alter table lookup_relation_job enable row level security;
 
 create policy "Users can insert their own lookup relation jobs."
@@ -84,8 +82,6 @@ create table if not exists manage_list_members_job (
     deleted boolean default false not null,
     member_ids_done bigint[] default array[]::bigint[]
 );
-
-alter publication supabase_realtime add table manage_list_members_job;
 
 alter table manage_list_members_job enable row level security;
 
@@ -125,8 +121,6 @@ create table if not exists manage_relation_job (
     deleted boolean default false not null,
     target_ids_done bigint[] default array[]::bigint[]
 );
-
-alter publication supabase_realtime add table manage_relation_job;
 
 alter table manage_relation_job enable row level security;
 
