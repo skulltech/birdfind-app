@@ -1,6 +1,6 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
-import { addJob } from "./add-job";
+import { lookupTwitterUser } from "./lookup-twitter-user";
 import { removeEvents } from "./remove-events";
 
 // Monkeypatching types for JSON serialization
@@ -19,40 +19,6 @@ process.removeAllListeners("warning");
 
 yargs(hideBin(process.argv))
   .command({
-    command: "add-job",
-    describe: "Add a lookup-relation job",
-    builder: (yargs) =>
-      yargs
-        .option("relation", {
-          alias: "r",
-          type: "string",
-          choices: ["followers", "following", "blocking", "muting"],
-          demandOption: true,
-          description: "Relation to update",
-        })
-        .option("username", {
-          alias: "u",
-          type: "string",
-          demandOption: true,
-          description: "Update relations of this username",
-        })
-        .option("email", {
-          alias: "e",
-          type: "string",
-          demandOption: true,
-          description: "Use tokens of this user",
-        }),
-    handler: async ({ relation, username, email }) => {
-      console.info(
-        `Adding job to update ${relation} of @${username} using ${email}'s tokens.`
-      );
-      const jobId = await addJob({ email, relation, username });
-      console.info("Added job with ID", jobId);
-      // Because it might hang
-      process.exit();
-    },
-  })
-  .command({
     command: "remove-events",
     describe: "Remove events of a user",
     builder: (yargs) =>
@@ -66,6 +32,24 @@ yargs(hideBin(process.argv))
       console.info("Removing events of user", email);
       await removeEvents(email);
       console.info("Removed events of user", email);
+      // Because it might hang
+      process.exit();
+    },
+  })
+  .command({
+    command: "lookup-twitter-user",
+    describe: "Lookup Twitter user by ID",
+    builder: (yargs) =>
+      yargs.positional("id", {
+        type: "string",
+        demandOption: true,
+        description: "Twitter ID of the user",
+      }),
+    handler: async (argv) => {
+      const id = argv._[1] as string;
+      console.info("Looking up Twitter user", id);
+      await lookupTwitterUser(id);
+      console.info("Finished looking up Twitter user");
       // Because it might hang
       process.exit();
     },
