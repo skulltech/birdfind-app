@@ -20,9 +20,15 @@ import { useLocalStorage } from "@mantine/hooks";
 import { useRouter } from "next/router";
 import Head from "next/head";
 
-// Monkeypatching BigInt
+// Monkeypatching types for JSON serialization
 BigInt.prototype["toJSON"] = function () {
   return this.toString();
+};
+Set.prototype["toJSON"] = function () {
+  return Array.from(this);
+};
+Date.prototype["toJSON"] = function () {
+  return this.toISOString();
 };
 
 export default function App({

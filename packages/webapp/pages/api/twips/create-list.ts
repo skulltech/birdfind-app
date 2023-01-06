@@ -3,7 +3,7 @@ import { getTwitterClient } from "@twips/common";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { twitterListFields } from "../../../utils/helpers";
-import { getUserDetails } from "../../../utils/supabase";
+import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 import { twitterSecrets } from "../../../utils/twitter";
 
 type ErrorData = {
@@ -73,9 +73,18 @@ export default async function handler(
       private: getListResponse.data.private,
       owner_id: userDetails.twitter.id,
     })
-    .select("*")
+    .select("id::text,name,private")
     .throwOnError()
     .single();
+
+  // Insert user event
+  await insertUserEvent(supabase, "create-list", {
+    description,
+    name,
+    isPrivate,
+    // @ts-ignore
+    listId: list.id,
+  });
 
   return res.status(200).json(list);
 }

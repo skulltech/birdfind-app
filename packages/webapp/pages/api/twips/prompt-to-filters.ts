@@ -57,7 +57,7 @@ export default async function handler(
 
   const { success } = filtersSchema.safeParse(filters);
   if (!success) {
-    // Insert event in user_event table
+    // Insert user event
     await insertUserEvent(supabase, "prompt-to-filters", {
       prompt,
       filters,
@@ -66,7 +66,7 @@ export default async function handler(
     return res.status(400).send(null);
   }
 
-  // Insert event in user_event table
+  // Insert user event
   await insertUserEvent(supabase, "prompt-to-filters", {
     prompt,
     filters,

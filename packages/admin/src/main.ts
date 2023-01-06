@@ -1,12 +1,17 @@
-import { relations } from "@twips/common";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { addJob } from "./add-job";
 import { removeEvents } from "./remove-events";
 
-// Monkeypatching BigInt
+// Monkeypatching types for JSON serialization
 BigInt.prototype["toJSON"] = function () {
   return this.toString();
+};
+Set.prototype["toJSON"] = function () {
+  return Array.from(this);
+};
+Date.prototype["toJSON"] = function () {
+  return this.toISOString();
 };
 
 // To suppress warnings
@@ -21,7 +26,7 @@ yargs(hideBin(process.argv))
         .option("relation", {
           alias: "r",
           type: "string",
-          choices: relations,
+          choices: ["followers", "following", "blocking", "muting"],
           demandOption: true,
           description: "Relation to update",
         })

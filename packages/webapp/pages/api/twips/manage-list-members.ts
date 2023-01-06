@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getUserDetails } from "../../../utils/supabase";
+import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 import { z } from "zod";
 import { getTwitterClient } from "@twips/common";
 import { twitterSecrets } from "../../../utils/twitter";
@@ -51,7 +51,7 @@ export default async function handler(
       .upsert({
         list_id: listId,
         member_id: memberId,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date(),
       })
       .throwOnError();
   else
@@ -61,6 +61,13 @@ export default async function handler(
       .eq("list_id", listId)
       .eq("member_id", memberId)
       .throwOnError();
+
+  // Insert user event
+  await insertUserEvent(supabase, "manage-list-members", {
+    memberId,
+    listId,
+    add,
+  });
 
   res.status(200).send(null);
 }

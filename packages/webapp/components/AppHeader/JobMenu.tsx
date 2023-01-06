@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 import { useJobs } from "../../providers/JobsProvider";
 import { JobItem } from "../JobItem";
 
-const numJobsToShow = 3;
+const numJobsToShow = 5;
 
 export const JobMenu = () => {
   const { jobs } = useJobs();

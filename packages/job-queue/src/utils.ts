@@ -17,9 +17,15 @@ dotenv.config();
 // To suppress warnings
 process.removeAllListeners("warning");
 
-// Monkeypatching BigInt
+// Monkeypatching types for JSON serialization
 BigInt.prototype["toJSON"] = function () {
   return this.toString();
+};
+Set.prototype["toJSON"] = function () {
+  return Array.from(this);
+};
+Date.prototype["toJSON"] = function () {
+  return this.toISOString();
 };
 
 const formatTelegramMessage = ({ level, message, metadata }) => `

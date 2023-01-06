@@ -90,15 +90,14 @@ export const lookupRelation = async (jobId: number) => {
   } catch (error) {
     // If rate-limited, delay the job
     if (error.status == 429) {
-      const rateLimitResetsAt = new Date(
-        Number(error.headers["x-rate-limit-reset"]) * 1000
-      );
       await supabase
         .from("twitter_api_rate_limit")
         .upsert({
           user_twitter_id: userProfile.twitter_id,
           endpoint,
-          resets_at: rateLimitResetsAt.toISOString(),
+          resets_at: new Date(
+            Number(error.headers["x-rate-limit-reset"]) * 1000
+          ),
         })
         .throwOnError();
       return;
@@ -137,7 +136,7 @@ export const lookupRelation = async (jobId: number) => {
             : { source_id: job.target_id, target_id: x.id };
         return {
           ...row,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date(),
           to_delete: false,
         };
       })
@@ -160,7 +159,7 @@ export const lookupRelation = async (jobId: number) => {
     // Update user's relationUpdatedAt field in database
     await supabase
       .from("twitter_profile")
-      .update({ [`${relation}_updated_at`]: new Date().toISOString() })
+      .update({ [`${relation}_updated_at`]: new Date() })
       .eq("id", job.target_id)
       .throwOnError();
   }
@@ -173,7 +172,7 @@ export const lookupRelation = async (jobId: number) => {
       updated_count: job.updated_count + users.length,
       priority: job.priority - 1,
       finished,
-      updated_at: new Date().toISOString(),
+      updated_at: new Date(),
     })
     .eq("id", jobId)
     .throwOnError();

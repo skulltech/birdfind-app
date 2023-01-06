@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
-import { getUserDetails } from "../../../utils/supabase";
+import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 import { z } from "zod";
 import { getTwitterClient } from "@twips/common";
 import { twitterSecrets } from "../../../utils/twitter";
@@ -73,7 +73,7 @@ export default async function handler(
       .upsert({
         source_id: userTwitterId,
         target_id: targetId,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date(),
       })
       .throwOnError();
   else
@@ -83,6 +83,13 @@ export default async function handler(
       .eq("source_id", userTwitterId)
       .eq("target_id", targetId)
       .throwOnError();
+
+  // Insert user event
+  await insertUserEvent(supabase, "manage-relation", {
+    targetId,
+    relation,
+    add,
+  });
 
   res.status(200).send(null);
 }

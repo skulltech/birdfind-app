@@ -164,17 +164,10 @@ export const searchTwitterProfiles = async ({
   filters,
   pageIndex,
 }: searchTwitterProfilesArgs): Promise<SearchTwitterProfilesResult> => {
-  const {
-    followerOf: followerOfSet,
-    followedBy: followedBySet,
-    blockedByMe,
-    mutedByMe,
-    ...otherFilters
-  } = filters;
+  const { followerOf, followedBy, blockedByMe, mutedByMe, ...otherFilters } =
+    filters;
   const blockedBy = blockedByMe ? [userTwitterId] : null;
   const mutedBy = mutedByMe ? [userTwitterId] : null;
-  const followerOf = followerOfSet ? Array.from(followerOfSet) : null;
-  const followedBy = followedBySet ? Array.from(followedBySet) : null;
 
   const appendFilterFunctions: Record<
     keyof typeof otherFilters,
@@ -191,7 +184,7 @@ export const searchTwitterProfiles = async ({
     tweetCountLessThan: (query, value: number) =>
       query.lt("tweet_count", value),
     tweetCountGreaterThan: (query, value: number) =>
-      query.gt("following_count", value),
+      query.gt("tweet_count", value),
     createdBefore: (query, value: Date) =>
       query.lt("user_created_at", value.toISOString()),
     createdAfter: (query, value: Date) =>
@@ -213,7 +206,9 @@ export const searchTwitterProfiles = async ({
       },
       { count: "exact" }
     )
-    .select("id");
+    .select(
+      "username,name,description,followers_count,following_count,tweet_count,user_created_at"
+    );
 
   for (const [key, value] of Object.entries(otherFilters))
     countQuery = appendFilterFunctions[key](countQuery, value);
@@ -249,8 +244,11 @@ export const searchTwitterProfiles = async ({
     .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
     .throwOnError();
 
-  // Insert event in user_event table
-  await insertUserEvent(supabase, "search-filters", filters);
+  // Insert user event
+  await insertUserEvent(supabase, "search-using-filters", {
+    filters,
+    pageIndex,
+  });
 
   const results = data.map((x: any) => {
     return {
@@ -281,9 +279,16 @@ export const upsertTwitterProfile = async (
   return parseTwitterProfile(data[0]);
 };
 
+type UserEventType =
+  | "search-using-filters"
+  | "manage-relation"
+  | "create-list"
+  | "manage-list-members"
+  | "prompt-to-filters";
+
 export const insertUserEvent = async (
   supabase: SupabaseClient,
-  type: string,
+  type: UserEventType,
   data: object
 ) => {
   const {

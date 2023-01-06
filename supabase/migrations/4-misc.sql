@@ -7,7 +7,11 @@ create table if not exists user_event (
     user_id uuid references auth.users not null,
 
     type text not null check (type in (
-      'search-filters', 'manage-relation', 'manage-list-member', 'prompt-to-filters'
+      'search-using-filters',
+      'manage-relation',
+      'create-list',
+      'manage-list-members',
+      'prompt-to-filters'
     )),
     data jsonb
 );

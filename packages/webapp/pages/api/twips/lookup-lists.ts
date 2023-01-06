@@ -61,7 +61,7 @@ export default async function handler(
       userOwnedLists.map((x) => {
         return {
           id: x.id,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date(),
           list_created_at: x.created_at,
           name: x.name,
           description: x.description,
@@ -87,7 +87,7 @@ export default async function handler(
   // Update user's twitter profile
   await supabase
     .from("twitter_profile")
-    .update({ lists_owned_updated_at: new Date().toISOString() })
+    .update({ lists_owned_updated_at: new Date() })
     .eq("id", userDetails.twitter.id)
     .throwOnError();
 

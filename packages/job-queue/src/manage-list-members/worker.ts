@@ -52,15 +52,14 @@ export const manageListMembers = async (jobId: number) => {
   } catch (error) {
     // If rate-limited, delay the job
     if (error.status == 429) {
-      const rateLimitResetsAt = new Date(
-        Number(error.headers["x-rate-limit-reset"]) * 1000
-      );
       await supabase
         .from("twitter_api_rate_limit")
         .upsert({
           user_twitter_id: userProfile.twitter_id,
           endpoint,
-          resets_at: rateLimitResetsAt.toISOString(),
+          resets_at: new Date(
+            Number(error.headers["x-rate-limit-reset"]) * 1000
+          ),
         })
         .throwOnError();
       return;
@@ -103,7 +102,7 @@ export const manageListMembers = async (jobId: number) => {
     .from("manage_list_members_job")
     .update({
       priority: job.priority - chunkSize,
-      updated_at: new Date().toISOString(),
+      updated_at: new Date(),
       member_ids_done: memberIdsDone,
     })
     .eq("id", jobId)
