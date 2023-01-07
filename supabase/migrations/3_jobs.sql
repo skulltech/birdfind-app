@@ -45,6 +45,10 @@ create table if not exists lookup_relation_job (
     updated_count integer default 0 not null
 );
 
+create trigger on_lookup_relation_job_updated
+  before update on lookup_relation_job
+  for each row execute procedure set_updated_at();
+
 alter table lookup_relation_job enable row level security;
 
 create policy "Users can insert their own lookup relation jobs."
@@ -82,6 +86,10 @@ create table if not exists manage_list_members_job (
     deleted boolean default false not null,
     member_ids_done bigint[] default array[]::bigint[]
 );
+
+create trigger on_manage_list_members_job_updated
+  before update on manage_list_members_job
+  for each row execute procedure set_updated_at();
 
 alter table manage_list_members_job enable row level security;
 
@@ -121,6 +129,10 @@ create table if not exists manage_relation_job (
     deleted boolean default false not null,
     target_ids_done bigint[] default array[]::bigint[]
 );
+
+create trigger on_manage_relation_job_updated
+  before update on manage_relation_job
+  for each row execute procedure set_updated_at();
 
 alter table manage_relation_job enable row level security;
 

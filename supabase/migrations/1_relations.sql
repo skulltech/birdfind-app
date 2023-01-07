@@ -12,6 +12,10 @@ create table if not exists twitter_follow (
     primary key (source_id, target_id)
 );
 
+create trigger on_twitter_follow_updated
+  before update on twitter_follow
+  for each row execute procedure set_updated_at();
+
 alter table twitter_follow enable row level security;
 
 create policy "Authenticated users can view all Twitter follows."
@@ -57,6 +61,10 @@ create table if not exists twitter_block (
 
     primary key (source_id, target_id)
 );
+
+create trigger on_twitter_block_updated
+  before update on twitter_block
+  for each row execute procedure set_updated_at();
 
 alter table twitter_block enable row level security;
 
@@ -107,6 +115,10 @@ create table if not exists twitter_mute (
 
     primary key (source_id, target_id)
 );
+
+create trigger on_twitter_mute_updated
+  before update on twitter_mute
+  for each row execute procedure set_updated_at();
 
 alter table twitter_mute enable row level security;
 

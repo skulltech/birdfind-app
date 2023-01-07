@@ -73,7 +73,6 @@ export default async function handler(
       .upsert({
         source_id: userTwitterId,
         target_id: targetId,
-        updated_at: new Date(),
       })
       .throwOnError();
   else

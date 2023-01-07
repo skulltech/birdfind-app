@@ -17,6 +17,10 @@ create table if not exists twitter_list (
   to_delete boolean not null default false
 );
 
+create trigger on_twitter_list_updated
+  before update on twitter_list
+  for each row execute procedure set_updated_at();
+
 alter table twitter_list enable row level security;
 
 create policy "Users can view their own Twitter lists."
@@ -67,6 +71,10 @@ create table if not exists twitter_list_member (
 
     primary key (list_id, member_id)
 );
+
+create trigger on_twitter_list_member_updated
+  before update on twitter_list_member
+  for each row execute procedure set_updated_at();
 
 alter table twitter_list_member enable row level security;
 

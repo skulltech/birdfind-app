@@ -136,7 +136,6 @@ export const lookupRelation = async (jobId: number) => {
             : { source_id: job.target_id, target_id: x.id };
         return {
           ...row,
-          updated_at: new Date(),
           to_delete: false,
         };
       })
@@ -172,7 +171,6 @@ export const lookupRelation = async (jobId: number) => {
       updated_count: job.updated_count + users.length,
       priority: job.priority - 1,
       finished,
-      updated_at: new Date(),
     })
     .eq("id", jobId)
     .throwOnError();

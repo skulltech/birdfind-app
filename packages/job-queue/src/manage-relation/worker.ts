@@ -140,7 +140,6 @@ export const manageRelation = async (jobId: number) => {
     .from("manage_relation_job")
     .update({
       priority: job.priority - chunkSize,
-      updated_at: new Date(),
       target_ids_done: targetIdsDone,
     })
     .eq("id", jobId)

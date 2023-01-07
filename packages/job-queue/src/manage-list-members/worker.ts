@@ -102,7 +102,6 @@ export const manageListMembers = async (jobId: number) => {
     .from("manage_list_members_job")
     .update({
       priority: job.priority - chunkSize,
-      updated_at: new Date(),
       member_ids_done: memberIdsDone,
     })
     .eq("id", jobId)

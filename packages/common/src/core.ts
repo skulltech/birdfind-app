@@ -53,7 +53,6 @@ export const serializeTwitterUser = (
   JSON.parse(
     JSON.stringify({
       id: user.id,
-      updated_at: new Date(),
       username: user.username,
       name: user.name,
       user_created_at: user.created_at,

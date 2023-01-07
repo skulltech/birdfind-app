@@ -1,3 +1,14 @@
+-- Helper function for setting updated_at to current timestamp
+
+create function set_updated_at()
+  returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+
 -- Twitter profile and user// customer profile
 
 create table if not exists twitter_profile (
@@ -34,10 +45,16 @@ create table if not exists twitter_profile (
     withheld jsonb
 );
 
+create trigger on_twitter_profile_updated
+  before update on twitter_profile
+  for each row execute procedure set_updated_at();
+
+
 -- User// customer profile
 
 create table if not exists user_profile (
     id uuid references auth.users not null primary key,
+    updated_at timestamp with time zone default now() not null,
     email text not null unique,
     
     twitter_oauth_state jsonb,
@@ -45,6 +62,10 @@ create table if not exists user_profile (
 
     twitter_id bigint references twitter_profile
 );
+
+create trigger on_user_profile_updated
+  before update on user_profile
+  for each row execute procedure set_updated_at();
 
 alter table user_profile enable row level security;
 
@@ -61,7 +82,7 @@ create policy "Users can update their own profiles."
 
 -- Inserts a row into user_profile everytime an user registers
 
-create function handle_new_user()
+create function create_user_profile()
     returns trigger
     language plpgsql
     security definer set search_path = public
@@ -75,7 +96,7 @@ $$;
 
 create trigger on_auth_user_created
   after insert on auth.users
-  for each row execute procedure handle_new_user();
+  for each row execute procedure create_user_profile();
 
 -- Policies for twitter_profile
 

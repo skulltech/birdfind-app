@@ -51,7 +51,6 @@ export default async function handler(
       .upsert({
         list_id: listId,
         member_id: memberId,
-        updated_at: new Date(),
       })
       .throwOnError();
   else

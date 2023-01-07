@@ -61,7 +61,6 @@ export default async function handler(
       userOwnedLists.map((x) => {
         return {
           id: x.id,
-          updated_at: new Date(),
           list_created_at: x.created_at,
           name: x.name,
           description: x.description,
