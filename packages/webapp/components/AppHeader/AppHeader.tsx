@@ -1,14 +1,12 @@
 import {
-  ActionIcon,
+  ColorScheme,
   createStyles,
   Group,
   Header,
   Text,
   Title,
   UnstyledButton,
-  useMantineColorScheme,
 } from "@mantine/core";
-import { IconMoonStars, IconSun } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useUser } from "../../providers/UserProvider";
 import { JobMenu } from "./JobMenu";
@@ -19,6 +17,8 @@ import Image from "next/image";
 
 type AppHeaderProps = {
   [x: string]: any;
+  colorScheme: ColorScheme | "system";
+  changeColorScheme: (arg: ColorScheme | "system") => void;
 };
 
 const abrilFatface = Abril_Fatface({ weight: "400", subsets: ["latin"] });
@@ -79,11 +79,13 @@ const links: LinkProps[] = [
 const getRandomElement = <T,>(arg: T[]) =>
   arg[Math.floor(Math.random() * arg.length)];
 
-export const AppHeader = ({ ...others }: AppHeaderProps) => {
+export const AppHeader = ({
+  colorScheme,
+  changeColorScheme,
+  ...others
+}: AppHeaderProps) => {
   const router = useRouter();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { user } = useUser();
-  const dark = colorScheme === "dark";
 
   const { classes, cx } = useStyles();
 
@@ -155,18 +157,12 @@ export const AppHeader = ({ ...others }: AppHeaderProps) => {
           {user && (
             <>
               <JobMenu />
-              <AccountMenu />
+              <AccountMenu
+                colorScheme={colorScheme}
+                changeColorScheme={changeColorScheme}
+              />
             </>
           )}
-
-          <ActionIcon
-            variant="outline"
-            color={dark ? "yellow" : "blue"}
-            onClick={() => toggleColorScheme()}
-            title="Toggle color scheme"
-          >
-            {dark ? <IconSun size={18} /> : <IconMoonStars size={18} />}
-          </ActionIcon>
         </Group>
       </Group>
     </Header>

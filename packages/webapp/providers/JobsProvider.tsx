@@ -1,5 +1,4 @@
 import { Text } from "@mantine/core";
-import { useListState } from "@mantine/hooks";
 import { openConfirmModal } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -25,7 +24,7 @@ const JobsContext = createContext<{
 });
 
 export const JobsProvider = ({ children }) => {
-  const [jobs, jobsHandlers] = useListState<Job>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(false);
   const supabase = useSupabaseClient();
   const { user } = useUser();
@@ -34,15 +33,14 @@ export const JobsProvider = ({ children }) => {
   // Fetch jobs and update state
   const fetchJobs = async () => {
     if (!user) {
-      jobsHandlers.setState([]);
+      setJobs([]);
       return;
     }
 
     setLoading(true);
 
     try {
-      const jobs = await getAllJobs(supabase);
-      jobsHandlers.setState(jobs);
+      setJobs(await getAllJobs(supabase));
     } catch (error) {
       console.log(error);
       showNotification({
@@ -127,88 +125,31 @@ export const JobsProvider = ({ children }) => {
       name: JobName,
       payload: RealtimePostgresChangesPayload<any>
     ) => {
+      // Update list of jobs
+      fetchJobs();
+
       if (payload.eventType == "UPDATE") {
-        // Refresh search results quietly
+        // Mark that jobs have updated
         setRandomFloat(Math.random());
 
-        if (payload.new.finished) {
-          jobsHandlers.filter(
-            (job) => job.id !== payload.new.id && job.name === name
-          );
-
-          if (name != "lookup-relation") {
-            const job = await getJob(supabase, name, payload.new.id);
-            showNotification({
-              title: "Finished job",
-              message: job.label,
-              color: "green",
-            });
-          }
-        } else if (payload.new.deleted)
-          jobsHandlers.filter(
-            (job) => job.id !== payload.new.id && job.name === name
-          );
-        else
-          jobsHandlers.applyWhere(
-            (job) => job.id == payload.new.id && job.name == name,
-            (job) => ({
-              ...job,
-              paused: payload.new.paused,
-              progress:
-                // Set progress
-                job.name == "lookup-relation"
-                  ? job.totalCount
-                    ? (payload.new.updated_count / job.totalCount) * 100
-                    : null
-                  : job.name == "manage-list-members"
-                  ? (payload.new.member_ids_done.length /
-                      payload.new.member_ids.length) *
-                    100
-                  : job.name == "manage-relation"
-                  ? (payload.new.target_ids_done.length /
-                      payload.new.target_ids.length) *
-                    100
-                  : null,
-            })
-          );
-      }
-
-      if (payload.eventType == "INSERT") {
-        const job = await getJob(supabase, name, payload.new.id);
-        jobsHandlers.append(job);
-        if (name != "lookup-relation")
+        if (payload.new.finished && name != "lookup-relation") {
+          const job = await getJob(supabase, name, payload.new.id);
           showNotification({
-            title: "Added job",
+            title: "Finished job",
             message: job.label,
             color: "green",
           });
+        }
       }
-    };
 
-    const handleRateLimitPayload = async (
-      payload: RealtimePostgresChangesPayload<any>
-    ) => {
-      console.log(payload);
-      jobsHandlers.applyWhere(
-        (job) =>
-          payload.new.endpoint ==
-          (job.name == "lookup-relation"
-            ? `lookup-${job.relation}`
-            : job.name == "manage-list-members"
-            ? `${job.add ? "add" : "remove"}-list-members`
-            : job.name == "manage-relation"
-            ? `${job.add ? "add" : "remove"}-${job.relation}`
-            : null),
-        (job) => ({
-          ...job,
-          rateLimitResetsAt:
-            payload.eventType == "DELETE"
-              ? null
-              : payload.new.resets_at
-              ? new Date(payload.new.resets_at)
-              : null,
-        })
-      );
+      if (payload.eventType == "INSERT" && name != "lookup-relation") {
+        const job = await getJob(supabase, name, payload.new.id);
+        showNotification({
+          title: "Added job",
+          message: job.label,
+          color: "green",
+        });
+      }
     };
 
     if (user) {
@@ -247,7 +188,7 @@ export const JobsProvider = ({ children }) => {
             schema: "public",
             table: "twitter_api_rate_limit",
           },
-          handleRateLimitPayload
+          fetchJobs
         )
         .subscribe();
     }

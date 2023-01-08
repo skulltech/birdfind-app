@@ -19,7 +19,7 @@ export const middleware = async (req: NextRequest) => {
   if (path.startsWith("/unsupported-device")) return;
   const { device } = userAgent(req);
   if (device.type == "mobile")
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/unsupported-device", req.url));
 
   const res = NextResponse.next();
   const supabase = createMiddlewareSupabaseClient({ req, res });

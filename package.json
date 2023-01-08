@@ -14,6 +14,7 @@
     "bullmq-dashboard-runnable": "^0.0.6",
     "dotenv": "^16.0.3",
     "lerna": "^6.1.0",
+    "supabase": "1.28.3",
     "typescript": "^4.9.3"
   }
 }

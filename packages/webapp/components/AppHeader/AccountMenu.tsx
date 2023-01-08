@@ -1,17 +1,38 @@
-import { Avatar, Menu, UnstyledButton } from "@mantine/core";
+import {
+  Avatar,
+  Center,
+  ColorScheme,
+  Menu,
+  SegmentedControl,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { IconLogout } from "@tabler/icons";
+import {
+  IconDeviceLaptop,
+  IconLogout,
+  IconMoonStars,
+  IconSun,
+} from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useUser } from "../../providers/UserProvider";
 import { accountMenuItems } from "../../utils/helpers";
 
-export const AccountMenu = () => {
+type AccountMenuProps = {
+  colorScheme: ColorScheme | "system";
+  changeColorScheme: (arg: ColorScheme | "system") => void;
+};
+
+export const AccountMenu = ({
+  colorScheme,
+  changeColorScheme,
+}: AccountMenuProps) => {
   const { user } = useUser();
   const router = useRouter();
   const supabase = useSupabaseClient();
 
   return (
-    <Menu shadow="md">
+    <Menu shadow="md" position="bottom-end">
       <Menu.Target>
         <UnstyledButton>
           <Avatar
@@ -24,6 +45,43 @@ export const AccountMenu = () => {
       </Menu.Target>
 
       <Menu.Dropdown>
+        <Menu.Label>Color Theme</Menu.Label>
+        <Menu.Label>
+          <SegmentedControl
+            value={colorScheme}
+            onChange={changeColorScheme}
+            data={[
+              {
+                label: (
+                  <Center>
+                    <IconSun size={18} />
+                    <Text ml={6}>Light</Text>
+                  </Center>
+                ),
+                value: "light",
+              },
+              {
+                label: (
+                  <Center>
+                    <IconMoonStars size={18} />
+                    <Text ml={6}>Dark</Text>
+                  </Center>
+                ),
+                value: "dark",
+              },
+              {
+                label: (
+                  <Center>
+                    <IconDeviceLaptop size={18} />
+                    <Text ml={6}>System</Text>
+                  </Center>
+                ),
+                value: "system",
+              },
+            ]}
+          />
+        </Menu.Label>
+        <Menu.Divider />
         {accountMenuItems.map((item) => (
           <Menu.Item
             key={item.page}
