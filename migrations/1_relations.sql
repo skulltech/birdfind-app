@@ -1,6 +1,6 @@
 -- Relationships between users, i.e. follow, block and mute
 
-create table if not exists twitter_follow (
+create table twitter_follow (
     created_at timestamp with time zone default now() not null,
     updated_at timestamp with time zone default now() not null,
     source_id bigint not null,
@@ -104,7 +104,7 @@ create policy "Users can delete their own Twitter blocks."
       where user_profile.twitter_id = twitter_block.source_id
     ));
 
-create table if not exists twitter_mute (
+create table twitter_mute (
     created_at timestamp with time zone default now() not null,
     updated_at timestamp with time zone default now() not null,
     source_id bigint not null,

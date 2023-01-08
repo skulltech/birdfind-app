@@ -11,7 +11,7 @@ $$ language plpgsql;
 
 -- Twitter profile and user// customer profile
 
-create table if not exists twitter_profile (
+create table twitter_profile (
     id bigint primary key,
     created_at timestamp with time zone default now() not null,
     updated_at timestamp with time zone default now() not null,
@@ -52,7 +52,7 @@ create trigger on_twitter_profile_updated
 
 -- User// customer profile
 
-create table if not exists user_profile (
+create table user_profile (
     id uuid references auth.users not null primary key,
     updated_at timestamp with time zone default now() not null,
     email text not null unique,

@@ -1,6 +1,6 @@
 -- Twitter lists and list membership
 
-create table if not exists twitter_list (
+create table twitter_list (
   id bigint primary key,
   created_at timestamp with time zone default now() not null,
   updated_at timestamp with time zone default now() not null,
@@ -59,7 +59,7 @@ create policy "Users can delete their own Twitter lists."
       where user_profile.twitter_id = twitter_list.owner_id
     ));
 
-create table if not exists twitter_list_member (
+create table twitter_list_member (
     created_at timestamp with time zone default now() not null,
     updated_at timestamp with time zone default now() not null,
     
