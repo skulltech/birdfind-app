@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getTwitterClient } from "@twips/common";
 import { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
-import { twitterListFields } from "../../../utils/helpers";
+import { getOrigin, twitterListFields } from "../../../utils/helpers";
 import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 import { twitterSecrets } from "../../../utils/twitter";
 
@@ -38,6 +38,7 @@ export default async function handler(
     supabase,
     userId: userDetails.id,
     oauthToken: userDetails.twitter.oauthToken,
+    origin: getOrigin(req),
   });
 
   // Create list on Twitter

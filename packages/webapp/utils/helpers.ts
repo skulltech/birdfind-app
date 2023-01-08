@@ -5,6 +5,7 @@ import {
   TablerIcon,
 } from "@tabler/icons";
 import camelcase from "camelcase";
+import { NextApiRequest } from "next";
 import { z } from "zod";
 import { RemoveFiltersArg } from "../pages/search";
 
@@ -148,3 +149,10 @@ export interface ManageListMembersJob extends CommonJob {
 }
 
 export type Job = LookupRelationJob | ManageRelationJob | ManageListMembersJob;
+
+export const getOrigin = (req: NextApiRequest) =>
+  `${
+    req[
+      Reflect.ownKeys(req).find((s) => String(s) === "Symbol(NextRequestMeta)")
+    ]._protocol
+  }://${req.headers.host}`;

@@ -13,6 +13,7 @@ import {
   twitterSecrets,
 } from "../../../../utils/twitter";
 import { z } from "zod";
+import { getOrigin } from "../../../../utils/helpers";
 
 const schema = z.object({
   code: z.string(),
@@ -38,11 +39,7 @@ export default async function handler(
     req,
     res,
   });
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
   const userProfile = await getUserProfile(supabase);
-  console.log(user, userProfile);
 
   // Check if Oauth flow exists and is valid
   if (!userProfile.twitter_oauth_state)
@@ -51,7 +48,10 @@ export default async function handler(
     return res.status(500).send({ error: "Oauth state is not matching" });
 
   // Prime authClient with oauth state and then get access token
-  const authClient = getTwitterAuthClient(twitterSecrets);
+  const authClient = getTwitterAuthClient({
+    ...twitterSecrets,
+    origin: getOrigin(req),
+  });
   authClient.generateAuthURL({
     state,
     code_challenge_method: "plain",

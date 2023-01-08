@@ -8,7 +8,7 @@ import {
 } from "../../../utils/supabase";
 import { getTwitterUser, twitterSecrets } from "../../../utils/twitter";
 import { z } from "zod";
-import { TwitterProfile } from "../../../utils/helpers";
+import { getOrigin, TwitterProfile } from "../../../utils/helpers";
 
 const schema = z.object({
   username: z.string(),
@@ -43,6 +43,7 @@ export default async function handler(
     supabase,
     userId: userDetails.id,
     oauthToken: userDetails.twitter.oauthToken,
+    origin: getOrigin(req),
   });
   const twitterUser = await getTwitterUser(twitter, username);
 

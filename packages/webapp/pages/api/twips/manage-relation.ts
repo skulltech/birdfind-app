@@ -4,7 +4,7 @@ import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 import { z } from "zod";
 import { getTwitterClient } from "@twips/common";
 import { twitterSecrets } from "../../../utils/twitter";
-import { zodBigint } from "../../../utils/helpers";
+import { getOrigin, zodBigint } from "../../../utils/helpers";
 
 type ErrorData = {
   error?: string;
@@ -38,6 +38,7 @@ export default async function handler(
     supabase,
     userId: userDetails.id,
     oauthToken: userDetails.twitter.oauthToken,
+    origin: getOrigin(req),
   });
   const userTwitterId = userDetails.twitter.id.toString();
 

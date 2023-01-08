@@ -5,7 +5,7 @@ import {
   listUserOwnedLists,
   TwitterResponse,
 } from "twitter-api-sdk/dist/types";
-import { twitterListFields } from "../../../utils/helpers";
+import { getOrigin, twitterListFields } from "../../../utils/helpers";
 import { getUserDetails } from "../../../utils/supabase";
 import { twitterSecrets } from "../../../utils/twitter";
 
@@ -31,6 +31,7 @@ export default async function handler(
     supabase,
     userId: userDetails.id,
     oauthToken: userDetails.twitter.oauthToken,
+    origin: getOrigin(req),
   });
 
   // Get all user's lists from Twitter API

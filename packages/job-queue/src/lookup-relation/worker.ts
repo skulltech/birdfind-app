@@ -63,6 +63,7 @@ export const lookupRelation = async (jobId: number) => {
     supabase,
     userId: job.user_id,
     oauthToken: userProfile.twitter_oauth_token,
+    origin: "https://app.twips.xyz",
   });
 
   let users: TwitterResponse<usersIdFollowing>["data"];

@@ -5,20 +5,19 @@ export type GetTwitterAuthClientArgs = {
   clientId: string;
   clientSecret: string;
   oauthToken?: auth.OAuth2UserOptions["token"];
+  origin: string;
 };
 
 export const getTwitterAuthClient = ({
   clientId,
   clientSecret,
   oauthToken,
+  origin,
 }: GetTwitterAuthClientArgs) =>
   new auth.OAuth2User({
     client_id: clientId,
     client_secret: clientSecret,
-    callback:
-      process.env.NODE_ENV == "development"
-        ? "http://127.0.0.1:3000/api/auth/twitter/callback"
-        : "https://app.twips.xyz/api/auth/twitter/callback",
+    callback: new URL("/api/auth/twitter/callback", origin).toString(),
     scopes: [
       "users.read",
       "tweet.read",
@@ -49,6 +48,7 @@ export const getTwitterClient = async ({
   oauthToken,
   supabase,
   userId,
+  origin,
 }: GetTwitterClientArgs) => {
   // Refresh token and save it to Supabase if it has expired
   if (oauthToken.expires_at <= Date.now()) {
@@ -56,6 +56,7 @@ export const getTwitterClient = async ({
       clientId,
       clientSecret,
       oauthToken,
+      origin,
     });
     const { token } = await authClient.refreshAccessToken();
 

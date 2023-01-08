@@ -34,6 +34,7 @@ export const manageRelation = async (jobId: number) => {
     supabase,
     userId: job.user_id,
     oauthToken: userProfile.twitter_oauth_token,
+    origin: "https://app.twips.xyz",
   });
 
   const targetIds: bigint[] = job.target_ids.map(BigInt);

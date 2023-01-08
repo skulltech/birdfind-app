@@ -6,6 +6,7 @@ import {
   Text,
   Title,
   UnstyledButton,
+  Image,
 } from "@mantine/core";
 import { useRouter } from "next/router";
 import { useUser } from "../../providers/UserProvider";
@@ -13,7 +14,6 @@ import { JobMenu } from "./JobMenu";
 import { AccountMenu } from "./AccountMenu";
 import { useEffect, useState } from "react";
 import { Abril_Fatface } from "@next/font/google";
-import Image from "next/image";
 
 type AppHeaderProps = {
   [x: string]: any;
