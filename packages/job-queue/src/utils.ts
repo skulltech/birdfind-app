@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import winston from "winston";
 import TelegramLogger from "winston-telegram";
 import { createClient } from "@supabase/supabase-js";
-import { ConnectionOptions, Queue } from "bullmq";
+import { ConnectionOptions, Queue, RepeatOptions } from "bullmq";
 import { Client } from "pg";
 import { JobName } from "@twips/common";
 dotenv.config();
@@ -170,3 +170,18 @@ export const getUserProfileEventListener = () =>
         }
       }
     );
+
+export const addRefreshTwitterTokensCron = async () => {
+  // Remove existing refresh-twitter-tokens crons
+  const existingCrons = await queue.getRepeatableJobs();
+  for (const cron of existingCrons.filter(
+    (x) => x.name == "refresh-twitter-tokens"
+  ))
+    await queue.removeRepeatableByKey(cron.key);
+
+  // Add cron
+  await queue.add("refresh-twitter-tokens", null, {
+    // Repeat every 2 minutes
+    repeat: { every: 2 * 60 * 1000 },
+  });
+};

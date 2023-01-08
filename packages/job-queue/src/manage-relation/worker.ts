@@ -1,4 +1,5 @@
-import { getTwitterClient, manageRelationJobColumns } from "@twips/common";
+import { manageRelationJobColumns } from "@twips/common";
+import { Client } from "twitter-api-sdk";
 import { supabase } from "../utils";
 
 const relations = ["follow", "mute", "block"] as const;
@@ -26,16 +27,13 @@ export const manageRelation = async (jobId: number) => {
     .eq("id", job.user_id)
     .throwOnError()
     .single();
-  const userProfile = userProfileData as any;
+  // @ts-ignore
+  const userProfile = userProfileData as {
+    twitter_id: string;
+    twitter_oauth_token: any;
+  };
 
-  const twitter = await getTwitterClient({
-    clientId: process.env.TWITTER_CLIENT_ID,
-    clientSecret: process.env.TWITTER_CLIENT_SECRET,
-    supabase,
-    userId: job.user_id,
-    oauthToken: userProfile.twitter_oauth_token,
-    origin: "https://app.twips.xyz",
-  });
+  const twitter = new Client(userProfile.twitter_oauth_token.access_token);
 
   const targetIds: bigint[] = job.target_ids.map(BigInt);
   const targetIdsDone: bigint[] = job.target_ids_done.map(BigInt);

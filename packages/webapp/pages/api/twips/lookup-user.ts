@@ -1,14 +1,14 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { getTwitterClient } from "@twips/common";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   getServiceRoleSupabase,
   getUserDetails,
   upsertTwitterProfile,
 } from "../../../utils/supabase";
-import { getTwitterUser, twitterSecrets } from "../../../utils/twitter";
+import { getTwitterUser } from "../../../utils/twitter";
 import { z } from "zod";
-import { getOrigin, TwitterProfile } from "../../../utils/helpers";
+import { TwitterProfile } from "../../../utils/helpers";
+import { Client } from "twitter-api-sdk";
 
 const schema = z.object({
   username: z.string(),
@@ -38,13 +38,7 @@ export default async function handler(
   });
 
   const userDetails = await getUserDetails(supabase);
-  const twitter = await getTwitterClient({
-    ...twitterSecrets,
-    supabase,
-    userId: userDetails.id,
-    oauthToken: userDetails.twitter.oauthToken,
-    origin: getOrigin(req),
-  });
+  const twitter = new Client(userDetails.twitter.accessToken);
   const twitterUser = await getTwitterUser(twitter, username);
 
   if (!twitterUser) return res.status(200).json({ profile: null });

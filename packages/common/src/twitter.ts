@@ -1,5 +1,4 @@
-import { SupabaseClient } from "@supabase/supabase-js";
-import { auth, Client } from "twitter-api-sdk";
+import { auth } from "twitter-api-sdk";
 
 export type GetTwitterAuthClientArgs = {
   clientId: string;
@@ -19,56 +18,24 @@ export const getTwitterAuthClient = ({
     client_secret: clientSecret,
     callback: new URL("/api/auth/twitter/callback", origin).toString(),
     scopes: [
-      "users.read",
       "tweet.read",
+      "tweet.write",
+      "tweet.moderate.write",
+      "users.read",
       "follows.read",
       "follows.write",
+      "offline.access",
+      "space.read",
       "mute.read",
       "mute.write",
-      "block.read",
-      "block.write",
-      "offline.access",
+      "like.read",
+      "like.write",
       "list.read",
       "list.write",
+      "block.read",
+      "block.write",
+      "bookmark.read",
+      "bookmark.write",
     ],
     token: oauthToken,
   });
-
-type RequiredField<T, K extends keyof T> = T & Required<Pick<T, K>>;
-
-export interface GetTwitterClientArgs
-  extends RequiredField<GetTwitterAuthClientArgs, "oauthToken"> {
-  supabase: SupabaseClient;
-  userId: string;
-}
-
-export const getTwitterClient = async ({
-  clientId,
-  clientSecret,
-  oauthToken,
-  supabase,
-  userId,
-  origin,
-}: GetTwitterClientArgs) => {
-  // Refresh token and save it to Supabase if it has expired
-  if (oauthToken.expires_at <= Date.now()) {
-    const authClient = getTwitterAuthClient({
-      clientId,
-      clientSecret,
-      oauthToken,
-      origin,
-    });
-    const { token } = await authClient.refreshAccessToken();
-
-    // Update refreshed token in Supabase
-    await supabase
-      .from("user_profile")
-      .update({ twitter_oauth_token: token })
-      .eq("id", userId)
-      .throwOnError();
-
-    oauthToken = token;
-  }
-
-  return new Client(oauthToken.access_token);
-};
