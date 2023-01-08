@@ -84,7 +84,7 @@ export const manageRelation = async (jobId: number) => {
     if (error.status == 429) {
       await supabase
         .from("twitter_api_rate_limit")
-        .upsert({
+        .insert({
           user_twitter_id: userProfile.twitter_id,
           endpoint,
           resets_at: new Date(
@@ -99,7 +99,7 @@ export const manageRelation = async (jobId: number) => {
   // Delete rate limit
   await supabase
     .from("twitter_api_rate_limit")
-    .delete()
+    .update({ deleted: true })
     .eq("endpoint", endpoint)
     .eq("user_twitter_id", userProfile.twitter_id)
     .throwOnError();

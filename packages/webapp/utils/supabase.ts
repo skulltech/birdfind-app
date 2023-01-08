@@ -364,6 +364,7 @@ const getAllRateLimits = async (supabase: SupabaseClient) => {
   const { data } = await supabase
     .from("twitter_api_rate_limit")
     .select("endpoint,resets_at")
+    .eq("deleted", false)
     .throwOnError();
   return data;
 };
