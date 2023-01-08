@@ -150,9 +150,20 @@ export interface ManageListMembersJob extends CommonJob {
 
 export type Job = LookupRelationJob | ManageRelationJob | ManageListMembersJob;
 
-export const getOrigin = (req: NextApiRequest) =>
-  `${
-    req[
-      Reflect.ownKeys(req).find((s) => String(s) === "Symbol(NextRequestMeta)")
-    ]._protocol
-  }://${req.headers.host}`;
+function absoluteUrl(req: NextApiRequest) {}
+
+function isLocalNetwork(hostname = window.location.host) {
+  return (
+    hostname.startsWith("localhost") ||
+    hostname.startsWith("127.0.0.1") ||
+    hostname.startsWith("192.168.") ||
+    hostname.startsWith("10.0.") ||
+    hostname.endsWith(".local")
+  );
+}
+
+export const getOrigin = (req: NextApiRequest) => {
+  const host = req.headers.host;
+  const protocol = isLocalNetwork(host) ? "http:" : "https:";
+  return protocol + "//" + host;
+};
