@@ -1,10 +1,10 @@
-import { Group, LoadingOverlay, ScrollArea, Stack, Text } from "@mantine/core";
+import { Group, ScrollArea, Stack, Text } from "@mantine/core";
 import { AccountNavbar } from "../../components/AccountNavbar";
 import { JobItem } from "../../components/JobItem";
 import { useJobs } from "../../providers/JobsProvider";
 
 const Jobs = () => {
-  const { jobs, loading } = useJobs();
+  const { jobs } = useJobs();
 
   return (
     <Group align="flex-start">
@@ -19,14 +19,11 @@ const Jobs = () => {
             width: "100%",
           }}
         >
-          <div style={{ position: "relative" }}>
-            <LoadingOverlay visible={loading} overlayBlur={2} />
-            <Stack sx={{ flex: 1 }}>
-              {jobs.map((job) => (
-                <JobItem key={job.id} job={job} compact={false} />
-              ))}
-            </Stack>
-          </div>
+          <Stack sx={{ flex: 1 }}>
+            {jobs.map((job) => (
+              <JobItem key={job.id} job={job} compact={false} />
+            ))}
+          </Stack>
         </ScrollArea>
       </Stack>
     </Group>

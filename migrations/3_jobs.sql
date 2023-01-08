@@ -172,7 +172,8 @@ where lookup_relation_job.finished = false
   and lookup_relation_job.paused = false
   and lookup_relation_job.deleted = false
   and not (lookup_relation_job.id = any(failed_jobs))
-  and (twitter_api_rate_limit.resets_at is null or (
+  and (twitter_api_rate_limit.resets_at is null or
+    twitter_api_rate_limit.deleted = true or (
     twitter_api_rate_limit.deleted = false and twitter_api_rate_limit.resets_at < now()
   ))
   and lookup_relation_job.user_id not in (
@@ -203,7 +204,8 @@ where manage_relation_job.finished = false
   and manage_relation_job.paused = false
   and manage_relation_job.deleted = false
   and not (manage_relation_job.id = any(failed_jobs))
-  and (twitter_api_rate_limit.resets_at is null or (
+  and (twitter_api_rate_limit.resets_at is null or
+    twitter_api_rate_limit.deleted = true or (
     twitter_api_rate_limit.deleted = false and twitter_api_rate_limit.resets_at < now()
   ))
   and manage_relation_job.user_id not in (
@@ -233,7 +235,8 @@ from manage_list_members_job
 where manage_list_members_job.finished = false
   and manage_list_members_job.paused = false
   and manage_list_members_job.deleted = false
-  and (twitter_api_rate_limit.resets_at is null or (
+  and (twitter_api_rate_limit.resets_at is null or
+    twitter_api_rate_limit.deleted = true or (
     twitter_api_rate_limit.deleted = false and twitter_api_rate_limit.resets_at < now()
   ))
   and not (manage_list_members_job.id = any(failed_jobs))
