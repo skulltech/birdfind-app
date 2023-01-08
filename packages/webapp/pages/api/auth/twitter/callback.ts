@@ -38,7 +38,11 @@ export default async function handler(
     req,
     res,
   });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const userProfile = await getUserProfile(supabase);
+  console.log(user, userProfile);
 
   // Check if Oauth flow exists and is valid
   if (!userProfile.twitter_oauth_state)
