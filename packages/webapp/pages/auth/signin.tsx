@@ -48,7 +48,10 @@ const SignIn = () => {
     setLoading(true);
 
     // Call signInWithOtp
-    const { error } = await supabase.auth.signInWithOtp({ email: email });
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email,
+      options: { emailRedirectTo: window.location.origin },
+    });
 
     // Show notification depending on success
     if (error)
@@ -83,7 +86,10 @@ const SignIn = () => {
             radius="xl"
             leftIcon={<IconBrandGoogle />}
             onClick={() =>
-              supabase.auth.signInWithOAuth({ provider: "google" })
+              supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: { redirectTo: window.location.origin },
+              })
             }
           >
             Google
