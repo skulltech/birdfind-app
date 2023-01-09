@@ -12,6 +12,7 @@ import { useForm } from "@mantine/form";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconBrandGoogle, IconCheck } from "@tabler/icons";
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { getUserProfile } from "../../utils/supabase";
@@ -76,49 +77,54 @@ const SignIn = () => {
   };
 
   return (
-    <Container size="xs" p="xl" mt={100}>
-      <Paper radius="md" p="xl" withBorder>
-        <Text size="lg" weight={500}>
-          Welcome to Twips, login with
-        </Text>
-        <Group grow mb="md" mt="md">
-          <Button
-            radius="xl"
-            leftIcon={<IconBrandGoogle />}
-            onClick={() =>
-              supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: { redirectTo: window.location.origin },
-              })
-            }
-          >
-            Google
-          </Button>
-        </Group>
-        <Divider
-          label="Or continue with email"
-          labelPosition="center"
-          my="lg"
-        />
-        <form
-          onSubmit={form.onSubmit(() => handleEmailSignIn(form.values.email))}
-        >
-          <Stack mt="md">
-            <TextInput
-              required
-              label="Email"
-              placeholder="your@email.com"
-              {...form.getInputProps("email")}
-            />
-          </Stack>
-          <Group position="apart" mt="xl">
-            <Button type="submit" loading={loading}>
-              Login
+    <>
+      <Head>
+        <title>Sign In | Twips</title>
+      </Head>
+      <Container size="xs" p="xl" mt={100}>
+        <Paper radius="md" p="xl" withBorder>
+          <Text size="lg" weight={500}>
+            Welcome to Twips, login with
+          </Text>
+          <Group grow mb="md" mt="md">
+            <Button
+              radius="xl"
+              leftIcon={<IconBrandGoogle />}
+              onClick={() =>
+                supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: { redirectTo: window.location.origin },
+                })
+              }
+            >
+              Google
             </Button>
           </Group>
-        </form>
-      </Paper>
-    </Container>
+          <Divider
+            label="Or continue with email"
+            labelPosition="center"
+            my="lg"
+          />
+          <form
+            onSubmit={form.onSubmit(() => handleEmailSignIn(form.values.email))}
+          >
+            <Stack mt="md">
+              <TextInput
+                required
+                label="Email"
+                placeholder="your@email.com"
+                {...form.getInputProps("email")}
+              />
+            </Stack>
+            <Group position="apart" mt="xl">
+              <Button type="submit" loading={loading}>
+                Login
+              </Button>
+            </Group>
+          </form>
+        </Paper>
+      </Container>
+    </>
   );
 };
 

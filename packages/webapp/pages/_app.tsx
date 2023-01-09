@@ -93,7 +93,7 @@ export default function App({
     <>
       <Head>
         <link rel="shortcut icon" href="/images/icons8-twitter-64.png" />
-        <title>Twips: Search for Tweeps!</title>
+        <title>Twips</title>
       </Head>
       <GoogleAnalytics trackPageViews />
       <SessionContextProvider

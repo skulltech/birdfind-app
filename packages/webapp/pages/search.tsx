@@ -18,6 +18,7 @@ import { addLookupRelationJob, twitterProfileColumns } from "@twips/common";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useJobs } from "../providers/JobsProvider";
+import Head from "next/head";
 
 type Relation = "followers" | "following" | "blocking" | "muting";
 
@@ -239,21 +240,26 @@ const Search = () => {
   }, [jobsUpdatedMarker]);
 
   return (
-    <Group noWrap spacing={0} pt="sm" align="start">
-      <FilterPanel {...{ filters, addFilters, removeFilters }} />
-      <UserTable
-        {...{
-          results,
-          count,
-          refresh: handleSearch,
-          pageIndex,
-          loading,
-          filtersSufficient,
-          setPageIndex,
-          searchInProgress,
-        }}
-      />
-    </Group>
+    <>
+      <Head>
+        <title>Search | Twips</title>
+      </Head>
+      <Group noWrap spacing={0} pt="sm" align="start">
+        <FilterPanel {...{ filters, addFilters, removeFilters }} />
+        <UserTable
+          {...{
+            results,
+            count,
+            refresh: handleSearch,
+            pageIndex,
+            loading,
+            filtersSufficient,
+            setPageIndex,
+            searchInProgress,
+          }}
+        />
+      </Group>
+    </>
   );
 };
 
