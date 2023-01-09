@@ -2,7 +2,7 @@ import * as dotenv from "dotenv";
 import winston from "winston";
 import TelegramLogger from "winston-telegram";
 import { createClient } from "@supabase/supabase-js";
-import { ConnectionOptions, Queue, RepeatOptions } from "bullmq";
+import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
 import { JobName } from "@twips/common";
 dotenv.config();
@@ -139,37 +139,15 @@ export const formatDate = (str: string) =>
   new Date(str).toLocaleString("en-IN");
 
 export const getUserProfileEventListener = () =>
-  supabase
-    .channel("public:user_profile")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "user_profile" },
-      async (payload) => {
-        if (payload.eventType == "INSERT" || payload.eventType == "UPDATE") {
-          const { data: userDetails } = await supabase
-            .rpc("get_user_details", {
-              id: payload.new.id,
-            })
-            .select("email,twitter_username,twitter_name")
-            .throwOnError()
-            .single();
-          logger.info(
-            payload.eventType == "INSERT" ? "User registered" : "User updated",
-            {
-              metadata: {
-                email: userDetails.email,
-                twitter: userDetails.twitter_username
-                  ? {
-                      username: "@" + userDetails.twitter_username,
-                      name: userDetails.twitter_name,
-                    }
-                  : null,
-              },
-            }
-          );
-        }
-      }
-    );
+  supabase.channel("public:user_profile").on(
+    "postgres_changes",
+    // User registration
+    { event: "INSERT", schema: "public", table: "user_profile" },
+    async (payload) =>
+      logger.info("New user registered", {
+        metadata: { email: payload.new.email },
+      })
+  );
 
 export const addRefreshTwitterTokensCron = async () => {
   // Remove existing refresh-twitter-tokens crons
@@ -181,7 +159,7 @@ export const addRefreshTwitterTokensCron = async () => {
 
   // Add cron
   await queue.add("refresh-twitter-tokens", null, {
-    // Repeat every 2 minutes
-    repeat: { every: 2 * 60 * 1000 },
+    // Repeat every 10 minutes
+    repeat: { every: 10 * 60 * 1000 },
   });
 };
