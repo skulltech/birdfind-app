@@ -2,10 +2,11 @@ import { getTwitterAuthClient } from "@twips/common";
 import { supabase } from "../utils";
 
 export const refreshTwitterTokens = async () => {
-  // Get all users
+  // Get all users having Twitter links
   const { data: userProfiles } = await supabase
     .from("user_profile")
     .select("id,twitter_oauth_token")
+    .not("twitter_id", "is", null)
     .throwOnError();
 
   for (const userProfile of userProfiles) {
@@ -30,6 +31,7 @@ export const refreshTwitterTokens = async () => {
           .throwOnError();
         return;
       }
+      throw error;
     }
 
     // Update on Supabase if successfully refreshed
