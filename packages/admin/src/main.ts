@@ -1,7 +1,6 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { lookupTwitterUser } from "./lookup-twitter-user";
-import { removeEvents } from "./remove-events";
 
 // Monkeypatching types for JSON serialization
 BigInt.prototype["toJSON"] = function () {
@@ -18,24 +17,6 @@ Date.prototype["toJSON"] = function () {
 process.removeAllListeners("warning");
 
 yargs(hideBin(process.argv))
-  .command({
-    command: "remove-events",
-    describe: "Remove events of a user",
-    builder: (yargs) =>
-      yargs.positional("email", {
-        type: "string",
-        demandOption: true,
-        description: "Email of the user",
-      }),
-    handler: async (argv) => {
-      const email = argv._[1] as string;
-      console.info("Removing events of user", email);
-      await removeEvents(email);
-      console.info("Removed events of user", email);
-      // Because it might hang
-      process.exit();
-    },
-  })
   .command({
     command: "lookup-twitter-user",
     describe: "Lookup Twitter user by ID",
