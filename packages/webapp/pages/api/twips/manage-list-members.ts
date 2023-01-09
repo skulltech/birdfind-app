@@ -2,8 +2,9 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 import { z } from "zod";
-import { zodBigint } from "../../../utils/helpers";
-import { Client } from "twitter-api-sdk";
+import { getTwitterClient } from "@twips/common";
+import { twitterSecrets } from "../../../utils/twitter";
+import { getOrigin, zodBigint } from "../../../utils/helpers";
 
 type ErrorData = {
   error?: string;
@@ -32,7 +33,13 @@ export default async function handler(
   });
 
   const userDetails = await getUserDetails(supabase);
-  const twitter = new Client(userDetails.twitter.accessToken);
+  const twitter = await getTwitterClient({
+    ...twitterSecrets,
+    supabase,
+    userId: userDetails.id,
+    oauthToken: userDetails.twitter.oauthToken,
+    origin: getOrigin(req),
+  });
 
   // Perform action
   if (add) await twitter.lists.listAddMember(listId, { user_id: memberId });

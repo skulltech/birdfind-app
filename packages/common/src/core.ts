@@ -158,7 +158,6 @@ export const jobNames = [
   "lookup-relation",
   "manage-relation",
   "manage-list-members",
-  "refresh-twitter-tokens",
 ] as const;
 
 export type JobName = typeof jobNames[number];

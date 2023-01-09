@@ -4,7 +4,6 @@ import { manageListMembers } from "./manage-list-members/worker";
 import { lookupRelation } from "./lookup-relation/worker";
 import { logger, connection } from "./utils";
 import { manageRelation } from "./manage-relation/worker";
-import { refreshTwitterTokens } from "./refresh-twitter-tokens/worker";
 
 // Start worker
 const worker = new Worker<number, void, JobName>(
@@ -16,8 +15,6 @@ const worker = new Worker<number, void, JobName>(
       ? manageListMembers(job.data)
       : job.name == "manage-relation"
       ? manageRelation(job.data)
-      : job.name == "refresh-twitter-tokens"
-      ? refreshTwitterTokens()
       : null;
   },
   {

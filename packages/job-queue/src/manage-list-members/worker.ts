@@ -1,5 +1,4 @@
-import { manageListMembersJobColumns } from "@twips/common";
-import { Client } from "twitter-api-sdk";
+import { manageListMembersJobColumns, getTwitterClient } from "@twips/common";
 import { supabase } from "../utils";
 
 const chunkSize = 1;
@@ -24,13 +23,16 @@ export const manageListMembers = async (jobId: number) => {
     .eq("id", job.user_id)
     .throwOnError()
     .single();
-  // @ts-ignore
-  const userProfile = userProfileData as {
-    twitter_id: string;
-    twitter_oauth_token: any;
-  };
+  const userProfile = userProfileData as any;
 
-  const twitter = new Client(userProfile.twitter_oauth_token.access_token);
+  const twitter = await getTwitterClient({
+    clientId: process.env.TWITTER_CLIENT_ID,
+    clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    supabase,
+    userId: job.user_id,
+    oauthToken: userProfile.twitter_oauth_token,
+    origin: "https://app.twips.xyz",
+  });
 
   const memberIds: bigint[] = job.member_ids.map(BigInt);
   const memberIdsDone: bigint[] = job.member_ids_done.map(BigInt);

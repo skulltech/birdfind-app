@@ -2,9 +2,9 @@ import * as dotenv from "dotenv";
 import winston from "winston";
 import TelegramLogger from "winston-telegram";
 import { createClient } from "@supabase/supabase-js";
-import { ConnectionOptions, Queue } from "bullmq";
 import { Client } from "pg";
 import { JobName } from "@twips/common";
+import { ConnectionOptions, Queue } from "bullmq";
 dotenv.config();
 
 // To suppress warnings
@@ -148,18 +148,3 @@ export const getUserProfileEventListener = () =>
         metadata: { email: payload.new.email },
       })
   );
-
-export const addRefreshTwitterTokensCron = async () => {
-  // Remove existing refresh-twitter-tokens crons
-  const existingCrons = await queue.getRepeatableJobs();
-  for (const cron of existingCrons.filter(
-    (x) => x.name == "refresh-twitter-tokens"
-  ))
-    await queue.removeRepeatableByKey(cron.key);
-
-  // Add cron
-  await queue.add("refresh-twitter-tokens", null, {
-    // Repeat every 10 minutes
-    repeat: { every: 10 * 60 * 1000 },
-  });
-};

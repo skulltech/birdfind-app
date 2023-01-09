@@ -1,11 +1,4 @@
-import {
-  addRefreshTwitterTokensCron,
-  getUserProfileEventListener,
-  runAddJobsLoop,
-} from "./utils";
-
-// Add cron for refreshing Twitter tokens
-addRefreshTwitterTokensCron();
+import { getUserProfileEventListener, runAddJobsLoop } from "./utils";
 
 // Run loops for adding jobs
 runAddJobsLoop("lookup-relation");

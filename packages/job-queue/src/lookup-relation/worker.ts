@@ -1,9 +1,9 @@
 import {
+  getTwitterClient,
   serializeTwitterUser,
   twitterUserFields,
   lookupRelationJobColumns,
 } from "@twips/common";
-import { Client } from "twitter-api-sdk";
 import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
 import { supabase } from "../utils";
 import { dedupeUsers } from "./utils";
@@ -55,13 +55,16 @@ export const lookupRelation = async (jobId: number) => {
     .eq("id", job.user_id)
     .throwOnError()
     .single();
-  // @ts-ignore
-  const userProfile = userProfileData as {
-    twitter_id: string;
-    twitter_oauth_token: any;
-  };
+  const userProfile = userProfileData as any;
 
-  const twitter = new Client(userProfile.twitter_oauth_token.access_token);
+  const twitter = await getTwitterClient({
+    clientId: process.env.TWITTER_CLIENT_ID,
+    clientSecret: process.env.TWITTER_CLIENT_SECRET,
+    supabase,
+    userId: job.user_id,
+    oauthToken: userProfile.twitter_oauth_token,
+    origin: "https://app.twips.xyz",
+  });
 
   let users: TwitterResponse<usersIdFollowing>["data"];
   let paginationToken = job.pagination_token;

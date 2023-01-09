@@ -43,22 +43,27 @@ export type UserDetails = {
     id: BigInt;
     username: string;
     profileImageUrl: string;
-    accessToken: string;
+    oauthToken: any;
     name: string;
   } | null;
 };
 
 const parseUserDetails = (row: any) => {
+  const camelCaseRow: any = Object.entries(row).reduce((prev, [key, value]) => {
+    prev[camelCase(key)] = value;
+    return prev;
+  }, {});
+
   return {
-    id: row.id,
-    email: row.email,
-    twitter: row.twitter_id
+    id: camelCaseRow.id,
+    email: camelCaseRow.email,
+    twitter: camelCaseRow.twitterId
       ? {
-          id: BigInt(row.twitter_id),
-          username: row.twitter_username,
-          profileImageUrl: row.twitter_profile_image_url,
-          accessToken: row.twitter_oauth_token.access_token,
-          name: row.twitter_name,
+          id: BigInt(camelCaseRow.twitterId),
+          username: camelCaseRow.twitterUsername,
+          profileImageUrl: camelCaseRow.twitterProfileImageUrl,
+          oauthToken: camelCaseRow.twitterOauthToken,
+          name: camelCaseRow.twitterName,
         }
       : null,
   };
