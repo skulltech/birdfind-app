@@ -15,6 +15,9 @@ export const middleware = async (req: NextRequest) => {
   // To fix bug with latest NextJS
   if (path.startsWith("/_next")) return;
 
+  // Allow images
+  if (path.startsWith("/images")) return;
+
   // Redirect to unsupported-device page when accessed from mobile
   if (path.startsWith("/unsupported-device")) return;
   const { device } = userAgent(req);
