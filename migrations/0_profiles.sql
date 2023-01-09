@@ -60,7 +60,7 @@ create table user_profile (
     twitter_oauth_state jsonb,
     twitter_oauth_token jsonb,
 
-    twitter_id bigint references twitter_profile
+    twitter_id bigint references twitter_profile unique
 );
 
 create trigger on_user_profile_updated
