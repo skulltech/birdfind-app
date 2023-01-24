@@ -1,2 +1,2 @@
-# twips
-Search for Twitter users with advanced filters
+# birdfind-app
+Twitter user discovery on steroids
