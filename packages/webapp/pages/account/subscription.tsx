@@ -6,7 +6,7 @@ const Subscription = () => {
   return (
     <>
       <Head>
-        <title>Subscription | Twips</title>
+        <title>Subscription | Birdfind</title>
       </Head>
       <Group align="flex-start">
         <AccountNavbar activePage="subscription" />
@@ -22,8 +22,8 @@ const Subscription = () => {
           </Text>
           <Text>
             Please give feedbacks to{" "}
-            <Anchor href="https://twitter.com/twips_xyz" target="_blank">
-              @twips_xyz
+            <Anchor href="https://twitter.com/birdfind_xyz" target="_blank">
+              @birdfind_xyz
             </Anchor>{" "}
             on Twitter
           </Text>

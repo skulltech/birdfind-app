@@ -1,5 +1,5 @@
 {
-  "name": "@twips/webapp",
+  "name": "@birdfind/webapp",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
@@ -23,7 +23,7 @@
     "@supabase/supabase-js": "^2.2.3",
     "@tabler/icons": "^1.113.0",
     "@tanstack/react-table": "^8.7.0",
-    "@twips/common": "^1.0.0",
+    "@birdfind/common": "^1.0.0",
     "axios": "^1.2.0",
     "camelcase": "^7.0.1",
     "cookies-next": "^2.1.1",

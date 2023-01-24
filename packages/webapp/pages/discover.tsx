@@ -5,7 +5,7 @@ const Home = () => {
   return (
     <>
       <Head>
-        <title>Home | Birdfind</title>
+        <title>Discover | Birdfind</title>
       </Head>
       <Container mt={100}>
         <Center>

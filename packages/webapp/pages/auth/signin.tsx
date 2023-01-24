@@ -67,7 +67,7 @@ const SignIn = () => {
       showNotification({
         title: "Email sent with magic link!",
         message:
-          "You'll shortly receive an email with a magic sign-in link. You can click that link to sign in to Twips.",
+          "You'll shortly receive an email with a magic sign-in link. You can click that link to sign in to Birdfind.",
         color: "green",
         icon: <IconCheck />,
         autoClose: false,
@@ -79,12 +79,12 @@ const SignIn = () => {
   return (
     <>
       <Head>
-        <title>Sign In | Twips</title>
+        <title>Sign In | Birdfind</title>
       </Head>
       <Container size="xs" p="xl" mt={100}>
         <Paper radius="md" p="xl" withBorder>
           <Text size="lg" weight={500}>
-            Welcome to Twips, login with
+            Welcome to Birdfind, login with
           </Text>
           <Group grow mb="md" mt="md">
             <Button

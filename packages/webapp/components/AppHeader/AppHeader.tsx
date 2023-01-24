@@ -123,7 +123,7 @@ export const AppHeader = ({
                 order={2}
                 className={getRandomElement([abrilFatface.className])}
               >
-                @twips_xyz
+                @birdfind_xyz
               </Title>
             </Group>
           </UnstyledButton>

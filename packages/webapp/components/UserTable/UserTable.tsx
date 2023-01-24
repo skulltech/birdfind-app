@@ -201,7 +201,7 @@ export const UserTable = ({
     setRefreshListsLoading(true);
 
     try {
-      const response = await axios.get("/api/twips/lookup-lists");
+      const response = await axios.get("/api/birdfind/lookup-lists");
       const lists = response.data.map((x: any) => {
         return { ...x, id: BigInt(x.id) };
       });

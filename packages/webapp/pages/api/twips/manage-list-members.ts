@@ -2,7 +2,7 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getUserDetails, insertUserEvent } from "../../../utils/supabase";
 import { z } from "zod";
-import { getTwitterClient } from "@twips/common";
+import { getTwitterClient } from "@birdfind/common";
 import { twitterSecrets } from "../../../utils/twitter";
 import { getOrigin, zodBigint } from "../../../utils/helpers";
 

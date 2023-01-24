@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
+    "target": "ESNext",
     "composite": true,
-    "paths": { "@twips/common": ["../common/src"] },
+    "moduleResolution": "Node",
+    "paths": { "@birdfind/common": ["../common/src"] },
     "esModuleInterop": true
   },
   "include": ["src/**/*", "environment.d.ts"],

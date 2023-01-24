@@ -50,10 +50,10 @@ export default function App({
   const changeColorScheme = (value: ColorScheme | "system") => {
     if (value !== "system") {
       setUseSystemColorScheme(false);
-      setCookie("twips-use-system-color-scheme", false, {
+      setCookie("birdfind-use-system-color-scheme", false, {
         maxAge: 60 * 60 * 24 * 30,
       });
-      setCookie("twips-color-scheme", value, {
+      setCookie("birdfind-color-scheme", value, {
         maxAge: 60 * 60 * 24 * 30,
       });
       setColorScheme(value);
@@ -62,15 +62,15 @@ export default function App({
 
   useEffect(() => {
     if (useSystemColorScheme) {
-      setCookie("twips-use-system-color-scheme", true, {
+      setCookie("birdfind-use-system-color-scheme", true, {
         maxAge: 60 * 60 * 24 * 30,
       });
-      setCookie("twips-color-scheme", systemColorScheme, {
+      setCookie("birdfind-color-scheme", systemColorScheme, {
         maxAge: 60 * 60 * 24 * 30,
       });
       setColorScheme(systemColorScheme);
     } else
-      setCookie("twips-use-system-color-scheme", false, {
+      setCookie("birdfind-use-system-color-scheme", false, {
         maxAge: 60 * 60 * 24 * 30,
       });
   }, [systemColorScheme, useSystemColorScheme]);
@@ -93,7 +93,7 @@ export default function App({
     <>
       <Head>
         <link rel="shortcut icon" href="/images/icons8-twitter-64.png" />
-        <title>Twips</title>
+        <title>Birdfind</title>
       </Head>
       <GoogleAnalytics trackPageViews />
       <SessionContextProvider
@@ -141,6 +141,6 @@ export default function App({
 
 App.getInitialProps = ({ ctx }: { ctx: GetServerSidePropsContext }) => ({
   // get color scheme settings from cookie
-  colorScheme: getCookie("twips-color-scheme", ctx),
-  useSystemColorScheme: getCookie("twips-use-system-color-scheme", ctx),
+  colorScheme: getCookie("birdfind-color-scheme", ctx),
+  useSystemColorScheme: getCookie("birdfind-use-system-color-scheme", ctx),
 });

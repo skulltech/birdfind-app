@@ -15,7 +15,7 @@
     "strict": false,
     "allowJs": true,
     "incremental": true,
-    "paths": { "@twips/common": ["../common/src"] }
+    "paths": { "@birdfind/common": ["../common/src"] }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "environment.d.ts"],
   "exclude": ["node_modules"],

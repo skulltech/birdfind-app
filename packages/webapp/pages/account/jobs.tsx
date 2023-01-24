@@ -10,7 +10,7 @@ const Jobs = () => {
   return (
     <>
       <Head>
-        <title>Background Jobs | Twips</title>
+        <title>Background Jobs | Birdfind</title>
       </Head>
       <Group align="flex-start">
         <AccountNavbar activePage="jobs" />

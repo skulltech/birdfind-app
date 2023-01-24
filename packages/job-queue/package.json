@@ -1,5 +1,5 @@
 {
-  "name": "@twips/job-queue",
+  "name": "@birdfind/job-queue",
   "version": "1.0.0",
   "scripts": {
     "worker": "ts-node src/worker.ts",
@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.2.3",
-    "@twips/common": "^1.0.0",
+    "@birdfind/common": "^1.0.0",
     "bullmq": "^3.5.1",
     "dotenv": "^16.0.3",
     "pg": "^8.8.0",

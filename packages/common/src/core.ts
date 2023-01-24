@@ -87,6 +87,16 @@ export const lookupRelationJobColumns = [
   "paused",
 ];
 
+export const lookupCircleJobColumns = [
+  "id",
+  "created_at",
+  "updated_at",
+  "user_id",
+  "target_id::text",
+  "paused",
+  "member_ids::_text",
+];
+
 export const manageListMembersJobColumns = [
   "id",
   "created_at",

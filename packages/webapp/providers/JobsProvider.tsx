@@ -3,7 +3,7 @@ import { openConfirmModal } from "@mantine/modals";
 import { showNotification } from "@mantine/notifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
-import { JobName, jobNames } from "@twips/common";
+import { JobName, jobNames } from "@birdfind/common";
 import { createContext, useContext, useEffect, useState } from "react";
 import { Job } from "../utils/helpers";
 import { getAllJobs, getJob } from "../utils/supabase";

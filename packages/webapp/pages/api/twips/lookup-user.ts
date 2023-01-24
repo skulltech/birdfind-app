@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { getTwitterClient } from "@twips/common";
+import { getTwitterClient } from "@birdfind/common";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   getServiceRoleSupabase,

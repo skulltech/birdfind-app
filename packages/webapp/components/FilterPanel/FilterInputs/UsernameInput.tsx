@@ -30,7 +30,7 @@ interface UsernameInputProps extends FilterInputProps {
 }
 
 const lookupUser = async (username: string): Promise<TwitterProfile> => {
-  const response = await axios.get("/api/twips/lookup-user", {
+  const response = await axios.get("/api/birdfind/lookup-user", {
     params: { username: username },
   });
   if (response.status != 200) throw Error(response.data.message);

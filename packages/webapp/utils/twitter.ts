@@ -1,4 +1,4 @@
-import { twitterUserFields } from "@twips/common";
+import { twitterUserFields } from "@birdfind/common";
 import { Client } from "twitter-api-sdk";
 
 export const getTwitterUser = async (twitter: Client, username: string) => {

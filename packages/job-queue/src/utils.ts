@@ -3,7 +3,7 @@ import winston from "winston";
 import TelegramLogger from "winston-telegram";
 import { createClient } from "@supabase/supabase-js";
 import { Client } from "pg";
-import { JobName } from "@twips/common";
+import { JobName } from "@birdfind/common";
 import { ConnectionOptions, Queue } from "bullmq";
 dotenv.config();
 
@@ -67,7 +67,7 @@ export const connection: ConnectionOptions = {
   password: process.env.REDIS_PASSWORD,
 };
 
-export const queue = new Queue<number, void, JobName>("twips-jobs", {
+export const queue = new Queue<number, void, JobName>("birdfind-jobs", {
   connection,
   defaultJobOptions: {
     // Keep up to 1 hour and 100 jobs
@@ -148,3 +148,13 @@ export const getUserProfileEventListener = () =>
         metadata: { email: payload.new.email },
       })
   );
+
+export const dedupeObjects = <T extends { id: string }>(arr: T[]) => {
+  const dedupedObjects = new Set<string>();
+
+  return arr.filter((x) => {
+    if (dedupedObjects.has(x.id)) return false;
+    dedupedObjects.add(x.id);
+    return true;
+  });
+};

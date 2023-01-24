@@ -1,4 +1,4 @@
-import { JobName } from "@twips/common";
+import { JobName } from "@birdfind/common";
 import { Worker } from "bullmq";
 import { manageListMembers } from "./manage-list-members/worker";
 import { lookupRelation } from "./lookup-relation/worker";
@@ -7,7 +7,7 @@ import { manageRelation } from "./manage-relation/worker";
 
 // Start worker
 const worker = new Worker<number, void, JobName>(
-  "twips-jobs",
+  "birdfind-jobs",
   (job) => {
     return job.name == "lookup-relation"
       ? lookupRelation(job.data)

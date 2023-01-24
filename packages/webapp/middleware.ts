@@ -37,7 +37,7 @@ export const middleware = async (req: NextRequest) => {
   }
 
   // Backend API routes
-  if (path.startsWith("/api/twips")) {
+  if (path.startsWith("/api/birdfind")) {
     if (user && userTwitter) return;
     return unauthorized();
   }

@@ -1,14 +1,14 @@
 {
-  "name": "twips-app",
+  "name": "birdfind-app",
   "private": true,
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "job-queue": "yarn workspace @twips/job-queue",
-    "webapp": "yarn workspace @twips/webapp",
-    "admin": "yarn workspace @twips/admin",
-    "bullmq-dashboard": "yarn run bullmq-dashboard-runnable twips-jobs --port 4000"
+    "job-queue": "yarn workspace @birdfind/job-queue",
+    "webapp": "yarn workspace @birdfind/webapp",
+    "admin": "yarn workspace @birdfind/admin",
+    "bullmq-dashboard": "yarn run bullmq-dashboard-runnable birdfind-jobs --port 4000"
   },
   "devDependencies": {
     "bullmq-dashboard-runnable": "^0.0.6",

@@ -1,4 +1,7 @@
-import { manageListMembersJobColumns, getTwitterClient } from "@twips/common";
+import {
+  manageListMembersJobColumns,
+  getTwitterClient,
+} from "@birdfind/common";
 import { supabase } from "../utils";
 
 const chunkSize = 1;
@@ -31,7 +34,7 @@ export const manageListMembers = async (jobId: number) => {
     supabase,
     userId: job.user_id,
     oauthToken: userProfile.twitter_oauth_token,
-    origin: "https://app.twips.xyz",
+    origin: "https://app.birdfind.xyz",
   });
 
   const memberIds: bigint[] = job.member_ids.map(BigInt);

@@ -14,7 +14,7 @@ import {
   searchTwitterProfiles,
   UserDetails,
 } from "../utils/supabase";
-import { addLookupRelationJob, twitterProfileColumns } from "@twips/common";
+import { addLookupRelationJob, twitterProfileColumns } from "@birdfind/common";
 import { useDebouncedValue } from "@mantine/hooks";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useJobs } from "../providers/JobsProvider";
@@ -242,7 +242,7 @@ const Search = () => {
   return (
     <>
       <Head>
-        <title>Search | Twips</title>
+        <title>Search | Birdfind</title>
       </Head>
       <Group noWrap spacing={0} pt="sm" align="start">
         <FilterPanel {...{ filters, addFilters, removeFilters }} />

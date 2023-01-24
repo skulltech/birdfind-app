@@ -3,7 +3,7 @@ import {
   JobName,
   serializeTwitterUser,
   twitterProfileColumns,
-} from "@twips/common";
+} from "@birdfind/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 import { parseTwitterProfile, TwitterProfile, Filters, Job } from "./helpers";

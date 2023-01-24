@@ -2,20 +2,19 @@ import {
   getTwitterClient,
   serializeTwitterUser,
   twitterUserFields,
-  lookupRelationJobColumns,
 } from "@birdfind/common";
-import { TwitterResponse, usersIdFollowing } from "twitter-api-sdk/dist/types";
-import { supabase } from "../utils";
-import { dedupeObjects } from "../utils";
-
-const relations = ["followers", "following", "blocking", "muting"] as const;
-type Relation = typeof relations[number];
+import {
+  TwitterResponse,
+  usersIdFollowing,
+  usersIdTweets,
+} from "twitter-api-sdk/dist/types";
+import { dedupeObjects, supabase } from "../utils";
 
 export const lookupRelation = async (jobId: number) => {
   // Get job from Supabase
   const { data: jobData } = await supabase
-    .from("lookup_relation_job")
-    .select(lookupRelationJobColumns.join(","))
+    .from("lookup_tweets_job")
+    .select(lookupTweetsJobColumns.join(","))
     .eq("id", jobId)
     .throwOnError()
     .single();
@@ -24,29 +23,7 @@ export const lookupRelation = async (jobId: number) => {
   // Return immediately if job is finished
   if (job.finished) return;
 
-  const relation = job.relation as Relation;
-  const relationTable =
-    relation == "followers" || relation == "following"
-      ? "twitter_follow"
-      : relation == "blocking"
-      ? "twitter_block"
-      : relation == "muting"
-      ? "twitter_mute"
-      : null;
-  const endpoint = "lookup-" + relation;
-
-  // If this is the first iteration, mark rows for delete
-  if (job.updated_count === 0) {
-    const { error } = await supabase
-      .from(relationTable)
-      .update({ to_delete: true })
-      .eq(
-        job.relation == "followers" ? "target_id" : "source_id",
-        job.target_id
-      );
-    // TODO: Find a better way. Ref: https://www.postgresql.org/docs/current/sql-createpolicy.html
-    if (error?.message && error.message.length != 0) throw error;
-  }
+  const endpoint = "lookup-tweets";
 
   // Get twitter client of user
   const { data: userProfileData } = await supabase
@@ -66,27 +43,42 @@ export const lookupRelation = async (jobId: number) => {
     origin: "https://app.birdfind.xyz",
   });
 
-  let users: TwitterResponse<usersIdFollowing>["data"];
+  let tweets: TwitterResponse<usersIdTweets>["data"];
   let paginationToken = job.pagination_token;
 
   try {
-    const params = {
-      max_results: 1000,
-      "user.fields": twitterUserFields,
+    const page = await twitter.tweets.usersIdTweets(job.target_id, {
+      max_results: 100,
+      "tweet.fields": [
+        "attachments",
+        "author_id",
+        "context_annotations",
+        "conversation_id",
+        "created_at",
+        "edit_controls",
+        "edit_history_tweet_ids",
+        "entities",
+        "geo",
+        "in_reply_to_user_id",
+        "lang",
+        "possibly_sensitive",
+        "public_metrics",
+        "referenced_tweets",
+        "reply_settings",
+        "source",
+        "text",
+        "withheld",
+      ],
+      expansions: [
+        "author_id",
+        "attachments.media_keys",
+        "referenced_tweets.id",
+        "referenced_tweets.id.author_id",
+      ],
       pagination_token: paginationToken,
-    };
-    const page: any =
-      relation == "followers"
-        ? await twitter.users.usersIdFollowers(job.target_id, params)
-        : relation == "following"
-        ? await twitter.users.usersIdFollowing(job.target_id, params)
-        : relation == "blocking"
-        ? await twitter.users.usersIdBlocking(job.target_id, params)
-        : relation == "muting"
-        ? await twitter.users.usersIdMuting(job.target_id, params)
-        : null;
+    });
 
-    users = page.data ?? [];
+    tweets = page.data ?? [];
     paginationToken = page.meta.next_token ?? null;
   } catch (error) {
     // If rate-limited, delay the job
@@ -114,12 +106,12 @@ export const lookupRelation = async (jobId: number) => {
     .throwOnError();
 
   // Remove duplicates
-  users = dedupeObjects(users);
+  tweets = dedupeObjects(tweets);
 
   // Upsert users to database
   await supabase
-    .from("twitter_profile")
-    .upsert(users.map(serializeTwitterUser))
+    .from("twitter_tweet")
+    .upsert(tweets.map(serializeTwitterUser))
     .throwOnError();
 
   // Upsert relations to database

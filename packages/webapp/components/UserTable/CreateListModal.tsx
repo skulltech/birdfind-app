@@ -29,7 +29,7 @@ const CreateListForm = () => {
     let list: List;
     try {
       // Create list
-      const response = await axios.get("/api/twips/create-list", {
+      const response = await axios.get("/api/birdfind/create-list", {
         params: values,
       });
       list = response.data;

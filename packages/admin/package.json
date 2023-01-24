@@ -1,5 +1,5 @@
 {
-  "name": "@twips/admin",
+  "name": "@birdfind/admin",
   "version": "1.0.0",
   "scripts": {
     "script": "ts-node src/main.ts",
@@ -7,9 +7,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.2.3",
-    "@twips/common": "^1.0.0",
+    "@birdfind/common": "^1.0.0",
     "cli-progress": "^3.11.2",
     "dotenv": "^16.0.3",
+    "openai": "^3.1.0",
     "twitter-api-sdk": "^1.2.1",
     "yargs": "^17.6.2"
   },

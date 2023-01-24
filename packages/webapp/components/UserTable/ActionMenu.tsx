@@ -110,7 +110,7 @@ export const ActionMenu = ({
   const manageRelation = async (relation: Relation, add: boolean) => {
     try {
       if (singleInputUser)
-        await axios.get("/api/twips/manage-relation", {
+        await axios.get("/api/birdfind/manage-relation", {
           params: { targetId: singleInputUser.id, relation, add },
         });
       else
@@ -163,7 +163,7 @@ export const ActionMenu = ({
   const manageListMembers = async (listId: BigInt, add: boolean) => {
     try {
       if (singleInputUser)
-        await axios.get("/api/twips/manage-list-members", {
+        await axios.get("/api/birdfind/manage-list-members", {
           params: { memberId: singleInputUser.id, listId, add },
         });
       else

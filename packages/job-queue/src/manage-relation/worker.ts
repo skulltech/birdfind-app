@@ -1,4 +1,4 @@
-import { getTwitterClient, manageRelationJobColumns } from "@twips/common";
+import { getTwitterClient, manageRelationJobColumns } from "@birdfind/common";
 import { supabase } from "../utils";
 
 const relations = ["follow", "mute", "block"] as const;
@@ -34,7 +34,7 @@ export const manageRelation = async (jobId: number) => {
     supabase,
     userId: job.user_id,
     oauthToken: userProfile.twitter_oauth_token,
-    origin: "https://app.twips.xyz",
+    origin: "https://app.birdfind.xyz",
   });
 
   const targetIds: bigint[] = job.target_ids.map(BigInt);

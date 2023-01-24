@@ -42,7 +42,11 @@ create table twitter_profile (
 
     url text,
     verified boolean not null,
-    withheld jsonb
+    withheld jsonb,
+
+    -- Processing results
+    niches text[],
+    niches_embedding double precision[]
 );
 
 create trigger on_twitter_profile_updated

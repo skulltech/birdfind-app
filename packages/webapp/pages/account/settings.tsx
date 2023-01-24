@@ -20,7 +20,7 @@ const Twitter = () => {
   return (
     <>
       <Head>
-        <title>Account Settings | Twips</title>
+        <title>Account Settings | Birdfind</title>
       </Head>
       <Group align="flex-start">
         <AccountNavbar activePage="settings" />
@@ -46,7 +46,7 @@ const Twitter = () => {
             <Stack spacing="sm">
               {!user.twitter && (
                 <Text weight="bold">
-                  You have to connect to a Twitter account to use Twips.
+                  You have to connect to a Twitter account to use Birdfind.
                 </Text>
               )}
               <Button
