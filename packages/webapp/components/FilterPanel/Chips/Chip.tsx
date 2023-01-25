@@ -16,11 +16,17 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export const FilterChip = ({ label, onClose }: FilterChipProps) => {
+export const Chip = ({ label, onClose }: FilterChipProps) => {
   const { classes } = useStyles();
 
   return (
-    <Paper shadow="md" withBorder p="xs" className={classes.filterChip}>
+    <Paper
+      shadow="md"
+      withBorder
+      radius="lg"
+      p="xs"
+      className={classes.filterChip}
+    >
       <Group position="apart" grow={false} noWrap>
         <Text>{label}</Text>
         <CloseButton

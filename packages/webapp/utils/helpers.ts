@@ -1,17 +1,9 @@
-import {
-  IconReceipt2,
-  IconSettings,
-  IconSubtask,
-  TablerIcon,
-} from "@tabler/icons";
 import camelcase from "camelcase";
 import { NextApiRequest } from "next";
 import { z } from "zod";
 import { RemoveFiltersArg } from "../pages/search";
 
 export type Filters = {
-  followedBy?: Set<string>;
-  followerOf?: Set<string>;
   followersCountLessThan?: number;
   followersCountGreaterThan?: number;
   followingCountLessThan?: number;
@@ -20,10 +12,11 @@ export type Filters = {
   tweetCountGreaterThan?: number;
   createdBefore?: Date;
   createdAfter?: Date;
-  blockedByMe?: boolean;
-  mutedByMe?: boolean;
   searchText?: string;
 };
+
+export type Query = ["followedBy", string] | ["followerOf", string];
+export type Queries = Query[];
 
 export interface FilterProps {
   filters: Filters;
@@ -91,26 +84,6 @@ export type TwitterProfile = {
   withheld?: object;
 };
 
-type AccountMenuItem = {
-  page: string;
-  label: string;
-  icon: TablerIcon;
-};
-
-export const accountMenuItems: AccountMenuItem[] = [
-  { page: "settings", label: "Account Settings", icon: IconSettings },
-  {
-    page: "jobs",
-    label: "Background Jobs",
-    icon: IconSubtask,
-  },
-  {
-    page: "subscription",
-    label: "Billing and Subscription",
-    icon: IconReceipt2,
-  },
-];
-
 export const twitterListFields = [
   "created_at",
   "description",
@@ -149,8 +122,6 @@ export interface ManageListMembersJob extends CommonJob {
 }
 
 export type Job = LookupRelationJob | ManageRelationJob | ManageListMembersJob;
-
-function absoluteUrl(req: NextApiRequest) {}
 
 function isLocalNetwork(hostname = window.location.host) {
   return (

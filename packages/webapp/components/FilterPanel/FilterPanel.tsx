@@ -1,11 +1,9 @@
 import { Divider, Navbar, ScrollArea, Stack, Title } from "@mantine/core";
 import { FilterProps } from "../../utils/helpers";
-import { FilterChipGroup } from "./FilterChips/FilterChipGroup";
-import { CheckboxInput } from "./FilterInputs/CheckboxInput";
+import { FilterChipGroup } from "./Chips/FilterChipGroup";
 import { DateRangeInput } from "./FilterInputs/DateRangeInput";
 import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
 import { SearchTextInput } from "./FilterInputs/SearchTextInput";
-import { UsernameInput } from "./FilterInputs/UsernameInput";
 
 export const FilterPanel = (props: FilterProps) => {
   return (
@@ -24,33 +22,6 @@ export const FilterPanel = (props: FilterProps) => {
 
             <SearchTextInput {...props} />
 
-            <CheckboxInput
-              label="Blocked by you"
-              relation="blocked"
-              {...props}
-            />
-            <CheckboxInput label="Muted by you" relation="muted" {...props} />
-            <CheckboxInput
-              label="Followed by you"
-              relation="followed"
-              {...props}
-            />
-            <CheckboxInput
-              label="Follower of you"
-              relation="follower"
-              {...props}
-            />
-
-            <UsernameInput
-              direction="followers"
-              label="Follower of"
-              {...props}
-            />
-            <UsernameInput
-              direction="following"
-              label="Followed by"
-              {...props}
-            />
             <NumberRangeInput
               label="Followers count"
               metric="followers"

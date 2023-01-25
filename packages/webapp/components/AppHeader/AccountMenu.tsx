@@ -12,11 +12,11 @@ import {
   IconDeviceLaptop,
   IconLogout,
   IconMoonStars,
+  IconSettings,
   IconSun,
 } from "@tabler/icons";
 import { useRouter } from "next/router";
 import { useUser } from "../../providers/UserProvider";
-import { accountMenuItems } from "../../utils/helpers";
 
 type AccountMenuProps = {
   colorScheme: ColorScheme | "system";
@@ -81,23 +81,17 @@ export const AccountMenu = ({
             ]}
           />
         </Menu.Label>
-        <Menu.Divider />
-        {accountMenuItems.map((item) => (
-          <Menu.Item
-            key={item.page}
-            component="a"
-            href={"/account/" + item.page}
-            icon={<item.icon size={16} stroke={1.5} />}
-            onClick={(event) => {
-              event.preventDefault();
-              router.push("/account/" + item.page);
-            }}
-          >
-            {item.label}
-          </Menu.Item>
-        ))}
-
-        <Menu.Divider />
+        <Menu.Item
+          component="a"
+          href="/account"
+          icon={<IconSettings size={16} stroke={1.5} />}
+          onClick={(event) => {
+            event.preventDefault();
+            router.push("/account");
+          }}
+        >
+          Account Settings
+        </Menu.Item>
 
         <Menu.Item
           color="red"

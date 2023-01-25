@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { RemoveFiltersArg } from "../../../pages/search";
 import { FilterProps } from "../../../utils/helpers";
-import { FilterChip } from "./FilterChip";
+import { Chip } from "./Chip";
 
 type Chip = {
   label: string;
@@ -50,22 +50,6 @@ export const FilterChipGroup = ({ filters, removeFilters }: FilterProps) => {
   // Render all the chips
   useEffect(() => {
     const chips: Chip[] = [];
-
-    // Followed by
-    filters.followedBy?.forEach((x) => {
-      chips.push({
-        label: `Followed by @${x}`,
-        filtersToRemove: [{ name: "followedBy", value: new Set([x]) }],
-      });
-    });
-
-    // Follower of
-    filters.followerOf?.forEach((x) => {
-      chips.push({
-        label: `Follower of @${x}`,
-        filtersToRemove: [{ name: "followerOf", value: new Set([x]) }],
-      });
-    });
 
     // Followers count
     if (
@@ -129,20 +113,6 @@ export const FilterChipGroup = ({ filters, removeFilters }: FilterProps) => {
         filtersToRemove: [{ name: "createdAfter" }, { name: "createdBefore" }],
       });
 
-    // Muted by me
-    if (filters.mutedByMe)
-      chips.push({
-        label: "Muted by you",
-        filtersToRemove: [{ name: "mutedByMe" }],
-      });
-
-    // Blocked by me
-    if (filters.blockedByMe)
-      chips.push({
-        label: "Blocked by you",
-        filtersToRemove: [{ name: "blockedByMe" }],
-      });
-
     // Search text
     if (filters.searchText)
       chips.push({
@@ -156,7 +126,7 @@ export const FilterChipGroup = ({ filters, removeFilters }: FilterProps) => {
   return (
     <Stack>
       {chips.map(({ label, filtersToRemove }, index) => (
-        <FilterChip
+        <Chip
           key={index}
           label={label}
           onClose={() => removeFilters(...filtersToRemove)}

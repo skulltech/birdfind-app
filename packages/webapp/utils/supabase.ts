@@ -146,11 +146,13 @@ export interface SearchResult extends TwitterProfile {
   isMuted: boolean;
 }
 
-type searchTwitterProfilesArgs = {
+type SearchTwitterProfilesArgs = {
   supabase: SupabaseClient;
   userTwitterId: BigInt;
   filters: Filters;
   pageIndex: number;
+  orderBy: string;
+  orderAscending: boolean;
 };
 
 type SearchTwitterProfilesResult = {
@@ -163,11 +165,10 @@ export const searchTwitterProfiles = async ({
   userTwitterId,
   filters,
   pageIndex,
-}: searchTwitterProfilesArgs): Promise<SearchTwitterProfilesResult> => {
-  const { followerOf, followedBy, blockedByMe, mutedByMe, ...otherFilters } =
-    filters;
-  const blockedBy = blockedByMe ? [userTwitterId] : null;
-  const mutedBy = mutedByMe ? [userTwitterId] : null;
+  orderBy,
+  orderAscending,
+}: SearchTwitterProfilesArgs): Promise<SearchTwitterProfilesResult> => {
+  const { followerOf, followedBy, ...otherFilters } = filters;
 
   const appendFilterFunctions: Record<
     keyof typeof otherFilters,
@@ -201,8 +202,6 @@ export const searchTwitterProfiles = async ({
       {
         follower_of: followerOf,
         followed_by: followedBy,
-        blocked_by: blockedBy,
-        muted_by: mutedBy,
       },
       { count: "exact" }
     )
@@ -222,8 +221,6 @@ export const searchTwitterProfiles = async ({
       reference_user: userTwitterId,
       follower_of: followerOf,
       followed_by: followedBy,
-      blocked_by: blockedBy,
-      muted_by: mutedBy,
     })
     .select(
       [
@@ -239,6 +236,7 @@ export const searchTwitterProfiles = async ({
     resultsQuery = appendFilterFunctions[key](resultsQuery, value);
 
   const { data } = await resultsQuery
+    .order(orderBy, { ascending: orderAscending })
     .order("updated_at", { ascending: true })
     .order("id", { ascending: true })
     .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
@@ -298,192 +296,4 @@ export const insertUserEvent = async (
     .from("user_event")
     .insert({ user_id: user.id, type, data })
     .throwOnError();
-};
-
-const parseManageListMembersJob = (job: any, rateLimits: RateLimit[]): Job => {
-  const rateLimitResetsAtStr = rateLimits.filter(
-    (x) => x.endpoint == `${job.add ? "add" : "remove"}-list-members`
-  )[0]?.resets_at;
-  const rateLimitResetsAt = rateLimitResetsAtStr
-    ? new Date(rateLimitResetsAtStr)
-    : null;
-
-  return {
-    id: parseInt(job.id),
-    name: "manage-list-members",
-    label: `Add ${job.member_ids.length} users to list "${job.twitter_list.name}"`,
-    createdAt: new Date(job.created_at),
-    paused: job.paused,
-    progress: (job.member_ids_done.length / job.member_ids.length) * 100,
-    rateLimitResetsAt,
-    add: job.add,
-  };
-};
-
-const parseManageRelationJob = (job: any, rateLimits: RateLimit[]): Job => {
-  const rateLimitResetsAtStr = rateLimits.filter(
-    (x) => x.endpoint == `${job.add ? "add" : "remove"}-${job.relation}`
-  )[0]?.resets_at;
-  const rateLimitResetsAt = rateLimitResetsAtStr
-    ? new Date(rateLimitResetsAtStr)
-    : null;
-
-  return {
-    id: parseInt(job.id),
-    name: "manage-relation",
-    label: `${
-      job.relation == "follow"
-        ? job.add
-          ? "Follow"
-          : "Unfollow"
-        : job.relation == "block"
-        ? job.add
-          ? "Block"
-          : "Unblock"
-        : job.relation == "mute"
-        ? job.add
-          ? "Mute"
-          : "Unmute"
-        : null
-    } ${job.target_ids.length} users`,
-    createdAt: new Date(job.created_at),
-    paused: job.paused,
-    progress: (job.target_ids_done.length / job.target_ids.length) * 100,
-    rateLimitResetsAt,
-    relation: job.relation,
-    add: job.add,
-  };
-};
-
-type RateLimit = {
-  endpoint: string;
-  resets_at: Date;
-};
-
-const getAllRateLimits = async (supabase: SupabaseClient) => {
-  const { data } = await supabase
-    .from("twitter_api_rate_limit")
-    .select("endpoint,resets_at")
-    .eq("deleted", false)
-    .throwOnError();
-  return data;
-};
-
-const parseLookupRelationJob = (job: any, rateLimits: RateLimit[]): Job => {
-  const updatedCount: number = job.updated_count;
-  const totalCount: number =
-    job.relation === "followers"
-      ? job.twitter_profile.followers_count
-      : job.relation === "following"
-      ? job.twitter_profile.following_count
-      : null;
-  const rateLimitResetsAtStr = rateLimits.filter(
-    (x) => x.endpoint == `lookup-${job.relation}`
-  )[0]?.resets_at;
-  const rateLimitResetsAt = rateLimitResetsAtStr
-    ? new Date(rateLimitResetsAtStr)
-    : null;
-
-  return {
-    id: parseInt(job.id),
-    name: "lookup-relation",
-    label: `Fetch ${
-      job.relation == "blocking"
-        ? "blocklist"
-        : job.relation == "muting"
-        ? "mutelist"
-        : job.relation
-    } of @${job.twitter_profile.username}`,
-    createdAt: new Date(job.created_at),
-    paused: job.paused,
-    totalCount,
-    relation: job.relation,
-    username: job.twitter_profile.username,
-    progress: totalCount ? (updatedCount / totalCount) * 100 : null,
-    rateLimitResetsAt,
-  };
-};
-
-const lookupRelationJobColumns = `id,created_at,paused,relation,updated_count,finished,
-  twitter_profile (username,followers_count,following_count)`;
-const manageListMembersJobColumns =
-  "id,created_at,paused,add,member_ids,member_ids_done,twitter_list(name)";
-const manageRelationJobColumns =
-  "id,created_at,relation,add,paused,target_ids,target_ids_done";
-
-export const getJob = async (
-  supabase: SupabaseClient,
-  name: JobName,
-  id: number
-): Promise<Job> => {
-  const rateLimits = await getAllRateLimits(supabase);
-  switch (name) {
-    case "lookup-relation": {
-      const { data } = await supabase
-        .from("lookup_relation_job")
-        .select(lookupRelationJobColumns)
-        .eq("id", id)
-        .throwOnError()
-        .maybeSingle();
-      return data ? parseLookupRelationJob(data, rateLimits) : null;
-    }
-    case "manage-list-members": {
-      const { data } = await supabase
-        .from("manage_list_members_job")
-        .select(manageListMembersJobColumns)
-        .eq("id", id)
-        .throwOnError()
-        .maybeSingle();
-      return data ? parseManageListMembersJob(data, rateLimits) : null;
-    }
-    case "manage-relation": {
-      const { data } = await supabase
-        .from("manage_relation_job")
-        .select(manageRelationJobColumns)
-        .eq("id", id)
-        .throwOnError()
-        .maybeSingle();
-      return data ? parseManageRelationJob(data, rateLimits) : null;
-    }
-  }
-};
-
-export const getAllJobs = async (supabase: SupabaseClient): Promise<Job[]> => {
-  // Lookup relation jobs
-  const { data: lookupRelationJobs } = await supabase
-    .from("lookup_relation_job")
-    .select(lookupRelationJobColumns)
-    .eq("finished", false)
-    .eq("deleted", false)
-    .order("created_at", { ascending: false })
-    .throwOnError();
-
-  // Manage list members jobs
-  const { data: manageListMembersJobs } = await supabase
-    .from("manage_list_members_job")
-    .select(manageListMembersJobColumns)
-    .eq("finished", false)
-    .eq("deleted", false)
-    .order("created_at", { ascending: false })
-    .throwOnError();
-
-  // Manage relation jobs
-  const { data: manageRelationJobs } = await supabase
-    .from("manage_relation_job")
-    .select(manageRelationJobColumns)
-    .eq("finished", false)
-    .eq("deleted", false)
-    .order("created_at", { ascending: false })
-    .throwOnError();
-
-  // Get all rate limits
-  const rateLimits = await getAllRateLimits(supabase);
-
-  return [
-    ...lookupRelationJobs.map((job) => parseLookupRelationJob(job, rateLimits)),
-    ...manageListMembersJobs.map((job) =>
-      parseManageListMembersJob(job, rateLimits)
-    ),
-    ...manageRelationJobs.map((job) => parseManageRelationJob(job, rateLimits)),
-  ];
 };

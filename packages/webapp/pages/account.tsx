@@ -1,19 +1,10 @@
-import {
-  Anchor,
-  Avatar,
-  Button,
-  Group,
-  Paper,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Anchor, Avatar, Button, Group, Stack, Text } from "@mantine/core";
 import { IconBrandTwitter } from "@tabler/icons";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { AccountNavbar } from "../../components/AccountNavbar";
-import { useUser } from "../../providers/UserProvider";
+import { useUser } from "../providers/UserProvider";
 
-const Twitter = () => {
+const AccountSettings = () => {
   const router = useRouter();
   const { user } = useUser();
 
@@ -23,7 +14,6 @@ const Twitter = () => {
         <title>Account Settings | Birdfind</title>
       </Head>
       <Group align="flex-start">
-        <AccountNavbar activePage="settings" />
         {user && (
           <Stack sx={{ flex: 1 }} align="center" p="md">
             <Avatar
@@ -66,4 +56,4 @@ const Twitter = () => {
   );
 };
 
-export default Twitter;
+export default AccountSettings;
