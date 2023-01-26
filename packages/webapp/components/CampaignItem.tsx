@@ -13,9 +13,8 @@ import { useState } from "react";
 import { useJobs } from "../providers/JobsProvider";
 import { Job } from "../utils/helpers";
 
-type JobItemProps = {
-  job: Job;
-  compact: boolean;
+type CampaignItemProps = {
+  campaign: { id; name; paused; created_at };
 };
 
 const useStyles = createStyles((theme) => ({
@@ -32,10 +31,9 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export const JobItem = ({
-  job: { id, name, label, paused, progress, createdAt, rateLimitResetsAt },
-  compact,
-}: JobItemProps) => {
+export const CampaignItem = ({
+  campaign: { id, name, paused, created_at },
+}: CampaignItemProps) => {
   const [pauseLoading, setPauseLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { pauseJob, deleteJob } = useJobs();
@@ -43,33 +41,22 @@ export const JobItem = ({
 
   return (
     <Paper
-      withBorder={!compact}
+      withBorder
       p="xs"
       radius="md"
       className={classes.jobItem}
-      shadow={compact ? "none" : "md"}
+      shadow="md"
     >
-      <Stack pr={compact ? "none" : "md"} spacing={compact ? 3 : "sm"}>
+      <Stack pr="md" spacing="sm">
         <Group position="apart">
           <Stack spacing={2}>
-            <Text size={compact ? "sm" : "md"}>{label}</Text>
-            {!compact && (
-              <Text c="dimmed">Created at {createdAt.toLocaleString()}</Text>
-            )}
-            {!compact && (
-              <Text c="dimmed">
-                Status:{" "}
-                {paused
-                  ? "Paused"
-                  : rateLimitResetsAt
-                  ? `Rate limited, resets at ${rateLimitResetsAt.toLocaleTimeString()}`
-                  : "Running"}
-              </Text>
-            )}
+            <Text size="md">{name}</Text>
+            <Text c="dimmed">Created at {created_at.toLocaleString()}</Text>
+            <Text c="dimmed">Status: {paused ? "Paused" : "Active"}</Text>
           </Stack>
           <Group>
             <ActionIcon
-              size={compact ? "xs" : "sm"}
+              size="sm"
               color={paused ? "green" : "yellow"}
               onClick={async () => {
                 setPauseLoading(true);
@@ -81,7 +68,7 @@ export const JobItem = ({
               {paused ? <IconPlayerPlay /> : <IconPlayerPause />}
             </ActionIcon>
             <CloseButton
-              size={compact ? "xs" : "sm"}
+              size="sm"
               radius="lg"
               variant="outline"
               color="red"
@@ -94,13 +81,6 @@ export const JobItem = ({
             />
           </Group>
         </Group>
-        {progress != null && (
-          <Progress
-            value={progress}
-            label={compact ? null : progress.toFixed(0) + "%"}
-            size={compact ? "md" : "lg"}
-          />
-        )}
       </Stack>
     </Paper>
   );

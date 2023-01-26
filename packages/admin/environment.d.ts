@@ -4,5 +4,6 @@ declare namespace NodeJS {
     SUPABASE_SERVICE_ROLE_KEY: string;
 
     TWITTER_BEARER_TOKEN: string;
+    PG_CONNECTION: string;
   }
 }

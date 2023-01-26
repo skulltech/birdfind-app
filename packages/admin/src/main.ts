@@ -1,5 +1,6 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import { loadEntities } from "./load-entities";
 import {
   analyzeUser,
   createLookupCircleJob,
@@ -83,6 +84,15 @@ yargs(hideBin(process.argv))
     handler: async (argv) => {
       const username = argv._[1] as string;
       await analyzeUser(username);
+      // Because it might hang
+      process.exit();
+    },
+  })
+  .command({
+    command: "load-entities",
+    describe: "Analyze user's niche",
+    handler: async (argv) => {
+      await loadEntities();
       // Because it might hang
       process.exit();
     },

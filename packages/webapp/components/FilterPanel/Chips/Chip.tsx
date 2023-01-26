@@ -24,13 +24,14 @@ export const Chip = ({ label, onClose }: FilterChipProps) => {
       shadow="md"
       withBorder
       radius="lg"
-      p="xs"
+      px="xs"
+      py={3}
       className={classes.filterChip}
     >
-      <Group position="apart" grow={false} noWrap>
+      <Group position="apart" grow={false} noWrap spacing="xs">
         <Text>{label}</Text>
         <CloseButton
-          size="sm"
+          size="xs"
           radius="lg"
           variant="outline"
           onClick={onClose}

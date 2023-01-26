@@ -1,6 +1,5 @@
 import {
   ActionIcon,
-  Button,
   Checkbox,
   createStyles,
   Group,
