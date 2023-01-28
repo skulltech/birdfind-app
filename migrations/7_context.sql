@@ -1,20 +1,26 @@
-create table twitter_entities (
+create table entities (
     id bigint primary key not null,
-    name text not null
+    name text not null,
+    description
 );
 
-create table twitter_domains (
+create table domains (
     id smallint primary key not null,
-    name text
+    name text not null,
+    description text
 );
 
-create table twitter_domains_entities (
-    domain_id smallint references twitter_domains not null,
-    entity_id bigint references twitter_entities not null,
+create table domains_entities (
+    domain_id smallint references domains not null,
+    entity_id bigint references entities not null,
     primary key (domain_id, entity_id)
 );
 
-insert into twitter_domains values
+alter table entities enable row level security;
+alter table domains enable row level security;
+alter table domains_entities enable row level security;
+
+insert into domains values
     (3, 'TV Shows'),
     (4, 'TV Episodes'),
     (6, 'Sports Events'),

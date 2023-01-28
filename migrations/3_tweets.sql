@@ -1,40 +1,29 @@
-create table twitter_tweet (
+create table tweets (
     id bigint primary key,
     created_at timestamp with time zone default now() not null,
     updated_at timestamp with time zone default now() not null,
     
-    -- All tweet.fields available, in order as in Twitter docs
+    -- Twitter API fields
     text text not null,
-    source text not null,
-    truncated boolean not null,
-    in_reply_to_status_id bigint,
-    in_reply_to_user_id bigint,
-    in_reply_to_screen_name text,
-    user_id bigint not null references twitter_user(id),
-    geo jsonb,
-    coordinates jsonb,
-    place jsonb,
-    contributors jsonb,
-    retweeted_status_id bigint,
+    author_id bigint not null references twitter_profile,
+    context_annotations jsonb,
+    tweet_created_at timestamp with time zone not null,
     retweet_count integer not null,
-    favorite_count integer not null,
-    entities jsonb,
-    extended_entities jsonb,
-    favorited boolean not null,
-    retweeted boolean not null,
-    possibly_sensitive boolean not null,
-    lang text not null,
-    filter_level text not null,
-    withheld jsonb
-    
-
-    -- Public metrics
-    followers_count integer not null,
-    following_count integer not null,
-    tweet_count integer not null,
-    listed_count integer not null,
-
-    url text,
-    verified boolean not null,
-    withheld jsonb
+    reply_count integer not null,
+    like_count integer not null,
+    quote_count integer not null
 );
+
+create trigger on_tweets_updated
+  before update on tweets
+  for each row execute procedure set_updated_at();
+
+alter table tweets enable row level security;
+
+create table tweets_entities (
+    tweet_id bigint references tweets not null,
+    entity_id bigint references entities not null,
+    primary key (tweet_id, entity_id)
+);
+
+alter table tweets_entities enable row level security;
