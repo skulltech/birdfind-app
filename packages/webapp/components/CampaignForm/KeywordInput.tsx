@@ -17,8 +17,10 @@ export const KeywordInput = ({ onSubmit }: KeywordInputProps) => {
   };
 
   return (
-    <Group>
+    <Group align="flex-end">
       <TextInput
+        label="Keyword"
+        description="Search for a keyword"
         style={{ flex: 1 }}
         placeholder="Enter a keyword"
         icon={<IconAsteriskSimple size={14} />}
@@ -27,6 +29,7 @@ export const KeywordInput = ({ onSubmit }: KeywordInputProps) => {
         onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
       />
       <ActionIcon
+        mb={1.5}
         variant="default"
         size="lg"
         onClick={handleSubmit}

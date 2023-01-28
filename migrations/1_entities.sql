@@ -1,26 +1,44 @@
-create table entities (
+drop table if exists entity cascade;
+create table entity (
     id bigint primary key not null,
     name text not null,
-    description
+    description text
 );
 
-create table domains (
+drop table if exists domain cascade;
+create table domain (
     id smallint primary key not null,
     name text not null,
     description text
 );
 
-create table domains_entities (
-    domain_id smallint references domains not null,
-    entity_id bigint references entities not null,
+drop table if exists domain_entity cascade;
+create table domain_entity (
+    domain_id smallint references domain not null,
+    entity_id bigint references entity not null,
     primary key (domain_id, entity_id)
 );
 
-alter table entities enable row level security;
-alter table domains enable row level security;
-alter table domains_entities enable row level security;
+alter table entity enable row level security;
+alter table domain enable row level security;
+alter table domain_entity enable row level security;
 
-insert into domains values
+create policy "Authenticated users can view all domains."
+    on domain for select
+    to authenticated
+    using (true);
+
+create policy "Authenticated users can view all entities."
+    on entity for select
+    to authenticated
+    using (true);
+
+create policy "Authenticated users can view all domain entity mappings."
+    on domain_entity for select
+    to authenticated
+    using (true);
+
+insert into domain values
     (3, 'TV Shows'),
     (4, 'TV Episodes'),
     (6, 'Sports Events'),
@@ -69,6 +87,7 @@ insert into domains values
     (92, 'Sports Personality'),
     (93, 'Coach'),
     (94, 'Journalist'),
+    (95, 'TV Channel [Entity Service]'),
     (109, 'Reocurring Trends'),
     (110, 'Viral Accounts'),
     (114, 'Concert'),
@@ -93,9 +112,9 @@ insert into domains values
     (158, 'Points of Interest'),
     (159, 'States'),
     (160, 'Countries'),
-    (162, 'Exercise & Fitness'),
+    (162, 'Exercise & fitness'),
     (163, 'Travel'),
-    (164, 'Fields of Study'),
+    (164, 'Fields of study'),
     (165, 'Technology'),
     (166, 'Stocks'),
     (167, 'Animals'),

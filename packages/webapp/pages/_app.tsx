@@ -9,7 +9,7 @@ import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { ModalsProvider } from "@mantine/modals";
 import { GoogleAnalytics } from "nextjs-google-analytics";
 import { UserProvider } from "../providers/UserProvider";
-import { JobsProvider } from "../providers/JobsProvider";
+// import { JobsProvider } from "../providers/JobsProvider";
 import { RouterTransition } from "../components/RouterTransition";
 import { useColorScheme } from "@mantine/hooks";
 import { useRouter } from "next/router";
@@ -109,27 +109,25 @@ export default function App({
           <NotificationsProvider position="top-center">
             <ModalsProvider>
               <UserProvider>
-                <JobsProvider>
-                  <Stack spacing={0}>
-                    <RouterTransition />
-                    <AppHeader
-                      px={horizontalPadding}
-                      py="xs"
-                      colorScheme={
-                        useSystemColorScheme ? "system" : colorScheme
-                      }
-                      changeColorScheme={changeColorScheme}
-                    />
-                    <main
-                      style={{
-                        paddingLeft: horizontalPadding,
-                        paddingRight: horizontalPadding,
-                      }}
-                    >
-                      <Component {...pageProps} />
-                    </main>
-                  </Stack>
-                </JobsProvider>
+                {/* <JobsProvider> */}
+                <Stack spacing={0}>
+                  <RouterTransition />
+                  <AppHeader
+                    px={horizontalPadding}
+                    py="xs"
+                    colorScheme={useSystemColorScheme ? "system" : colorScheme}
+                    changeColorScheme={changeColorScheme}
+                  />
+                  <main
+                    style={{
+                      paddingLeft: horizontalPadding,
+                      paddingRight: horizontalPadding,
+                    }}
+                  >
+                    <Component {...pageProps} />
+                  </main>
+                </Stack>
+                {/* </JobsProvider> */}
               </UserProvider>
             </ModalsProvider>
           </NotificationsProvider>

@@ -3,39 +3,43 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconAsteriskSimple, IconChevronRight } from "@tabler/icons";
 import { useEffect, useState } from "react";
 
-export type Entity = {
+export type Domain = {
   name: string;
+  description: string;
   id: bigint;
 };
 
-type EntityInputProps = {
-  onSubmit: (entity: Entity) => void;
+type DomainInputProps = {
+  onSubmit: (domain: Domain) => void;
 };
 
-export const EntityInput = ({ onSubmit }: EntityInputProps) => {
+export const DomainInput = ({ onSubmit }: DomainInputProps) => {
   const supabase = useSupabaseClient();
 
   // Select value and options
   const [value, setValue] = useState<string>(null);
-  const [searchValue, setSearchValue] = useState("");
   const [selectOptions, setSelectOptions] = useState<SelectItem[]>([]);
   const [selectLoading, setSelectLoading] = useState(false);
 
-  // Get entity select options from Supabase
+  // Get domain select options from Supabase on first load
   useEffect(() => {
     const getSelectOptions = async () => {
       setSelectLoading(true);
 
       try {
         const { data } = await supabase
-          .from("entity")
-          .select("id::text,name")
-          .ilike("name", `%${searchValue}%`)
-          .limit(10)
+          .from("domain")
+          .select("id::text,name,description")
           .throwOnError();
 
         // @ts-ignore
-        setSelectOptions(data.map((x) => ({ value: x.id, label: x.name })));
+        setSelectOptions(
+          data.map((x: any) => ({
+            value: x.id,
+            label: x.name,
+            description: x.description,
+          }))
+        );
       } catch (error) {
         console.log(error);
         setSelectOptions([]);
@@ -45,27 +49,31 @@ export const EntityInput = ({ onSubmit }: EntityInputProps) => {
     };
 
     getSelectOptions();
-  }, [searchValue]);
+  }, []);
 
   const handleSubmit = async () => {
     const { data } = await supabase
-      .from("entity")
-      .select("name")
+      .from("domain")
+      .select("name,description")
       .eq("id", value)
       .throwOnError()
       .single();
 
-    onSubmit({ name: data.name, id: BigInt(value) });
+    onSubmit({
+      name: data.name,
+      id: BigInt(value),
+      description: data.description,
+    });
     setValue(null);
   };
 
   return (
     <Group align="flex-end">
       <Select
-        label="Niche"
-        description="Select a niche for your campaign"
+        label="Domain"
+        description="Select a domain for your campaign"
         style={{ flex: 1 }}
-        placeholder="Select a niche"
+        placeholder="Select a domain"
         data={selectOptions}
         rightSection={selectLoading && <Loader size={16} />}
         icon={<IconAsteriskSimple size={14} />}
@@ -73,8 +81,6 @@ export const EntityInput = ({ onSubmit }: EntityInputProps) => {
         onChange={setValue}
         searchable
         nothingFound="No options"
-        onSearchChange={setSearchValue}
-        searchValue={searchValue}
       />
       <ActionIcon
         mb={1.5}

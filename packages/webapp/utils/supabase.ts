@@ -1,9 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import {
-  JobName,
-  serializeTwitterUser,
-  twitterProfileColumns,
-} from "@birdfind/common";
+import { serializeTwitterUser, twitterProfileColumns } from "@birdfind/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 import { parseTwitterProfile, TwitterProfile, Filters, Job } from "./helpers";
@@ -139,16 +135,11 @@ export const getUserDetails = async (
   return data.length ? parseUserDetails(data[0]) : null;
 };
 
-export interface SearchResult extends TwitterProfile {
-  isFollowing: boolean;
-  isFollower: boolean;
-  isBlocked: boolean;
-  isMuted: boolean;
-}
+export interface SearchResult extends TwitterProfile {}
 
 type SearchTwitterProfilesArgs = {
   supabase: SupabaseClient;
-  userTwitterId: BigInt;
+  campaignId: number;
   filters: Filters;
   pageIndex: number;
   orderBy: string;
@@ -160,18 +151,16 @@ type SearchTwitterProfilesResult = {
   count: number;
 };
 
-export const searchTwitterProfiles = async ({
+export const getCampaignResults = async ({
   supabase,
-  userTwitterId,
+  campaignId,
   filters,
   pageIndex,
   orderBy,
   orderAscending,
 }: SearchTwitterProfilesArgs): Promise<SearchTwitterProfilesResult> => {
-  const { followerOf, followedBy, ...otherFilters } = filters;
-
   const appendFilterFunctions: Record<
-    keyof typeof otherFilters,
+    keyof Filters,
     (query: any, value: any) => any
   > = {
     followersCountLessThan: (query, value: number) =>
@@ -198,41 +187,22 @@ export const searchTwitterProfiles = async ({
 
   let countQuery = supabase
     .rpc(
-      "search_twitter_profiles",
-      {
-        follower_of: followerOf,
-        followed_by: followedBy,
-      },
+      "get_campaign_results",
+      { campaign_id: campaignId },
       { count: "exact" }
     )
-    .select(
-      "username,name,description,followers_count,following_count,tweet_count,user_created_at"
-    );
-
-  for (const [key, value] of Object.entries(otherFilters))
+    .select("id");
+  for (const [key, value] of Object.entries(filters))
     countQuery = appendFilterFunctions[key](countQuery, value);
-
   const { count } = await countQuery.throwOnError();
 
   // Get results
 
   let resultsQuery = supabase
-    .rpc("search_twitter_profiles", {
-      reference_user: userTwitterId,
-      follower_of: followerOf,
-      followed_by: followedBy,
-    })
-    .select(
-      [
-        ...twitterProfileColumns,
-        "is_follower",
-        "is_following",
-        "is_blocked",
-        "is_muted",
-      ].join(",")
-    );
+    .rpc("get_campaign_results", { campaign_id: campaignId })
+    .select(twitterProfileColumns);
 
-  for (const [key, value] of Object.entries(otherFilters))
+  for (const [key, value] of Object.entries(filters))
     resultsQuery = appendFilterFunctions[key](resultsQuery, value);
 
   const { data } = await resultsQuery
@@ -242,20 +212,8 @@ export const searchTwitterProfiles = async ({
     .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
     .throwOnError();
 
-  // Insert user event
-  await insertUserEvent(supabase, "search-using-filters", {
-    filters,
-    pageIndex,
-  });
-
   const results = data.map((x: any) => {
-    return {
-      ...parseTwitterProfile(x),
-      isFollower: x.is_follower,
-      isFollowing: x.is_following,
-      isBlocked: x.is_blocked,
-      isMuted: x.is_muted,
-    };
+    return { ...parseTwitterProfile(x) };
   });
 
   return {
@@ -271,29 +229,8 @@ export const upsertTwitterProfile = async (
   const { data } = await supabase
     .from("twitter_profile")
     .upsert(serializeTwitterUser(user))
-    .select(twitterProfileColumns.join(","))
+    .select(twitterProfileColumns)
     .throwOnError();
 
   return parseTwitterProfile(data[0]);
-};
-
-type UserEventType =
-  | "search-using-filters"
-  | "manage-relation"
-  | "create-list"
-  | "manage-list-members"
-  | "prompt-to-filters";
-
-export const insertUserEvent = async (
-  supabase: SupabaseClient,
-  type: UserEventType,
-  data: object
-) => {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  await supabase
-    .from("user_event")
-    .insert({ user_id: user.id, type, data })
-    .throwOnError();
 };

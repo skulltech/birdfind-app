@@ -1,6 +1,6 @@
 import { Divider, Navbar, ScrollArea, Stack, Title } from "@mantine/core";
 import { FilterProps } from "../../utils/helpers";
-import { FilterChipGroup } from "./Chips/FilterChipGroup";
+import { FilterChipGroup } from "./FilterChipGroup";
 import { DateRangeInput } from "./FilterInputs/DateRangeInput";
 import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
 import { SearchTextInput } from "./FilterInputs/SearchTextInput";

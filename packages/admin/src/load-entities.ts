@@ -4,14 +4,14 @@ const pgp = require("pg-promise")();
 export const loadEntities = async () => {
   const db = pgp(process.env.PG_CONNECTION);
   const entitiesCs = new pgp.helpers.ColumnSet(["id", "name"], {
-    table: "twitter_entities",
+    table: "entity",
   });
-  const domainsEntitiesCs = new pgp.helpers.ColumnSet(
+  const domainEntitiesCs = new pgp.helpers.ColumnSet(
     ["entity_id", "domain_id"],
-    { table: "twitter_domains_entities" }
+    { table: "domain_entity" }
   );
   const entities = [];
-  const domainsEntities = [];
+  const domainEntities = [];
 
   return new Promise((resolve, reject) => {
     csv
@@ -22,7 +22,7 @@ export const loadEntities = async () => {
       .on("data", (row) => {
         entities.push({ id: row.entity_id, name: row.entity_name.trim() });
         row.domains.split(",").forEach((domain: string) => {
-          domainsEntities.push({
+          domainEntities.push({
             entity_id: row.entity_id,
             domain_id: domain,
           });
@@ -33,7 +33,7 @@ export const loadEntities = async () => {
         const insertEntities =
           pgp.helpers.insert(entities, entitiesCs) + " on conflict do nothing";
         const insertDomainsEntities =
-          pgp.helpers.insert(domainsEntities, domainsEntitiesCs) +
+          pgp.helpers.insert(domainEntities, domainEntitiesCs) +
           " on conflict do nothing";
         db.none([insertEntities, insertDomainsEntities].join(";"))
           .then(() => resolve)

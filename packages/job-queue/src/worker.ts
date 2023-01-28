@@ -1,21 +1,13 @@
 import { JobName } from "@birdfind/common";
 import { Worker } from "bullmq";
-import { manageListMembers } from "./manage-list-members/worker";
-import { lookupRelation } from "./lookup-relation/worker";
 import { logger, connection } from "./utils";
-import { manageRelation } from "./manage-relation/worker";
+import { runCampaign } from "./run-campaign/worker";
 
 // Start worker
 const worker = new Worker<number, void, JobName>(
   "birdfind-jobs",
   (job) => {
-    return job.name == "lookup-relation"
-      ? lookupRelation(job.data)
-      : job.name == "manage-list-members"
-      ? manageListMembers(job.data)
-      : job.name == "manage-relation"
-      ? manageRelation(job.data)
-      : null;
+    return job.name == "run-campaign" ? runCampaign(job.data) : null;
   },
   {
     connection,

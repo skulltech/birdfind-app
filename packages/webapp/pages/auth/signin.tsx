@@ -38,7 +38,7 @@ const SignIn = () => {
       const profile = await getUserProfile(supabase);
       const twitterId = profile ? profile.twitter_id : null;
 
-      if (session && !twitterId) router.push("/account/settings");
+      if (session && !twitterId) router.push("/account");
       if (session && twitterId) router.push("/");
     };
 

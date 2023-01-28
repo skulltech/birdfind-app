@@ -1,9 +1,7 @@
-import { getUserProfileEventListener, runAddJobsLoop } from "./utils";
+import { getUserProfileEventListener, addRunCampaignJobs } from "./utils";
 
 // Run loops for adding jobs
-runAddJobsLoop("lookup-relation");
-runAddJobsLoop("manage-list-members");
-runAddJobsLoop("manage-relation");
+addRunCampaignJobs();
 
 // Add event listener
 getUserProfileEventListener().subscribe();

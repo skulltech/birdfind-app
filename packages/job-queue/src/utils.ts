@@ -88,48 +88,34 @@ export const getPgClient = async () => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const addJobs = async (pgClient: Client, name: JobName) => {
-  // Get jobs from queue
-  const activeJobs = (await queue.getJobs(["active", "waiting"]))
-    .filter((x) => x != undefined)
-    .filter((x) => x.name == name)
-    .map((x) => x.data);
-
-  const failedJobs = (await queue.getFailed())
-    .filter((x) => x != undefined)
-    .filter((x) => x.name == name)
-    .map((x) => x.data);
-
-  // Get jobs which can be added
-  const result = await pgClient.query({
-    text:
-      name == "lookup-relation"
-        ? "select id from get_lookup_relation_jobs_to_add($1, $2)"
-        : name == "manage-list-members"
-        ? "select id from get_manage_list_members_jobs_to_add($1, $2)"
-        : name == "manage-relation"
-        ? "select id from get_manage_relation_jobs_to_add($1, $2)"
-        : null,
-    values: [activeJobs, failedJobs],
-  });
-  const jobIds = result.rows.map((x) => x.id);
-
-  // Add jobs
-  for (const jobId of jobIds) await queue.add(name, jobId);
-};
-
-export const runAddJobsLoop = async (name: JobName) => {
+export const addRunCampaignJobs = async () => {
   // Get postgres client
   const pgClient = await getPgClient();
 
   while (true) {
     try {
-      await addJobs(pgClient, name);
+      // Get jobs from queue
+      const jobsinQueue = (await queue.getJobs(["active", "waiting", "failed"]))
+        .filter((x) => x != undefined)
+        .filter((x) => x.name == "run-campaign")
+        .map((x) => x.data);
+
+      // Get jobs which can be added
+      const result = await pgClient.query({
+        text: "select * from campaign where paused=false and deleted=false and not (id = any($1))",
+        values: [jobsinQueue],
+      });
+      const campaignIds = result.rows.map((x) => x.id);
+
+      // Add jobs
+      for (const campaignId of campaignIds)
+        await queue.add("run-campaign", campaignId);
     } catch (error) {
-      logger.error(`Error at daemon while adding ${name} jobs`, {
+      logger.error("Error at daemon while adding run-campaign jobs", {
         metadata: { error },
       });
     }
+
     // Sleep for 2 seconds
     sleep(2 * 1000);
   }
@@ -149,12 +135,17 @@ export const getUserProfileEventListener = () =>
       })
   );
 
-export const dedupeObjects = <T extends { id: string }>(arr: T[]) => {
+export const dedupeObjects = <T>(
+  arr: T[],
+  // @ts-ignore
+  getKey: (arg: T) => string = (x) => x.id
+) => {
   const dedupedObjects = new Set<string>();
 
   return arr.filter((x) => {
-    if (dedupedObjects.has(x.id)) return false;
-    dedupedObjects.add(x.id);
+    const key = getKey(x);
+    if (dedupedObjects.has(key)) return false;
+    dedupedObjects.add(key);
     return true;
   });
 };

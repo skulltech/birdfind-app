@@ -2,8 +2,8 @@ import { Stack } from "@mantine/core";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { RemoveFiltersArg } from "../../../pages/search";
-import { FilterProps } from "../../../utils/helpers";
-import { Chip } from "./Chip";
+import { FilterProps } from "../../utils/helpers";
+import { Chip } from "../Chip";
 
 type Chip = {
   label: string;
