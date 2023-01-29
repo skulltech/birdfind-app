@@ -93,18 +93,38 @@ create table twitter_api_rate_limit (
 alter table twitter_api_rate_limit enable row level security;
 
 
--- Get campaign results
+-- Get campaign profiles
 
-drop function if exists get_campaign_results(bigint) cascade;
-create function get_campaign_results(campaign_id bigint) returns setof twitter_profile as $$
+drop function if exists get_campaign_profiles(bigint) cascade;
+create function get_campaign_profiles(campaign_id bigint) returns setof twitter_profile as $$
 
 with
   campaign_keywords as (select keywords from campaign where id = campaign_id),
-  campaign_entities as (select entity_id from campaign_entity where campaign_entity.campaign_id = get_campaign_results.campaign_id)
+  campaign_entities as (select entity_id from campaign_entity where campaign_entity.campaign_id = get_campaign_profiles.campaign_id)
 
 select distinct twitter_profile.* from
 twitter_profile
   left join tweet on tweet.author_id = twitter_profile.id
+  left join tweet_entity on tweet_entity.tweet_id = tweet.id
+where (
+  cardinality((select * from campaign_keywords)) > 0 and
+    tweet.text ~* array_to_string((select * from campaign_keywords), '|'
+  )) or
+  tweet_entity.entity_id in (select * from campaign_entities)
+;
+
+$$ language sql;
+
+-- Get campaign tweets
+
+drop function if exists get_campaign_tweets(bigint) cascade;
+create function get_campaign_tweets(campaign_id bigint) returns setof tweet as $$
+with
+  campaign_keywords as (select keywords from campaign where id = campaign_id),
+  campaign_entities as (select entity_id from campaign_entity where campaign_entity.campaign_id = get_campaign_tweets.campaign_id)
+
+select distinct tweet.* from
+tweet
   left join tweet_entity on tweet_entity.tweet_id = tweet.id
 where (
   cardinality((select * from campaign_keywords)) > 0 and

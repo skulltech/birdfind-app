@@ -17,16 +17,11 @@ import {
 } from "../../utils/supabase";
 import { Filters } from "../FilterForm/FilterForm";
 import { UserProfileCard } from "../UserProfileCard";
-import { largeNumberFormatter } from "./utils";
+import { CampaignResultsProps, largeNumberFormatter } from "./utils";
 
 dayjs.extend(RelativeTime);
 
-type ProfilesProps = {
-  campaign: any;
-  filters: Filters;
-};
-
-export const Profiles = ({ campaign, filters }: ProfilesProps) => {
+export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
   const supabase = useSupabaseClient();
 
   const [pageIndex, setPageIndex] = useState(0);

@@ -1,8 +1,17 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { serializeTwitterUser, twitterProfileColumns } from "@birdfind/common";
+import {
+  serializeTwitterUser,
+  tweetColumns,
+  twitterProfileColumns,
+} from "@birdfind/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
-import { parseTwitterProfile, TwitterProfile } from "./helpers";
+import {
+  parseTweet,
+  parseTwitterProfile,
+  Tweet,
+  TwitterProfile,
+} from "./helpers";
 import { Filters } from "../components/FilterForm/FilterForm";
 
 export const getServiceRoleSupabase = () =>
@@ -147,6 +156,18 @@ export type ProfileSort =
   | "followingAscending"
   | "followingDescending";
 
+export type TweetSort =
+  | "ageAscending"
+  | "ageDescending"
+  | "likesAscending"
+  | "likesDescending"
+  | "repliesAscending"
+  | "repliesDescending"
+  | "retweetsAscending"
+  | "retweetsDescending"
+  | "quotesAscending"
+  | "quotesDescending";
+
 type GetCampaignProfilesArgs = {
   supabase: SupabaseClient;
   campaignId: number;
@@ -192,10 +213,9 @@ export const getCampaignProfiles = async ({
   };
 
   // Get count
-
   let countQuery = supabase
     .rpc(
-      "get_campaign_results",
+      "get_campaign_profiles",
       { campaign_id: campaignId },
       { count: "exact" }
     )
@@ -205,9 +225,8 @@ export const getCampaignProfiles = async ({
   const { count } = await countQuery.throwOnError();
 
   // Get results
-
   let resultsQuery = supabase
-    .rpc("get_campaign_results", { campaign_id: campaignId })
+    .rpc("get_campaign_profiles", { campaign_id: campaignId })
     .select(twitterProfileColumns);
 
   // Apply filters
@@ -239,17 +258,54 @@ export const getCampaignProfiles = async ({
       : resultsQuery;
 
   const { data } = await resultsQuery
-    // .order(decamelize(orderBy), { ascending: orderAscending })
     .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
     .throwOnError();
 
-  const results = data.map((x: any) => {
-    return { ...parseTwitterProfile(x) };
-  });
+  return {
+    count,
+    results: data.map(parseTwitterProfile),
+  };
+};
+
+// Get campaign tweets
+
+type GetCampaignTweetsArgs = {
+  supabase: SupabaseClient;
+  campaignId: number;
+  pageIndex: number;
+};
+
+type GetCampaignTweetsResults = {
+  results: Tweet[];
+  count: number;
+};
+
+export const getCampaignTweets = async ({
+  supabase,
+  campaignId,
+  pageIndex,
+}: GetCampaignTweetsArgs): Promise<GetCampaignTweetsResults> => {
+  // Get count
+  let countQuery = supabase
+    .rpc(
+      "get_campaign_profiles",
+      { campaign_id: campaignId },
+      { count: "exact" }
+    )
+    .select(twitterProfileColumns);
+  for (const [key, value] of Object.entries(filters))
+    countQuery = appendFilterFunctions[key](countQuery, value);
+  const { count } = await countQuery.throwOnError();
+
+  const { data } = await supabase
+    .rpc("get_campaign_tweets", { campaign_id: campaignId })
+    .select(tweetColumns)
+    .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
+    .throwOnError();
 
   return {
     count,
-    results,
+    results: data.map(parseTweet),
   };
 };
 

@@ -12,6 +12,22 @@ export const zodBigint = z.string().refine((x) => {
   }
 });
 
+export type TwitterProfile = {
+  id: BigInt;
+  username: string;
+  name: string;
+  userCreatedAt: Date;
+  description: string;
+  location?: string;
+  profileImageUrl: string;
+  protected: boolean;
+  followersCount: number;
+  followingCount: number;
+  tweetCount: number;
+  listedCount: number;
+  verified: boolean;
+};
+
 export const parseTwitterProfile = (row: any): TwitterProfile => {
   const x: any = Object.entries(row).reduce((prev, [key, value]) => {
     prev[camelcase(key)] = value;
@@ -19,52 +35,50 @@ export const parseTwitterProfile = (row: any): TwitterProfile => {
   }, {});
 
   return {
-    ...x,
     id: BigInt(x.id),
-    pinnedTweetId: x.pinnedTweetId ? BigInt(x.pinnedTweetId) : null,
-    createdAt: new Date(x.createdAt),
-    updatedAt: new Date(x.updatedAt),
-    followersUpdatedAt: new Date(x.followersUpdatedAt),
-    followingUpdatedAt: new Date(x.followingUpdatedAt),
-    blockingUpdatedAt: new Date(x.blockingUpdatedAt),
-    mutingUpdatedAt: new Date(x.mutingUpdatedAt),
     userCreatedAt: new Date(x.userCreatedAt),
+    username: x.username,
+    name: x.name,
+    description: x.description,
+    location: x.location,
+    profileImageUrl: x.profileImageUrl,
+    protected: x.protected,
+    followersCount: x.followersCount,
+    followingCount: x.followingCount,
+    tweetCount: x.tweetCount,
+    listedCount: x.listedCount,
+    verified: x.verified,
   };
 };
 
-export type TwitterProfile = {
+export type Tweet = {
   id: BigInt;
-  createdAt: Date;
-  updatedAt: Date;
-  followersUpdatedAt: Date;
-  followingUpdatedAt: Date;
-  blockingUpdatedAt: Date;
-  mutingUpdatedAt: Date;
-  username: string;
-  name: string;
-  userCreatedAt: Date;
-  description: string;
-  entities?: object;
-  location?: string;
-  pinnedTweetId?: BigInt;
-  profileImageUrl: string;
-  protected: boolean;
-  followersCount: number;
-  followingCount: number;
-  tweetCount: number;
-  listedCount: number;
-  url?: string;
-  verified: boolean;
-  withheld?: object;
+  authorId: BigInt;
+  text: string;
+  tweetCreatedAt: Date;
+  retweetCount: number;
+  replyCount: number;
+  likeCount: number;
+  quoteCount: number;
 };
 
-export const twitterListFields = [
-  "created_at",
-  "description",
-  "follower_count",
-  "member_count",
-  "private",
-];
+export const parseTweet = (row: any): Tweet => {
+  const x: any = Object.entries(row).reduce((prev, [key, value]) => {
+    prev[camelcase(key)] = value;
+    return prev;
+  }, {});
+
+  return {
+    id: BigInt(x.id),
+    authorId: BigInt(x.authorId),
+    tweetCreatedAt: new Date(x.tweetCreatedAt),
+    text: x.text,
+    retweetCount: x.retweetCount,
+    replyCount: x.replyCount,
+    likeCount: x.likeCount,
+    quoteCount: x.quoteCount,
+  };
+};
 
 function isLocalNetwork(hostname = window.location.host) {
   return (

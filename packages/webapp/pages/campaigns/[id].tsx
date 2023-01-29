@@ -15,6 +15,7 @@ import { FilterForm, Filters } from "../../components/FilterForm/FilterForm";
 import { openConfirmModal } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { Profiles } from "../../components/CampaignResults/Profiles";
+import { Tweeets } from "../../components/CampaignResults/Tweets";
 
 dayjs.extend(RelativeTime);
 
@@ -166,7 +167,9 @@ const Campaign = () => {
             <Tabs.Panel value="profiles">
               <Profiles campaign={campaign} filters={filters} />
             </Tabs.Panel>
-            <Tabs.Panel value="tweets">tweets</Tabs.Panel>
+            <Tabs.Panel value="tweets">
+              <Tweeets campaign={campaign} filters={filters} />
+            </Tabs.Panel>
           </Tabs>
         </Stack>
       )}
