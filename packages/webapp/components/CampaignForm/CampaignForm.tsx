@@ -51,7 +51,7 @@ export const CampaignForm = () => {
         .throwOnError();
 
       // Redirect to campaign page
-      await router.push(`/campaigns /${data.id}`);
+      await router.push(`/campaigns/${data.id}`);
     } catch (error) {
       console.log(error);
     }

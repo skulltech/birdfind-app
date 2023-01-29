@@ -40,8 +40,30 @@ export const runCampaign = async (campaignId: number) => {
   });
 
   // Prepare query
-  const queryInputs = [...campaign.keywords.map((x: string) => `"${x}"`)];
-  const query = `${queryInputs.join(" OR ")} lang:en -is:retweet`;
+  const queryElements = [...campaign.keywords.map((x: string) => `"${x}"`)];
+
+  const { data: campaignEntities } = await supabase
+    .from("campaign_entity")
+    .select("entity_id::text")
+    .eq("campaign_id", campaignId)
+    .throwOnError();
+
+  for (const campaignEntity of campaignEntities) {
+    const { data: entityDomains } = await supabase
+      .from("domain_entity")
+      .select("domain_id")
+      // @ts-ignore
+      .eq("entity_id", campaignEntity.entity_id)
+      .throwOnError();
+    queryElements.push(
+      ...entityDomains.map(
+        // @ts-ignore
+        (x) => `context:${x.domain_id}.${campaignEntity.entity_id}`
+      )
+    );
+  }
+
+  const query = `${queryElements.join(" OR ")} lang:en -is:retweet -is:reply`;
 
   let tweets: TwitterResponse<usersIdTweets>["data"];
   let users: TwitterResponse<findUsersById>["data"];
@@ -52,6 +74,7 @@ export const runCampaign = async (campaignId: number) => {
       "tweet.fields": tweetFields,
       "user.fields": twitterUserFields,
       expansions: ["author_id"],
+      sort_order: "relevancy",
     });
 
     tweets = page.data ?? [];
@@ -156,7 +179,11 @@ export const runCampaign = async (campaignId: number) => {
   await supabase
     .from("campaign")
     .update({
-      latest_tweet_id: tweets[0]?.id,
+      latest_tweet_id: tweets.sort(
+        (a, b) =>
+          // Sort by created at descending
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )[0].id,
     })
     .eq("id", campaignId)
     .throwOnError();
