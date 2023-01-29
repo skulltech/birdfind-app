@@ -1,6 +1,13 @@
-import { ActionIcon, Group, Loader, Select, SelectItem } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Loader,
+  Select,
+  SelectItem,
+  Stack,
+} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { IconAsteriskSimple, IconChevronRight } from "@tabler/icons";
+import { IconAsteriskSimple } from "@tabler/icons";
 import { useEffect, useState } from "react";
 
 export type Entity = {
@@ -15,77 +22,128 @@ type EntityInputProps = {
 export const EntityInput = ({ onSubmit }: EntityInputProps) => {
   const supabase = useSupabaseClient();
 
-  // Select value and options
-  const [value, setValue] = useState<string>(null);
-  const [searchValue, setSearchValue] = useState("");
-  const [selectOptions, setSelectOptions] = useState<SelectItem[]>([]);
-  const [selectLoading, setSelectLoading] = useState(false);
+  // Domain
+  const [domainId, setDomainId] = useState<string>(null);
+  const [domainOptions, setDomainOptions] = useState<SelectItem[]>([]);
 
-  // Get entity select options from Supabase
+  // Entity
+  const [entityId, setEntityId] = useState<string>(null);
+  const [entityOptions, setEntityOptions] = useState<SelectItem[]>([]);
+  const [entitySearchValue, setEntitySearchValue] = useState("");
+  const [entityLoading, setEntityLoading] = useState(false);
+
+  // Get entity options from Supabase
+  const getEntityOptions = async () => {
+    setEntityLoading(true);
+
+    try {
+      const { data } = await supabase
+        .rpc("get_entities", {
+          domain_id: domainId,
+          search: entitySearchValue,
+        })
+        .select("id::text,name")
+        .limit(10)
+        .throwOnError();
+
+      setEntityOptions(data.map((x: any) => ({ value: x.id, label: x.name })));
+    } catch (error) {
+      console.log(error);
+      setEntityOptions([]);
+    }
+
+    setEntityLoading(false);
+  };
+
+  // Get entity options on search value change
   useEffect(() => {
-    const getSelectOptions = async () => {
-      setSelectLoading(true);
+    getEntityOptions();
+  }, [entitySearchValue]);
 
-      try {
-        const { data } = await supabase
-          .from("entity")
-          .select("id::text,name")
-          .ilike("name", `%${searchValue}%`)
-          .limit(10)
-          .throwOnError();
+  // On domain change, reset entity select
+  useEffect(() => {
+    setEntityId(null);
+    setEntitySearchValue("");
+    getEntityOptions();
+  }, [domainId]);
 
-        // @ts-ignore
-        setSelectOptions(data.map((x) => ({ value: x.id, label: x.name })));
-      } catch (error) {
-        console.log(error);
-        setSelectOptions([]);
-      }
-
-      setSelectLoading(false);
-    };
-
-    getSelectOptions();
-  }, [searchValue]);
-
+  // Submit entity
   const handleSubmit = async () => {
     const { data } = await supabase
       .from("entity")
       .select("name")
-      .eq("id", value)
+      .eq("id", entityId)
       .throwOnError()
       .single();
 
-    onSubmit({ name: data.name, id: BigInt(value) });
-    setValue(null);
+    onSubmit({ name: data.name, id: BigInt(entityId) });
+    setEntityId(null);
+    setDomainId(null);
+    setEntitySearchValue("");
   };
 
+  // Get domain select options from Supabase on first load
+  useEffect(() => {
+    const getDomainOptions = async () => {
+      try {
+        const { data } = await supabase
+          .rpc("get_domains")
+          .select("id::text,name,description")
+          .throwOnError();
+
+        setDomainOptions(
+          data.map((x: any) => ({
+            value: x.id,
+            label: x.name,
+            description: x.description,
+          }))
+        );
+      } catch (error) {
+        console.log(error);
+        setDomainOptions([]);
+      }
+    };
+
+    getDomainOptions();
+  }, []);
+
   return (
-    <Group align="flex-end">
-      <Select
-        label="Niche"
-        description="Select a niche for your campaign"
-        style={{ flex: 1 }}
-        placeholder="Select a niche"
-        data={selectOptions}
-        rightSection={selectLoading && <Loader size={16} />}
-        icon={<IconAsteriskSimple size={14} />}
-        value={value}
-        onChange={setValue}
-        searchable
-        nothingFound="No options"
-        onSearchChange={setSearchValue}
-        searchValue={searchValue}
-      />
-      <ActionIcon
-        mb={1.5}
-        variant="default"
-        size="lg"
+    <Stack>
+      <Group grow>
+        <Select
+          label="Select a domain"
+          clearable
+          description="Domains are broad categories of content. Start typing to search. Leave it blank to search niches across all domains."
+          placeholder="All domains"
+          data={domainOptions}
+          icon={<IconAsteriskSimple size={14} />}
+          value={domainId}
+          onChange={setDomainId}
+          searchable
+          nothingFound="No options"
+        />
+        <Select
+          label="Select a niche"
+          description="There are many niches within each domain. Start typing to search."
+          placeholder="Select a niche"
+          data={entityOptions}
+          rightSection={entityLoading && <Loader size={16} />}
+          icon={<IconAsteriskSimple size={14} />}
+          value={entityId}
+          onChange={setEntityId}
+          searchable
+          nothingFound="No options"
+          onSearchChange={setEntitySearchValue}
+          searchValue={entitySearchValue}
+        />
+      </Group>
+      <Button
+        variant="light"
         onClick={handleSubmit}
-        color="blue"
-        disabled={value === null}
+        disabled={entityId === null}
       >
-        <IconChevronRight />
-      </ActionIcon>
-    </Group>
+        Add niche
+      </Button>
+    </Stack>
   );
 };

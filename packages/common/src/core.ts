@@ -104,12 +104,14 @@ export const searchTwitterProfilesColumns = [...twitterProfileColumns];
 export const campaignColumns = join(
   [
     "id",
+    "name",
     "created_at",
     "updated_at",
     "user_id",
     "keywords",
     "paused",
     "deleted",
+    "view",
   ] as const,
   ","
 );

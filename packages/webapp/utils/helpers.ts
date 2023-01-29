@@ -1,32 +1,6 @@
 import camelcase from "camelcase";
 import { NextApiRequest } from "next";
 import { z } from "zod";
-import { RemoveFiltersArg } from "../pages/search";
-
-export type Filters = {
-  followersCountLessThan?: number;
-  followersCountGreaterThan?: number;
-  followingCountLessThan?: number;
-  followingCountGreaterThan?: number;
-  tweetCountLessThan?: number;
-  tweetCountGreaterThan?: number;
-  createdBefore?: Date;
-  createdAfter?: Date;
-  searchText?: string;
-};
-
-export type Query = ["followedBy", string] | ["followerOf", string];
-export type Queries = Query[];
-
-export interface FilterProps {
-  filters: Filters;
-  addFilters: (arg: Filters) => void;
-  removeFilters: (...arg: RemoveFiltersArg[]) => void;
-}
-
-export interface FilterInputProps extends FilterProps {
-  label: string;
-}
 
 // Custom bigint Zod type
 export const zodBigint = z.string().refine((x) => {
@@ -91,37 +65,6 @@ export const twitterListFields = [
   "member_count",
   "private",
 ];
-
-interface CommonJob {
-  id: number;
-  createdAt: Date;
-  label: string;
-  paused: boolean;
-  rateLimitResetsAt?: Date;
-}
-
-export interface LookupRelationJob extends CommonJob {
-  name: "lookup-relation";
-  relation: "followers" | "following" | "muting" | "blocking";
-  username: string;
-  totalCount?: number;
-  progress?: number;
-}
-
-export interface ManageRelationJob extends CommonJob {
-  name: "manage-relation";
-  relation: "follow" | "block" | "mute";
-  add: boolean;
-  progress: number;
-}
-
-export interface ManageListMembersJob extends CommonJob {
-  name: "manage-list-members";
-  add: boolean;
-  progress: number;
-}
-
-export type Job = LookupRelationJob | ManageRelationJob | ManageListMembersJob;
 
 function isLocalNetwork(hostname = window.location.host) {
   return (

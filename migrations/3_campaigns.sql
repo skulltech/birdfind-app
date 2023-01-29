@@ -4,9 +4,13 @@ create table campaign (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
+    -- Campaign details
     name text not null,
     user_id uuid references auth.users not null,
     keywords text[] not null,
+    
+    -- Campaign view, i.e. sort, filters, etc.
+    view jsonb not null default '{}',
 
     -- Status
     latest_tweet_id bigint references tweet,
@@ -72,44 +76,6 @@ create policy "Users can update entities of their own campaigns."
       select campaign.user_id from campaign
       where campaign_entity.campaign_id = campaign.id
   ));
-
-
--- Campaign x Domain association table
-
-drop table if exists campaign_domain cascade;
-create table campaign_domain (
-    campaign_id bigint references campaign on delete cascade not null,
-    domain_id bigint references domain not null,
-    primary key (campaign_id, domain_id)
-);
-
-alter table campaign_domain enable row level security;
-
-create policy "Users can insert domains to their own campaigns."
-  on campaign_domain for insert
-  to authenticated
-  with check (
-      auth.uid() in (
-      select campaign.user_id from campaign
-      where campaign_domain.campaign_id = campaign.id
-  ));;
-
-create policy "Users can view domains of their own campaigns."
-  on campaign_domain for select
-  using (
-      auth.uid() in (
-      select campaign.user_id from campaign
-      where campaign_domain.campaign_id = campaign.id
-  ));
-
-create policy "Users can update domains of their own campaigns."
-  on campaign_domain for update
-  using (
-      auth.uid() in (
-      select campaign.user_id from campaign
-      where campaign_domain.campaign_id = campaign.id
-  ));
-
 
 -- Rate limit information
 

@@ -1,8 +1,14 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { serializeTwitterUser, twitterProfileColumns } from "@birdfind/common";
+import {
+  campaignColumns,
+  serializeTwitterUser,
+  twitterProfileColumns,
+} from "@birdfind/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
-import { parseTwitterProfile, TwitterProfile, Filters, Job } from "./helpers";
+import { parseTwitterProfile, TwitterProfile } from "./helpers";
+import decamelize from "decamelize";
+import { Filters } from "../components/FilterForm/FilterForm";
 
 export const getServiceRoleSupabase = () =>
   createClient(
@@ -135,19 +141,19 @@ export const getUserDetails = async (
   return data.length ? parseUserDetails(data[0]) : null;
 };
 
-export interface SearchResult extends TwitterProfile {}
+export interface CampaignResult extends TwitterProfile {}
 
 type SearchTwitterProfilesArgs = {
   supabase: SupabaseClient;
   campaignId: number;
   filters: Filters;
   pageIndex: number;
-  orderBy: string;
+  orderBy: "followersCount" | "followingCount" | "tweetCount";
   orderAscending: boolean;
 };
 
-type SearchTwitterProfilesResult = {
-  results: SearchResult[];
+type CampaignResultsInfo = {
+  results: CampaignResult[];
   count: number;
 };
 
@@ -158,7 +164,7 @@ export const getCampaignResults = async ({
   pageIndex,
   orderBy,
   orderAscending,
-}: SearchTwitterProfilesArgs): Promise<SearchTwitterProfilesResult> => {
+}: SearchTwitterProfilesArgs): Promise<CampaignResultsInfo> => {
   const appendFilterFunctions: Record<
     keyof Filters,
     (query: any, value: any) => any
@@ -180,7 +186,7 @@ export const getCampaignResults = async ({
     createdAfter: (query, value: Date) =>
       query.gt("user_created_at", value.toISOString()),
     searchText: (query, value: string) =>
-      query.ilike("concat(username,name,description)", `%${value}%`),
+      query.ilike("concat(name,description)", `%${value}%`),
   };
 
   // Get count
@@ -191,7 +197,7 @@ export const getCampaignResults = async ({
       { campaign_id: campaignId },
       { count: "exact" }
     )
-    .select("id");
+    .select(twitterProfileColumns);
   for (const [key, value] of Object.entries(filters))
     countQuery = appendFilterFunctions[key](countQuery, value);
   const { count } = await countQuery.throwOnError();
@@ -206,7 +212,7 @@ export const getCampaignResults = async ({
     resultsQuery = appendFilterFunctions[key](resultsQuery, value);
 
   const { data } = await resultsQuery
-    .order(orderBy, { ascending: orderAscending })
+    .order(decamelize(orderBy), { ascending: orderAscending })
     .order("updated_at", { ascending: true })
     .order("id", { ascending: true })
     .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)

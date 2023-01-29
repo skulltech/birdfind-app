@@ -1,8 +1,10 @@
+import { campaignColumns } from "@birdfind/common";
 import {
+  Badge,
   Button,
-  Center,
   Group,
   Modal,
+  Paper,
   Stack,
   Text,
   Title,
@@ -11,7 +13,6 @@ import {
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { CampaignItem } from "../components/CampaignItem";
 import { CampaignForm } from "../components/CampaignForm/CampaignForm";
 
 const Home = () => {
@@ -21,17 +22,19 @@ const Home = () => {
   const [createCampaignModalOpened, setCreateCampaignModalOpened] =
     useState(false);
 
+  // Fetch campaigns on first load
   useEffect(() => {
     const fetchCampaigns = async () => {
       const { data } = await supabase
         .from("campaign")
-        .select("id,keywords,created_at,name")
+        .select(campaignColumns)
+        .eq("deleted", false)
         .throwOnError();
       setCampaigns(data);
     };
 
     fetchCampaigns();
-  });
+  }, []);
 
   return (
     <>
@@ -40,6 +43,7 @@ const Home = () => {
       </Head>
       <Modal
         opened={createCampaignModalOpened}
+        size="xl"
         onClose={() => setCreateCampaignModalOpened(false)}
         title="Create a new campaign"
       >
@@ -75,9 +79,23 @@ const Home = () => {
             </Button>
           </Group>
 
-          <Stack sx={{ flex: 1 }}>
+          <Stack style={{ flex: 1 }}>
             {campaigns.map((campaign) => (
-              <CampaignItem key={campaign.id} campaign={campaign} />
+              <Paper withBorder p="xs" shadow="md" key={campaign.id}>
+                <Group position="apart">
+                  <Stack pr="md" spacing="sm">
+                    <Group position="apart">
+                      <Group spacing={2}>
+                        <Text size="md">{campaign.name}</Text>
+                        <Badge>{campaign.paused ? "Paused" : "Active"}</Badge>
+                      </Group>
+                    </Group>
+                  </Stack>
+                  <Button component="a" href={"/campaigns/" + campaign.id}>
+                    Open campaign
+                  </Button>
+                </Group>
+              </Paper>
             ))}
           </Stack>
         </Stack>

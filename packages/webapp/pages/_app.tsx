@@ -1,4 +1,10 @@
-import { ColorScheme, MantineProvider, Stack } from "@mantine/core";
+import {
+  ColorScheme,
+  Group,
+  MantineProvider,
+  Stack,
+  useMantineTheme,
+} from "@mantine/core";
 import { NotificationsProvider } from "@mantine/notifications";
 import type { AppProps } from "next/app";
 import { AppHeader } from "../components/AppHeader/AppHeader";
@@ -9,7 +15,6 @@ import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { ModalsProvider } from "@mantine/modals";
 import { GoogleAnalytics } from "nextjs-google-analytics";
 import { UserProvider } from "../providers/UserProvider";
-// import { JobsProvider } from "../providers/JobsProvider";
 import { RouterTransition } from "../components/RouterTransition";
 import { useColorScheme } from "@mantine/hooks";
 import { useRouter } from "next/router";
@@ -43,6 +48,7 @@ export default function App({
   const [colorScheme, setColorScheme] = useState<ColorScheme>(
     props.colorScheme
   );
+  const theme = useMantineTheme();
   const [useSystemColorScheme, setUseSystemColorScheme] = useState<boolean>(
     props.useSystemColorScheme || true
   );
@@ -74,8 +80,6 @@ export default function App({
         maxAge: 60 * 60 * 24 * 30,
       });
   }, [systemColorScheme, useSystemColorScheme]);
-
-  const horizontalPadding = 100;
 
   // To check if user is signed out, to bypass middleware's limitation
   useEffect(() => {
@@ -109,25 +113,27 @@ export default function App({
           <NotificationsProvider position="top-center">
             <ModalsProvider>
               <UserProvider>
-                {/* <JobsProvider> */}
                 <Stack spacing={0}>
                   <RouterTransition />
                   <AppHeader
-                    px={horizontalPadding}
-                    py="xs"
+                    width={theme.breakpoints.md}
                     colorScheme={useSystemColorScheme ? "system" : colorScheme}
                     changeColorScheme={changeColorScheme}
                   />
                   <main
                     style={{
-                      paddingLeft: horizontalPadding,
-                      paddingRight: horizontalPadding,
+                      paddingLeft: theme.spacing.sm,
+                      paddingRight: theme.spacing.sm,
+                      display: "flex",
+                      overflow: "scroll",
+                      // maxWidth: theme.breakpoints.md,
+                      marginLeft: "auto",
+                      marginRight: "auto",
                     }}
                   >
                     <Component {...pageProps} />
                   </main>
                 </Stack>
-                {/* </JobsProvider> */}
               </UserProvider>
             </ModalsProvider>
           </NotificationsProvider>

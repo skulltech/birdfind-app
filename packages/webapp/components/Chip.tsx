@@ -7,6 +7,8 @@ export type FilterChipProps = {
 
 const useStyles = createStyles((theme) => ({
   filterChip: {
+    height: 30,
+    display: "flex",
     "&:hover": {
       backgroundColor:
         theme.colorScheme === "dark"
@@ -25,7 +27,6 @@ export const Chip = ({ label, onClose }: FilterChipProps) => {
       withBorder
       radius="lg"
       px="xs"
-      py={3}
       className={classes.filterChip}
     >
       <Group position="apart" grow={false} noWrap spacing="xs">

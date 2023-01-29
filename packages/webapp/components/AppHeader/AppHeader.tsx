@@ -12,7 +12,7 @@ import { AccountMenu } from "./AccountMenu";
 import { Abril_Fatface } from "@next/font/google";
 
 type AppHeaderProps = {
-  [x: string]: any;
+  width: number | string;
   colorScheme: ColorScheme | "system";
   changeColorScheme: (arg: ColorScheme | "system") => void;
 };
@@ -22,14 +22,19 @@ const abrilFatface = Abril_Fatface({ weight: "400", subsets: ["latin"] });
 export const AppHeader = ({
   colorScheme,
   changeColorScheme,
-  ...others
+  width,
 }: AppHeaderProps) => {
   const router = useRouter();
   const { user } = useUser();
 
   return (
-    <Header height={60} {...others}>
-      <Group position="apart">
+    <Header
+      height={60}
+      px="sm"
+      py="xs"
+      style={{ display: "flex", justifyContent: "center" }}
+    >
+      <Group position="apart" style={{ width }}>
         <UnstyledButton
           component="a"
           href="/"

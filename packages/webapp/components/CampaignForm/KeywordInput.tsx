@@ -1,4 +1,4 @@
-import { ActionIcon, Group, TextInput } from "@mantine/core";
+import { ActionIcon, Button, Group, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
 import { IconAsteriskSimple, IconChevronRight } from "@tabler/icons";
 import { useState } from "react";
@@ -19,8 +19,9 @@ export const KeywordInput = ({ onSubmit }: KeywordInputProps) => {
   return (
     <Group align="flex-end">
       <TextInput
+        name="campaign-keyword"
         label="Keyword"
-        description="Search for a keyword"
+        description="Users two posted tweets matching this keyword will be included in the campaign."
         style={{ flex: 1 }}
         placeholder="Enter a keyword"
         icon={<IconAsteriskSimple size={14} />}
@@ -28,16 +29,13 @@ export const KeywordInput = ({ onSubmit }: KeywordInputProps) => {
         onChange={(event) => setKeyword(event.currentTarget.value)}
         onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
       />
-      <ActionIcon
-        mb={1.5}
-        variant="default"
-        size="lg"
+      <Button
+        variant="light"
         onClick={handleSubmit}
-        color="blue"
         disabled={keyword.length === 0}
       >
-        <IconChevronRight />
-      </ActionIcon>
+        Add keyword
+      </Button>
     </Group>
   );
 };

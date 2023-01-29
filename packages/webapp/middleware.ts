@@ -1,4 +1,4 @@
-import { NextResponse, userAgent } from "next/server";
+import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getUserDetails } from "./utils/supabase";
@@ -17,12 +17,6 @@ export const middleware = async (req: NextRequest) => {
 
   // Allow images
   if (path.startsWith("/images")) return;
-
-  // Redirect to unsupported-device page when accessed from mobile
-  if (path.startsWith("/unsupported-device")) return;
-  const { device } = userAgent(req);
-  if (device.type == "mobile")
-    return NextResponse.redirect(new URL("/unsupported-device", req.url));
 
   const res = NextResponse.next();
   const supabase = createMiddlewareSupabaseClient({ req, res });

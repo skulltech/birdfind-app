@@ -102,22 +102,23 @@ export const addRunCampaignJobs = async () => {
 
       // Get jobs which can be added
       const result = await pgClient.query({
-        text: "select * from campaign where paused=false and deleted=false and not (id = any($1))",
+        text: "select id,name from campaign where paused=false and deleted=false and not (id = any($1))",
         values: [jobsinQueue],
       });
-      const campaignIds = result.rows.map((x) => x.id);
 
       // Add jobs
-      for (const campaignId of campaignIds)
-        await queue.add("run-campaign", campaignId);
+      for (const campaign of result.rows) {
+        console.log("Adding job for campaign", campaign.name);
+        await queue.add("run-campaign", campaign.id);
+      }
     } catch (error) {
       logger.error("Error at daemon while adding run-campaign jobs", {
         metadata: { error },
       });
     }
 
-    // Sleep for 2 seconds
-    sleep(2 * 1000);
+    // Sleep for 1 hour
+    await sleep(60 * 60 * 1000);
   }
 };
 
