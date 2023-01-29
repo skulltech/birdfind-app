@@ -21,7 +21,7 @@ export const KeywordInput = ({ onSubmit }: KeywordInputProps) => {
       <TextInput
         name="campaign-keyword"
         label="Keyword"
-        description="Users two posted tweets matching this keyword will be included in the campaign."
+        description="Users who posted tweets matching this keyword will be included in the campaign."
         style={{ flex: 1 }}
         placeholder="Enter a keyword"
         icon={<IconAsteriskSimple size={14} />}

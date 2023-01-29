@@ -111,7 +111,7 @@ export const campaignColumns = join(
     "keywords",
     "paused",
     "deleted",
-    "view",
+    "filters",
   ] as const,
   ","
 );

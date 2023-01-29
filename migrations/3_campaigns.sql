@@ -9,8 +9,8 @@ create table campaign (
     user_id uuid references auth.users not null,
     keywords text[] not null,
     
-    -- Campaign view, i.e. sort, filters, etc.
-    view jsonb not null default '{}',
+    -- Campaign filters
+    filters jsonb not null default '{}',
 
     -- Status
     latest_tweet_id bigint references tweet,

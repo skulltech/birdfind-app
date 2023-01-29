@@ -1,13 +1,8 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import {
-  campaignColumns,
-  serializeTwitterUser,
-  twitterProfileColumns,
-} from "@birdfind/common";
+import { serializeTwitterUser, twitterProfileColumns } from "@birdfind/common";
 import camelCase from "camelcase";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 import { parseTwitterProfile, TwitterProfile } from "./helpers";
-import decamelize from "decamelize";
 import { Filters } from "../components/FilterForm/FilterForm";
 
 export const getServiceRoleSupabase = () =>
@@ -141,30 +136,37 @@ export const getUserDetails = async (
   return data.length ? parseUserDetails(data[0]) : null;
 };
 
-export interface CampaignResult extends TwitterProfile {}
+export interface CampaignProfile extends TwitterProfile {}
 
-type SearchTwitterProfilesArgs = {
+export type ProfileSort =
+  | "relevance"
+  | "followersAscending"
+  | "followersDescending"
+  | "tweetsAscending"
+  | "tweetsDescending"
+  | "followingAscending"
+  | "followingDescending";
+
+type GetCampaignProfilesArgs = {
   supabase: SupabaseClient;
   campaignId: number;
   filters: Filters;
   pageIndex: number;
-  orderBy: "followersCount" | "followingCount" | "tweetCount";
-  orderAscending: boolean;
+  sort: ProfileSort;
 };
 
-type CampaignResultsInfo = {
-  results: CampaignResult[];
+type GetCampaignProfilesResult = {
+  results: CampaignProfile[];
   count: number;
 };
 
-export const getCampaignResults = async ({
+export const getCampaignProfiles = async ({
   supabase,
   campaignId,
   filters,
   pageIndex,
-  orderBy,
-  orderAscending,
-}: SearchTwitterProfilesArgs): Promise<CampaignResultsInfo> => {
+  sort,
+}: GetCampaignProfilesArgs): Promise<GetCampaignProfilesResult> => {
   const appendFilterFunctions: Record<
     keyof Filters,
     (query: any, value: any) => any
@@ -208,13 +210,36 @@ export const getCampaignResults = async ({
     .rpc("get_campaign_results", { campaign_id: campaignId })
     .select(twitterProfileColumns);
 
+  // Apply filters
   for (const [key, value] of Object.entries(filters))
     resultsQuery = appendFilterFunctions[key](resultsQuery, value);
 
+  // Apply sort
+  resultsQuery =
+    sort == "followersAscending"
+      ? (resultsQuery = resultsQuery.order("followers_count", {
+          ascending: true,
+        }))
+      : sort == "followersDescending"
+      ? (resultsQuery = resultsQuery.order("followers_count", {
+          ascending: false,
+        }))
+      : sort == "tweetsAscending"
+      ? (resultsQuery = resultsQuery.order("tweet_count", { ascending: true }))
+      : sort == "tweetsDescending"
+      ? (resultsQuery = resultsQuery.order("tweet_count", { ascending: false }))
+      : sort == "followingAscending"
+      ? (resultsQuery = resultsQuery.order("following_count", {
+          ascending: true,
+        }))
+      : sort == "followingDescending"
+      ? (resultsQuery = resultsQuery.order("following_count", {
+          ascending: false,
+        }))
+      : resultsQuery;
+
   const { data } = await resultsQuery
-    .order(decamelize(orderBy), { ascending: orderAscending })
-    .order("updated_at", { ascending: true })
-    .order("id", { ascending: true })
+    // .order(decamelize(orderBy), { ascending: orderAscending })
     .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
     .throwOnError();
 

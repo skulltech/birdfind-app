@@ -43,7 +43,7 @@ export const EntityInput = ({ onSubmit }: EntityInputProps) => {
           search: entitySearchValue,
         })
         .select("id::text,name")
-        .limit(10)
+        .limit(30)
         .throwOnError();
 
       setEntityOptions(data.map((x: any) => ({ value: x.id, label: x.name })));
