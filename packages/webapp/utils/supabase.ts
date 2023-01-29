@@ -171,7 +171,6 @@ export type TweetSort =
 type GetCampaignProfilesArgs = {
   supabase: SupabaseClient;
   campaignId: number;
-  filters: Filters;
   pageIndex: number;
   sort: ProfileSort;
 };
@@ -184,34 +183,9 @@ type GetCampaignProfilesResult = {
 export const getCampaignProfiles = async ({
   supabase,
   campaignId,
-  filters,
   pageIndex,
   sort,
 }: GetCampaignProfilesArgs): Promise<GetCampaignProfilesResult> => {
-  const appendFilterFunctions: Record<
-    keyof Filters,
-    (query: any, value: any) => any
-  > = {
-    followersCountLessThan: (query, value: number) =>
-      query.lt("followers_count", value),
-    followersCountGreaterThan: (query, value: number) =>
-      query.gt("followers_count", value),
-    followingCountLessThan: (query, value: number) =>
-      query.lt("following_count", value),
-    followingCountGreaterThan: (query, value: number) =>
-      query.gt("following_count", value),
-    tweetCountLessThan: (query, value: number) =>
-      query.lt("tweet_count", value),
-    tweetCountGreaterThan: (query, value: number) =>
-      query.gt("tweet_count", value),
-    createdBefore: (query, value: Date) =>
-      query.lt("user_created_at", value.toISOString()),
-    createdAfter: (query, value: Date) =>
-      query.gt("user_created_at", value.toISOString()),
-    searchText: (query, value: string) =>
-      query.ilike("concat(name,description)", `%${value}%`),
-  };
-
   // Get count
   let countQuery = supabase
     .rpc(
@@ -219,19 +193,13 @@ export const getCampaignProfiles = async ({
       { campaign_id: campaignId },
       { count: "exact" }
     )
-    .select(twitterProfileColumns);
-  for (const [key, value] of Object.entries(filters))
-    countQuery = appendFilterFunctions[key](countQuery, value);
+    .select("id");
   const { count } = await countQuery.throwOnError();
 
   // Get results
   let resultsQuery = supabase
     .rpc("get_campaign_profiles", { campaign_id: campaignId })
     .select(twitterProfileColumns);
-
-  // Apply filters
-  for (const [key, value] of Object.entries(filters))
-    resultsQuery = appendFilterFunctions[key](resultsQuery, value);
 
   // Apply sort
   resultsQuery =
@@ -293,8 +261,6 @@ export const getCampaignTweets = async ({
       { count: "exact" }
     )
     .select(twitterProfileColumns);
-  for (const [key, value] of Object.entries(filters))
-    countQuery = appendFilterFunctions[key](countQuery, value);
   const { count } = await countQuery.throwOnError();
 
   const { data } = await supabase

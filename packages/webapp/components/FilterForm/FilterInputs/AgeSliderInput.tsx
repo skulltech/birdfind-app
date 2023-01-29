@@ -6,11 +6,12 @@ import { useState } from "react";
 dayjs.extend(RelativeTime);
 
 interface RangeSliderInputProps {
-  onSubmit: (arg: { minDate: Date; maxDate: Date }) => void;
+  onSubmit: (arg: { minDate: Date; maxDate: Date }) => Promise<void>;
 }
 
 export const AgeSliderInput = ({ onSubmit }: RangeSliderInputProps) => {
   const [rangeValue, setRangeValue] = useState<[number, number]>([20, 80]);
+  const [loading, setLoading] = useState(false);
 
   const valueToDate = (value: number) => {
     const today = Date.now();
@@ -36,12 +37,19 @@ export const AgeSliderInput = ({ onSubmit }: RangeSliderInputProps) => {
         labelAlwaysOn
       />
       <Button
-        onClick={() =>
-          onSubmit({
-            minDate: valueToDate(rangeValue[1]),
-            maxDate: valueToDate(rangeValue[0]),
-          })
-        }
+        loading={loading}
+        onClick={async () => {
+          setLoading(true);
+          try {
+            await onSubmit({
+              minDate: valueToDate(rangeValue[1]),
+              maxDate: valueToDate(rangeValue[0]),
+            });
+          } catch (error) {
+            console.error(error);
+          }
+          setLoading(false);
+        }}
       >
         Add filter
       </Button>

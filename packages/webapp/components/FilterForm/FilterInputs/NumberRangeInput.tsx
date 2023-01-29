@@ -11,7 +11,7 @@ import { useState } from "react";
 
 interface NumberRangeInputProps {
   label: string;
-  onSubmit: (arg: { minValue: number; maxValue: number }) => void;
+  onSubmit: (arg: { minValue: number; maxValue: number }) => Promise<void>;
 }
 
 export const NumberRangeInput = ({
@@ -20,6 +20,7 @@ export const NumberRangeInput = ({
 }: NumberRangeInputProps) => {
   const [minValue, setMinValue] = useState<number>(undefined);
   const [maxValue, setMaxValue] = useState<number>(undefined);
+  const [loading, setLoading] = useState(false);
 
   return (
     <Stack spacing="sm">
@@ -42,7 +43,18 @@ export const NumberRangeInput = ({
           min={minValue}
         />
       </Group>
-      <Button onClick={() => onSubmit({ minValue, maxValue })}>
+      <Button
+        loading={loading}
+        onClick={async () => {
+          setLoading(true);
+          try {
+            await onSubmit({ minValue, maxValue });
+          } catch (error) {
+            console.error(error);
+          }
+          setLoading(false);
+        }}
+      >
         Add filter
       </Button>
     </Stack>

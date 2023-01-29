@@ -15,7 +15,7 @@ import { FilterForm, Filters } from "../../components/FilterForm/FilterForm";
 import { openConfirmModal } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { Profiles } from "../../components/CampaignResults/Profiles";
-import { Tweeets } from "../../components/CampaignResults/Tweets";
+// import { Tweeets } from "../../components/CampaignResults/Tweets";
 
 dayjs.extend(RelativeTime);
 
@@ -26,7 +26,6 @@ const Campaign = () => {
 
   // Campaign and filters
   const [campaign, setCampaign] = useState(null);
-  const [filters, setFilters] = useState<Filters>({});
   const [activeTab, setActiveTab] = useState<"profiles" | "tweets">("profiles");
 
   // Campaign actions
@@ -69,17 +68,13 @@ const Campaign = () => {
         .throwOnError()
         .maybeSingle();
       setCampaign(data);
-
-      // Set campaign filters
-      if (data.filters !== undefined) setFilters(data.filters);
     };
 
     fetchCampaign();
   }, []);
 
   // Update campaign filters in database
-  const updateFilters = async () => {
-    if (!campaign) return;
+  const updateFilters = async (filters: Filters) => {
     try {
       await supabase
         .from("campaign")
@@ -90,11 +85,6 @@ const Campaign = () => {
       console.log(error);
     }
   };
-
-  // Search and set page to 0, and store view in database
-  useEffect(() => {
-    updateFilters();
-  }, [filters, campaign]);
 
   const pauseCampaign = async () => {
     if (!campaign) return;
@@ -152,7 +142,26 @@ const Campaign = () => {
                 </Button>
               </Stack>
             </Group>
-            <FilterForm filters={filters} setFilters={setFilters} />
+            <FilterForm
+              filters={campaign.filters}
+              setFilters={async (setFiltersAction) => {
+                // It's a reducer function
+                if (typeof setFiltersAction == "function") {
+                  await updateFilters(setFiltersAction(campaign.filters));
+                  setCampaign((prev) => ({
+                    ...prev,
+                    filters: setFiltersAction(prev.filters),
+                  }));
+                  // It's a new filters object
+                } else {
+                  await updateFilters(setFiltersAction);
+                  setCampaign((prev) => ({
+                    ...prev,
+                    filters: setFiltersAction,
+                  }));
+                }
+              }}
+            />
           </Stack>
           <Tabs
             value={activeTab}
@@ -165,10 +174,10 @@ const Campaign = () => {
             </Tabs.List>
 
             <Tabs.Panel value="profiles">
-              <Profiles campaign={campaign} filters={filters} />
+              <Profiles campaign={campaign} filters={campaign.filters} />
             </Tabs.Panel>
             <Tabs.Panel value="tweets">
-              <Tweeets campaign={campaign} filters={filters} />
+              {/* <Tweeets campaign={campaign} filters={filters} /> */}
             </Tabs.Panel>
           </Tabs>
         </Stack>

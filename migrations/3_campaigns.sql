@@ -98,19 +98,60 @@ alter table twitter_api_rate_limit enable row level security;
 drop function if exists get_campaign_profiles(bigint) cascade;
 create function get_campaign_profiles(campaign_id bigint) returns setof twitter_profile as $$
 
-with
-  campaign_keywords as (select keywords from campaign where id = campaign_id),
-  campaign_entities as (select entity_id from campaign_entity where campaign_entity.campaign_id = get_campaign_profiles.campaign_id)
+with 
+  campaign as (select keywords,filters from campaign where id = campaign_id),
+  campaign_entities as (
+    select entity_id from campaign_entity
+      where campaign_entity.campaign_id = get_campaign_profiles.campaign_id
+  )
 
 select distinct twitter_profile.* from
 twitter_profile
   left join tweet on tweet.author_id = twitter_profile.id
   left join tweet_entity on tweet_entity.tweet_id = tweet.id
-where (
-  cardinality((select * from campaign_keywords)) > 0 and
-    tweet.text ~* array_to_string((select * from campaign_keywords), '|'
-  )) or
-  tweet_entity.entity_id in (select * from campaign_entities)
+
+where 
+  -- Campaign keywords and niches
+  ((cardinality((select keywords from campaign)) > 0 and
+    tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
+    tweet_entity.entity_id in (select * from campaign_entities)) and
+
+  -- Filters
+  ((select filters->'followersCountLessThan' from campaign) is null or
+    twitter_profile.followers_count <
+      (select(filters->'followersCountLessThan')::integer from campaign)) and
+
+  ((select filters->'followersCountGreaterThan' from campaign) is null or
+    twitter_profile.followers_count >
+      (select(filters->'followersCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'tweetCountLessThan' from campaign) is null or
+    twitter_profile.tweet_count <
+      (select(filters->'tweetCountLessThan')::integer from campaign)) and
+
+  ((select filters->'tweetCountGreaterThan' from campaign) is null or
+    twitter_profile.tweet_count >
+      (select(filters->'tweetCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'followingCountLessThan' from campaign) is null or
+    twitter_profile.following_count <
+      (select(filters->'followingCountLessThan')::integer from campaign)) and
+
+  ((select filters->'followingCountGreaterThan' from campaign) is null or
+    twitter_profile.following_count >
+      (select(filters->'followingCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'userCreatedBefore' from campaign) is null or
+    twitter_profile.user_created_at <
+      (select(filters->>'userCreatedBefore')::timestamptz from campaign)) and
+
+  ((select filters->'userCreatedAfter' from campaign) is null or
+    twitter_profile.user_created_at >
+      (select(filters->>'userCreatedAfter')::timestamptz from campaign)) and
+
+  ((select filters->'searchText' from campaign) is null or
+    concat(twitter_profile.name, twitter_profile.description) ~*
+      (select(filters->'searchText')::text from campaign))
 ;
 
 $$ language sql;

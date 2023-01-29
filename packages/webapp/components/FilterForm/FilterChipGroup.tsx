@@ -100,14 +100,14 @@ export const FilterChipGroup = ({
       });
 
     // Joined on
-    if (filters.createdAfter != null || filters.createdBefore != null)
+    if (filters.userCreatedAfter != null || filters.userCreatedBefore != null)
       chips.push({
         label: renderRangeFilter({
-          min: dateToAge(filters.createdBefore),
-          max: dateToAge(filters.createdAfter),
+          min: dateToAge(filters.userCreatedBefore),
+          max: dateToAge(filters.userCreatedAfter),
           label: "Account age",
         }),
-        filtersToRemove: ["createdAfter", "createdBefore"],
+        filtersToRemove: ["userCreatedAfter", "userCreatedBefore"],
       });
 
     // Search text
@@ -126,6 +126,7 @@ export const FilterChipGroup = ({
         <Chip
           key={index}
           label={label}
+          useLoader={true}
           onClose={() => removeFilters(filtersToRemove)}
         />
       ))}

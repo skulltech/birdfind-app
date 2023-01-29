@@ -10,12 +10,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import dayjs from "dayjs";
 import RelativeTime from "dayjs/plugin/relativeTime";
 import { useEffect, useState } from "react";
-import {
-  CampaignProfile,
-  getCampaignTweets,
-  ProfileSort,
-} from "../../utils/supabase";
-import { Filters } from "../FilterForm/FilterForm";
+import { getCampaignTweets, ProfileSort } from "../../utils/supabase";
 import { UserProfileCard } from "../UserProfileCard";
 import { CampaignResultsProps, largeNumberFormatter } from "./utils";
 

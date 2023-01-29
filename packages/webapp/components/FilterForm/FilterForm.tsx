@@ -6,7 +6,7 @@ import {
   Stack,
   UnstyledButton,
 } from "@mantine/core";
-import { Dispatch, SetStateAction } from "react";
+import { SetStateAction, useState } from "react";
 import { FilterChipGroup } from "./FilterChipGroup";
 import { AgeSliderInput } from "./FilterInputs/AgeSliderInput";
 import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
@@ -19,8 +19,8 @@ export type Filters = {
   followingCountGreaterThan?: number;
   tweetCountLessThan?: number;
   tweetCountGreaterThan?: number;
-  createdBefore?: Date;
-  createdAfter?: Date;
+  userCreatedBefore?: Date;
+  userCreatedAfter?: Date;
   searchText?: string;
 };
 
@@ -61,13 +61,15 @@ const FilterMenuItem = ({ label, children }: FilterItemProps) => {
 
 type FilterFormProps = {
   filters: Filters;
-  setFilters: Dispatch<SetStateAction<Filters>>;
+  setFilters: (arg: SetStateAction<Filters>) => Promise<void>;
 };
 
 export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
+  const [opened, setOpened] = useState(false);
+
   // Reducer function for adding filters
-  const addFilters = (arg: Filters) =>
-    setFilters((filters) => {
+  const addFilters = async (arg: Filters) => {
+    await setFilters((filters) => {
       const updatedFilters = { ...filters };
 
       for (const [filterName, filterValue] of Object.entries(arg))
@@ -76,13 +78,15 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
 
       return updatedFilters;
     });
+    setOpened(false);
+  };
 
   return (
     <Group>
       {Object.keys(filters).length > 0 && (
         <FilterChipGroup filters={filters} setFilters={setFilters} />
       )}
-      <Popover>
+      <Popover opened={opened} onChange={setOpened}>
         <Popover.Target>
           <Button
             py={3}
@@ -93,6 +97,7 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
               height: 30,
             }}
             radius="lg"
+            onClick={() => setOpened((o) => !o)}
           >
             + Add filter
           </Button>
@@ -141,8 +146,8 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
               <AgeSliderInput
                 onSubmit={({ minDate, maxDate }) =>
                   addFilters({
-                    createdAfter: minDate,
-                    createdBefore: maxDate,
+                    userCreatedAfter: minDate,
+                    userCreatedBefore: maxDate,
                   })
                 }
               />

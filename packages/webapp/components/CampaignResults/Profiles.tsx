@@ -15,7 +15,6 @@ import {
   getCampaignProfiles,
   ProfileSort,
 } from "../../utils/supabase";
-import { Filters } from "../FilterForm/FilterForm";
 import { UserProfileCard } from "../UserProfileCard";
 import { CampaignResultsProps, largeNumberFormatter } from "./utils";
 
@@ -44,7 +43,6 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
     const { results, count } = await getCampaignProfiles({
       supabase,
       campaignId: campaign.id,
-      filters,
       pageIndex,
       sort,
     });

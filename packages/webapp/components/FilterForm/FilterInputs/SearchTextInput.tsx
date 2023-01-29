@@ -3,14 +3,23 @@ import { getHotkeyHandler } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 
 type SearchTextInputProps = {
-  onSubmit: (arg: string) => void;
+  onSubmit: (arg: string) => Promise<void>;
 };
 
 export const SearchTextInput = ({ onSubmit }: SearchTextInputProps) => {
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    if (input.length > 0) onSubmit(input);
+  const handleSubmit = async () => {
+    if (input.length > 0) {
+      setLoading(true);
+      try {
+        await onSubmit(input);
+      } catch (error) {
+        console.error(error);
+      }
+      setLoading(false);
+    }
   };
 
   return (
@@ -23,7 +32,9 @@ export const SearchTextInput = ({ onSubmit }: SearchTextInputProps) => {
         onKeyDown={getHotkeyHandler([["Enter", handleSubmit]])}
         rightSectionWidth={60}
       />
-      <Button>Add filter</Button>
+      <Button onClick={handleSubmit} loading={loading}>
+        Add filter
+      </Button>
     </Stack>
   );
 };

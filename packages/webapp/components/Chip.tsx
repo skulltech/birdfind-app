@@ -1,8 +1,10 @@
 import { CloseButton, createStyles, Group, Paper, Text } from "@mantine/core";
+import { useState } from "react";
 
 export type FilterChipProps = {
   label: string;
-  onClose: () => void;
+  onClose: () => Promise<void> | void;
+  useLoader?: boolean;
 };
 
 const useStyles = createStyles((theme) => ({
@@ -18,8 +20,9 @@ const useStyles = createStyles((theme) => ({
   },
 }));
 
-export const Chip = ({ label, onClose }: FilterChipProps) => {
+export const Chip = ({ label, onClose, useLoader }: FilterChipProps) => {
   const { classes } = useStyles();
+  const [loading, setLoading] = useState(false);
 
   return (
     <Paper
@@ -35,7 +38,16 @@ export const Chip = ({ label, onClose }: FilterChipProps) => {
           size="xs"
           radius="lg"
           variant="outline"
-          onClick={onClose}
+          loading={useLoader ? loading : false}
+          onClick={async () => {
+            setLoading(true);
+            try {
+              await onClose();
+            } catch (error) {
+              console.error(error);
+            }
+            setLoading(false);
+          }}
         />
       </Group>
     </Paper>
