@@ -23,7 +23,6 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import RelativeTime from "dayjs/plugin/relativeTime";
-import { campaignColumns } from "@birdfind/common";
 import { FilterForm, Filters } from "../../components/FilterForm/FilterForm";
 import { openConfirmModal } from "@mantine/modals";
 import { useEffect, useState } from "react";
@@ -31,6 +30,7 @@ import { Profiles } from "../../components/CampaignResults/Profiles";
 import { Tweets } from "../../components/CampaignResults/Tweets";
 import { ParamChipGroup } from "../../components/CampaignForm/ParamChipGroup";
 import { CampaignForm } from "../../components/CampaignForm/CampaignForm";
+import { getCampaign } from "../../utils/campaigns";
 
 dayjs.extend(RelativeTime);
 
@@ -44,7 +44,6 @@ const Campaign = ({ width }) => {
 
   // Campaign and filters
   const [campaign, setCampaign] = useState(null);
-  const [entities, setEntities] = useState([]);
   const [activeTab, setActiveTab] = useState<"profiles" | "tweets">("profiles");
 
   // Campaign actions
@@ -78,29 +77,8 @@ const Campaign = ({ width }) => {
     });
 
   const fetchCampaign = async () => {
-    const { data: campaign } = await supabase
-      .from("campaign")
-      .select(campaignColumns)
-      .eq("id", id)
-      .throwOnError()
-      .maybeSingle();
-    const { data: entityIds } = await supabase
-      .from("campaign_entity")
-      .select("entity_id::text")
-      .eq("campaign_id", campaign.id)
-      .throwOnError();
-    const { data: entities } = await supabase
-      .from("entity")
-      .select("id::text,name")
-      .in(
-        "id",
-        // @ts-ignore
-        entityIds.map((e) => e.entity_id)
-      )
-      .throwOnError();
-
+    const campaign = await getCampaign({ supabase, id: BigInt(id as string) });
     setCampaign(campaign);
-    setEntities(entities);
   };
 
   // Fetch campaign on first load
@@ -154,7 +132,7 @@ const Campaign = ({ width }) => {
             title="Edit campaign"
           >
             <CampaignForm
-              campaign={{ ...campaign, entities }}
+              campaign={campaign}
               onSubmit={async () => {
                 setEditCampaignModalOpened(false);
                 await fetchCampaign();
@@ -185,45 +163,55 @@ const Campaign = ({ width }) => {
                   </Group>
                   <ParamChipGroup
                     keywords={campaign.keywords}
-                    entities={entities}
+                    entities={campaign.entities}
                   />
                 </Stack>
-
-                <Group>
-                  <Tooltip label="Pause campaign" position="bottom">
-                    <ActionIcon
+                <Stack align="flex-end" spacing="xs">
+                  <Group spacing="xs">
+                    <Tooltip label="Pause campaign" position="bottom">
+                      <ActionIcon
+                        variant="outline"
+                        color={campaign.paused ? "green" : "yellow"}
+                        size="lg"
+                        loading={pauseLoading}
+                        onClick={pauseCampaign}
+                      >
+                        {campaign.paused ? (
+                          <IconPlayerPlay />
+                        ) : (
+                          <IconPlayerPause />
+                        )}
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Delete campaign" position="bottom">
+                      <ActionIcon
+                        onClick={deleteCampaign}
+                        color="red"
+                        variant="outline"
+                        size="lg"
+                      >
+                        <IconTrash />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Button
                       variant="outline"
-                      color={campaign.paused ? "green" : "yellow"}
-                      size="lg"
-                      loading={pauseLoading}
-                      onClick={pauseCampaign}
+                      leftIcon={<IconSettings size={16} />}
+                      onClick={() => setEditCampaignModalOpened(true)}
                     >
-                      {campaign.paused ? (
-                        <IconPlayerPlay />
-                      ) : (
-                        <IconPlayerPause />
-                      )}
-                    </ActionIcon>
-                  </Tooltip>
-                  <Tooltip label="Delete campaign" position="bottom">
-                    <ActionIcon
-                      onClick={deleteCampaign}
-                      color="red"
-                      variant="outline"
-                      size="lg"
-                    >
-                      <IconTrash />
-                    </ActionIcon>
-                  </Tooltip>
-
-                  <Button
-                    variant="outline"
-                    leftIcon={<IconSettings size={16} />}
-                    onClick={() => setEditCampaignModalOpened(true)}
-                  >
-                    Edit campaign
-                  </Button>
-                </Group>
+                      Edit campaign
+                    </Button>
+                  </Group>
+                  <Text>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {campaign.profileCount}
+                    </span>{" "}
+                    accounts,{" "}
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {campaign.tweetCount}
+                    </span>{" "}
+                    tweets before filters
+                  </Text>
+                </Stack>
               </Group>
               <FilterForm
                 filters={campaign.filters}

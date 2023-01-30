@@ -329,3 +329,32 @@ where
 ;
 
 $$ language sql;
+
+-- Get campaign counts
+
+drop function if exists get_campaign_counts(bigint) cascade;
+create function get_campaign_counts(campaign_id bigint)
+  returns table(
+    profile_count bigint,
+    tweet_count bigint
+  ) as $$
+
+with 
+  campaign as (select keywords,filters from campaign where id = campaign_id),
+  campaign_entities as (
+    select entity_id from campaign_entity
+      where campaign_entity.campaign_id = get_campaign_tweets.campaign_id
+  )
+
+select
+  count(distinct tweet.id) as tweet_count, count(distinct twitter_profile.id) as profile_count
+from tweet
+  left join tweet_entity on tweet_entity.tweet_id = tweet.id
+  left join twitter_profile on tweet.author_id = twitter_profile.id
+where 
+  ((cardinality((select keywords from campaign)) > 0 and
+    tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
+    tweet_entity.entity_id in (select * from campaign_entities))
+;
+
+$$ language sql;

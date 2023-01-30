@@ -1,6 +1,6 @@
-import { ActionIcon, Button, Group, TextInput } from "@mantine/core";
+import { Button, Group, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
-import { IconAsteriskSimple, IconChevronRight } from "@tabler/icons";
+import { IconAsteriskSimple } from "@tabler/icons";
 import { useState } from "react";
 
 type KeywordInputProps = {

@@ -3,17 +3,10 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useUser } from "../../providers/UserProvider";
-import { Entity, EntityInput } from "./EntityInput";
+import { Campaign, Entity } from "../../utils/campaigns";
+import { EntityInput } from "./EntityInput";
 import { KeywordInput } from "./KeywordInput";
 import { ParamChipGroup } from "./ParamChipGroup";
-
-export type Campaign = {
-  id: number;
-  name: string;
-  keywords: string[];
-  entities: Entity[];
-  paused: boolean;
-};
 
 type CampaignFormProps = {
   campaign?: Campaign;

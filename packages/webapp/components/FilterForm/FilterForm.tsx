@@ -94,7 +94,6 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
       <Popover opened={opened} onChange={setOpened}>
         <Popover.Target>
           <Button
-            py={3}
             variant="outline"
             style={{
               fontSize: 16,

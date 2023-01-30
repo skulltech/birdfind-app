@@ -9,11 +9,7 @@ import {
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconAsteriskSimple } from "@tabler/icons";
 import { useEffect, useState } from "react";
-
-export type Entity = {
-  name: string;
-  id: bigint;
-};
+import { Entity } from "../../utils/campaigns";
 
 type EntityInputProps = {
   onSubmit: (entity: Entity) => void;

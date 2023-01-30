@@ -1,4 +1,4 @@
-import { Group, Stack } from "@mantine/core";
+import { Group, Text } from "@mantine/core";
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Chip } from "../Chip";
@@ -195,7 +195,8 @@ export const FilterChipGroup = ({
   }, [filters]);
 
   return (
-    <Group>
+    <Group spacing="xs">
+      <Text weight="bold">Active filters:</Text>
       {chips.map(({ label, filtersToRemove }, index) => (
         <Chip
           key={index}

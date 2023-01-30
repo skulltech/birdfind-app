@@ -1,6 +1,6 @@
 import { Group } from "@mantine/core";
+import { Entity } from "../../utils/campaigns";
 import { Chip } from "../Chip";
-import { Entity } from "./EntityInput";
 
 type ParamChipGroupProps = {
   keywords: string[];

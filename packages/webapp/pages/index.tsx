@@ -1,4 +1,3 @@
-import { campaignColumns } from "@birdfind/common";
 import {
   Badge,
   Button,
@@ -15,11 +14,9 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconCirclePlus } from "@tabler/icons";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import {
-  Campaign,
-  CampaignForm,
-} from "../components/CampaignForm/CampaignForm";
+import { CampaignForm } from "../components/CampaignForm/CampaignForm";
 import { ParamChipGroup } from "../components/CampaignForm/ParamChipGroup";
+import { Campaign, getAllCampaigns } from "../utils/campaigns";
 
 const Home = ({ width }) => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -33,30 +30,7 @@ const Home = ({ width }) => {
     const fetchCampaigns = async () => {
       setLoading(true);
       try {
-        const campaigns: Campaign[] = [];
-
-        const { data } = await supabase
-          .from("campaign")
-          .select(campaignColumns)
-          .eq("deleted", false)
-          .throwOnError();
-        for (const campaign of data) {
-          const { data: entityIds } = await supabase
-            .from("campaign_entity")
-            .select("entity_id")
-            .eq("campaign_id", campaign.id)
-            .throwOnError();
-          const { data: entities } = await supabase
-            .from("entity")
-            .select("id,name")
-            .in(
-              "id",
-              entityIds.map((x) => x.entity_id)
-            )
-            .throwOnError();
-          campaigns.push({ ...campaign, entities });
-        }
-
+        const campaigns = await getAllCampaigns({ supabase });
         setCampaigns(campaigns);
       } catch (error) {
         console.log(error);
@@ -138,6 +112,24 @@ const Home = ({ width }) => {
                         keywords={campaign.keywords}
                         entities={campaign.entities}
                       />
+                    </Stack>
+                    <Stack>
+                      <Text>
+                        <span
+                          style={{ fontWeight: "bold", fontSize: "1.2rem" }}
+                        >
+                          {campaign.profileCount}
+                        </span>{" "}
+                        accounts
+                      </Text>
+                      <Text>
+                        <span
+                          style={{ fontWeight: "bold", fontSize: "1.2rem" }}
+                        >
+                          {campaign.tweetCount}
+                        </span>{" "}
+                        tweets
+                      </Text>
                     </Stack>
                   </Group>
                 </Paper>
