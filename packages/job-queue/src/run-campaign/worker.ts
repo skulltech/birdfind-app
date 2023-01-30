@@ -6,12 +6,11 @@ import {
   twitterUserFields,
   serializeTweet,
 } from "@birdfind/common";
-import {
-  findUsersById,
-  TwitterResponse,
-  usersIdTweets,
-} from "twitter-api-sdk/dist/types";
 import { dedupeObjects, supabase } from "../utils";
+import dayjs from "dayjs";
+import isYesterday from "dayjs/plugin/isYesterday";
+
+dayjs.extend(isYesterday);
 
 export const runCampaign = async (campaignId: number) => {
   // Get campaign from Supabase
@@ -65,46 +64,17 @@ export const runCampaign = async (campaignId: number) => {
 
   const query = `${queryElements.join(" OR ")} lang:en -is:retweet -is:reply`;
 
-  let tweets: TwitterResponse<usersIdTweets>["data"];
-  let users: TwitterResponse<findUsersById>["data"];
-  try {
-    const page = await twitter.tweets.tweetsRecentSearch({
-      query,
-      max_results: 100,
-      "tweet.fields": tweetFields,
-      "user.fields": twitterUserFields,
-      expansions: ["author_id"],
-      sort_order: "relevancy",
-    });
-
-    tweets = page.data ?? [];
-    users = page.includes?.users ?? [];
-  } catch (error) {
-    // If rate-limited, delay the job
-    if (error.status == 429) {
-      await supabase
-        .from("twitter_api_rate_limit")
-        .insert({
-          // @ts-ignore
-          twitter_id: userProfile.twitter_id,
-          endpoint: "tweets-recent-search",
-          resets_at: new Date(
-            Number(error.headers["x-rate-limit-reset"]) * 1000
-          ),
-        })
-        .throwOnError();
-      return;
-    } else throw error;
-  }
-
-  // Delete rate limit
-  await supabase
-    .from("twitter_api_rate_limit")
-    .delete()
-    .eq("endpoint", "tweets-recent-search")
-    // @ts-ignore
-    .eq("twitter_id", userProfile.twitter_id)
-    .throwOnError();
+  const page = await twitter.tweets.tweetsRecentSearch({
+    query,
+    max_results: 100,
+    "tweet.fields": tweetFields,
+    "user.fields": twitterUserFields,
+    expansions: ["author_id"],
+    sort_order: "relevancy",
+    since_id: campaign.latest_tweet_id,
+  });
+  let tweets = page.data ?? [];
+  let users = page.includes?.users ?? [];
 
   // If no tweets, finish the job
   if (tweets.length == 0) return;
@@ -184,6 +154,10 @@ export const runCampaign = async (campaignId: number) => {
           // Sort by created at descending
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       )[0].id,
+      last_run_at: new Date().toISOString(),
+      tweets_fetched_today: dayjs(campaign.last_run_at).isYesterday()
+        ? tweets.length
+        : campaign.tweets_fetched_today + tweets.length,
     })
     .eq("id", campaignId)
     .throwOnError();

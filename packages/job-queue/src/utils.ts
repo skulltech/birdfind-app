@@ -5,7 +5,11 @@ import { createClient } from "@supabase/supabase-js";
 import { Client } from "pg";
 import { JobName } from "@birdfind/common";
 import { ConnectionOptions, Queue } from "bullmq";
+import dayjs from "dayjs";
+import isYesterday from "dayjs/plugin/isYesterday";
+
 dotenv.config();
+dayjs.extend(isYesterday);
 
 // To suppress warnings
 process.removeAllListeners("warning");
@@ -102,12 +106,24 @@ export const addRunCampaignJobs = async () => {
 
       // Get jobs which can be added
       const result = await pgClient.query({
-        text: "select id,name from campaign where paused=false and deleted=false and not (id = any($1))",
+        text: "select * from campaign where paused=false and deleted=false and not (id = any($1))",
         values: [jobsinQueue],
       });
 
+      // Filter by quota and rate limit constraints
+      const campaigns = result.rows.filter(
+        (x) =>
+          // First run
+          x.last_run_at == null ||
+          // Not over daily quota
+          ((dayjs(x.last_run_at).isYesterday() ||
+            x.tweets_fetched_today < 1000) &&
+            // Below rate limit
+            dayjs().subtract(30, "second").isAfter(x.last_run_at))
+      );
+
       // Add jobs
-      for (const campaign of result.rows) {
+      for (const campaign of campaigns) {
         console.log("Adding job for campaign", campaign.name);
         await queue.add("run-campaign", campaign.id);
       }
@@ -117,8 +133,8 @@ export const addRunCampaignJobs = async () => {
       });
     }
 
-    // Sleep for 1 hour
-    await sleep(60 * 60 * 1000);
+    // Sleep for 5 seconds
+    await sleep(5 * 1000);
   }
 };
 

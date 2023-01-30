@@ -64,72 +64,74 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
 
   return (
     <>
-      <Group position="apart" style={{ flexDirection: "row-reverse" }}>
-        <Group spacing="md">
-          <Group spacing={6}>
-            <Text weight="bold" size="sm">
-              Sort by
-            </Text>
-            <Select
-              // @ts-ignore
-              onChange={setSort}
-              data={[
-                {
-                  value: "relevance",
-                  label: "Relevance",
-                  group: "Smart sorting",
-                },
-                {
-                  value: "followersAscending",
-                  label: "Followers: Low to high",
-                  group: "Followers",
-                },
-                {
-                  value: "followersDescending",
-                  label: "Followers: High to low",
-                  group: "Followers",
-                },
-                {
-                  value: "followingAscending",
-                  label: "Following: Low to high",
-                  group: "Following",
-                },
-                {
-                  value: "followingDescending",
-                  label: "Following: High to low",
-                  group: "Following",
-                },
-                {
-                  value: "tweetsAscending",
-                  label: "Tweets: Low to high",
-                  group: "Tweets",
-                },
-                {
-                  value: "tweetsDescending",
-                  label: "Tweets: High to low",
-                  group: "Tweets",
-                },
-              ]}
-              value={sort}
-              size="sm"
-              radius="xl"
-              styles={{
-                input: {
-                  lineHeight: "24px",
-                  minHeight: "26px",
-                  height: "26px",
-                },
-              }}
-            />
-          </Group>
-          <Group>
-            <Pagination
-              size="sm"
-              page={pageIndex + 1}
-              onChange={(page) => setPageIndex(page - 1)}
-              total={Math.ceil(count / 100)}
-            />
-          </Group>
+      <Group position="apart">
+        <Group spacing={6}>
+          <Text weight="bold" size="sm">
+            Sort by
+          </Text>
+          <Select
+            // @ts-ignore
+            onChange={setSort}
+            data={[
+              {
+                value: "relevance",
+                label: "Relevance",
+                group: "Smart sorting",
+              },
+              {
+                value: "followersAscending",
+                label: "Followers: Low to high",
+                group: "Followers",
+              },
+              {
+                value: "followersDescending",
+                label: "Followers: High to low",
+                group: "Followers",
+              },
+              {
+                value: "followingAscending",
+                label: "Following: Low to high",
+                group: "Following",
+              },
+              {
+                value: "followingDescending",
+                label: "Following: High to low",
+                group: "Following",
+              },
+              {
+                value: "tweetsAscending",
+                label: "Tweets: Low to high",
+                group: "Tweets",
+              },
+              {
+                value: "tweetsDescending",
+                label: "Tweets: High to low",
+                group: "Tweets",
+              },
+            ]}
+            value={sort}
+            size="sm"
+            radius="xl"
+            styles={{
+              input: {
+                lineHeight: "24px",
+                minHeight: "26px",
+                height: "26px",
+              },
+            }}
+          />
+        </Group>
+        <Group>
+          <Text size={14}>
+            Showing {Math.min(pageIndex * 100 + 1, count)} -{" "}
+            {Math.min((pageIndex + 1) * 100, count)} of {count} results
+          </Text>
+          <Pagination
+            size="sm"
+            page={pageIndex + 1}
+            onChange={(page) => setPageIndex(page - 1)}
+            total={Math.ceil(count / 100)}
+          />
         </Group>
 
         {loading && <Loader variant="dots" />}

@@ -112,6 +112,9 @@ export const campaignColumns = joinStrings(
     "paused",
     "deleted",
     "filters",
+    "latest_tweet_id",
+    "last_run_at",
+    "tweets_fetched_today",
   ] as const,
   ","
 );

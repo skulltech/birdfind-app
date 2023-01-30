@@ -9,8 +9,7 @@ export const TweetCard = ({
   campaignTweet: {
     id,
     text,
-    author: { id: authorId, name, username, profileImageUrl },
-    tweetCreatedAt,
+    author: { name, username, profileImageUrl },
   },
 }: TweetCardProps) => {
   return (
@@ -18,7 +17,7 @@ export const TweetCard = ({
       <UnstyledButton
         style={{ fontSize: 14 }}
         component="a"
-        href={"https://twitter.com/" + username}
+        href={`https://twitter.com/${username}/status/${id}`}
         target="_blank"
       >
         <Group noWrap align="start">
