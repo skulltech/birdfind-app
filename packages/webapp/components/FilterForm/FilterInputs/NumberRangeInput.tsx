@@ -1,12 +1,4 @@
-import {
-  ActionIcon,
-  Button,
-  Group,
-  NumberInput,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { IconArrowNarrowRight } from "@tabler/icons";
+import { Button, Group, NumberInput, Stack, Text } from "@mantine/core";
 import { useState } from "react";
 
 interface NumberRangeInputProps {

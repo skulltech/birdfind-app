@@ -6,10 +6,11 @@ import { useState } from "react";
 dayjs.extend(RelativeTime);
 
 interface RangeSliderInputProps {
+  label: string;
   onSubmit: (arg: { minDate: Date; maxDate: Date }) => Promise<void>;
 }
 
-export const AgeSliderInput = ({ onSubmit }: RangeSliderInputProps) => {
+export const AgeSliderInput = ({ label, onSubmit }: RangeSliderInputProps) => {
   const [rangeValue, setRangeValue] = useState<[number, number]>([20, 80]);
   const [loading, setLoading] = useState(false);
 
@@ -28,7 +29,7 @@ export const AgeSliderInput = ({ onSubmit }: RangeSliderInputProps) => {
 
   return (
     <Stack spacing="sm">
-      <Text>Show accounts with age between</Text>
+      <Text>{label}</Text>
       <RangeSlider
         mt="xl"
         label={valueToAge}

@@ -3,10 +3,11 @@ import { getHotkeyHandler } from "@mantine/hooks";
 import { useState } from "react";
 
 type SearchTextInputProps = {
+  label: string;
   onSubmit: (arg: string) => Promise<void>;
 };
 
-export const SearchTextInput = ({ onSubmit }: SearchTextInputProps) => {
+export const SearchTextInput = ({ label, onSubmit }: SearchTextInputProps) => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,7 @@ export const SearchTextInput = ({ onSubmit }: SearchTextInputProps) => {
 
   return (
     <Stack spacing="sm">
-      <Text size="sm">Show accounts where the bio contains a keyword</Text>
+      <Text size="sm">{label}</Text>
       <TextInput
         placeholder="Enter a keyword"
         value={input}

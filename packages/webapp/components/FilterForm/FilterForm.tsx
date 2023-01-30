@@ -13,6 +13,7 @@ import { NumberRangeInput } from "./FilterInputs/NumberRangeInput";
 import { SearchTextInput } from "./FilterInputs/SearchTextInput";
 
 export type Filters = {
+  // Profile filters
   followersCountLessThan?: number;
   followersCountGreaterThan?: number;
   followingCountLessThan?: number;
@@ -21,7 +22,19 @@ export type Filters = {
   tweetCountGreaterThan?: number;
   userCreatedBefore?: Date;
   userCreatedAfter?: Date;
-  searchText?: string;
+  userSearchText?: string;
+  // Tweet filters
+  retweetCountLessThan?: number;
+  retweetCountGreaterThan?: number;
+  likeCountLessThan?: number;
+  likeCountGreaterThan?: number;
+  replyCountLessThan?: number;
+  replyCountGreaterThan?: number;
+  quoteCountLessThan?: number;
+  quoteCountGreaterThan?: number;
+  tweetCreatedBefore?: Date;
+  tweetCreatedAfter?: Date;
+  tweetSearchText?: string;
 };
 
 const useStyles = createStyles((theme) => ({
@@ -106,7 +119,8 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
           <Stack spacing={0}>
             <FilterMenuItem label="Bio contains keyword">
               <SearchTextInput
-                onSubmit={(x) => addFilters({ searchText: x })}
+                label="Show accounts with bio containing"
+                onSubmit={(x) => addFilters({ userSearchText: x })}
               />
             </FilterMenuItem>
             <FilterMenuItem label="Followers count">
@@ -144,12 +158,76 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
             </FilterMenuItem>
             <FilterMenuItem label="Account age">
               <AgeSliderInput
+                label="Show accounts with age between"
                 onSubmit={({ minDate, maxDate }) =>
                   addFilters({
                     userCreatedAfter: minDate,
                     userCreatedBefore: maxDate,
                   })
                 }
+              />
+            </FilterMenuItem>
+
+            <FilterMenuItem label="Tweet age">
+              <AgeSliderInput
+                label="Show tweets with age between"
+                onSubmit={({ minDate, maxDate }) =>
+                  addFilters({
+                    tweetCreatedAfter: minDate,
+                    tweetCreatedBefore: maxDate,
+                  })
+                }
+              />
+            </FilterMenuItem>
+            <FilterMenuItem label="Likes count">
+              <NumberRangeInput
+                label="Show tweets with likes between"
+                onSubmit={({ minValue, maxValue }) =>
+                  addFilters({
+                    likeCountGreaterThan: minValue,
+                    likeCountLessThan: maxValue,
+                  })
+                }
+              />
+            </FilterMenuItem>
+            <FilterMenuItem label="Retweets count">
+              <NumberRangeInput
+                label="Show tweets with retweets between"
+                onSubmit={({ minValue, maxValue }) =>
+                  addFilters({
+                    retweetCountGreaterThan: minValue,
+                    retweetCountLessThan: maxValue,
+                  })
+                }
+              />
+            </FilterMenuItem>
+
+            <FilterMenuItem label="Replies count">
+              <NumberRangeInput
+                label="Show tweets with replies between"
+                onSubmit={({ minValue, maxValue }) =>
+                  addFilters({
+                    replyCountGreaterThan: minValue,
+                    replyCountLessThan: maxValue,
+                  })
+                }
+              />
+            </FilterMenuItem>
+            <FilterMenuItem label="Quotes count">
+              <NumberRangeInput
+                label="Show tweets with quotes between"
+                onSubmit={({ minValue, maxValue }) =>
+                  addFilters({
+                    quoteCountGreaterThan: minValue,
+                    quoteCountLessThan: maxValue,
+                  })
+                }
+              />
+            </FilterMenuItem>
+            <FilterMenuItem label="Tweet contains keyword">
+              <SearchTextInput
+                label="Show tweets with text containing"
+                onSubmit={(x) => addFilters({ tweetSearchText: x })}
               />
             </FilterMenuItem>
           </Stack>

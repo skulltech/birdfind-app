@@ -110,11 +110,85 @@ export const FilterChipGroup = ({
         filtersToRemove: ["userCreatedAfter", "userCreatedBefore"],
       });
 
-    // Search text
-    if (filters.searchText)
+    // User search text
+    if (filters.userSearchText)
       chips.push({
-        label: `Bio contains "${filters.searchText}"`,
-        filtersToRemove: ["searchText"],
+        label: `Bio contains "${filters.userSearchText}"`,
+        filtersToRemove: ["userSearchText"],
+      });
+
+    // Tweet search text
+    if (filters.tweetSearchText)
+      chips.push({
+        label: `Tweet contains "${filters.tweetSearchText}"`,
+        filtersToRemove: ["tweetSearchText"],
+      });
+
+    // Tweet created on
+    if (filters.tweetCreatedAfter != null || filters.tweetCreatedBefore != null)
+      chips.push({
+        label: renderRangeFilter({
+          min: dateToAge(filters.tweetCreatedBefore),
+          max: dateToAge(filters.tweetCreatedAfter),
+          label: "Tweet age",
+        }),
+        filtersToRemove: ["tweetCreatedAfter", "tweetCreatedBefore"],
+      });
+
+    // Tweet retweet count
+    if (
+      filters.retweetCountGreaterThan != null ||
+      filters.retweetCountLessThan != null
+    )
+      chips.push({
+        label: renderRangeFilter({
+          min: filters.retweetCountGreaterThan,
+          max: filters.retweetCountLessThan,
+          label: "Retweet count",
+        }),
+        filtersToRemove: ["retweetCountGreaterThan", "retweetCountLessThan"],
+      });
+
+    // Tweet like count
+    if (
+      filters.likeCountGreaterThan != null ||
+      filters.likeCountLessThan != null
+    )
+      chips.push({
+        label: renderRangeFilter({
+          min: filters.likeCountGreaterThan,
+          max: filters.likeCountLessThan,
+          label: "Like count",
+        }),
+        filtersToRemove: ["likeCountGreaterThan", "likeCountLessThan"],
+      });
+
+    // Tweet reply count
+    if (
+      filters.replyCountGreaterThan != null ||
+      filters.replyCountLessThan != null
+    )
+      chips.push({
+        label: renderRangeFilter({
+          min: filters.replyCountGreaterThan,
+          max: filters.replyCountLessThan,
+          label: "Reply count",
+        }),
+        filtersToRemove: ["replyCountGreaterThan", "replyCountLessThan"],
+      });
+
+    // Tweet quote count
+    if (
+      filters.quoteCountGreaterThan != null ||
+      filters.quoteCountLessThan != null
+    )
+      chips.push({
+        label: renderRangeFilter({
+          min: filters.quoteCountGreaterThan,
+          max: filters.quoteCountLessThan,
+          label: "Quote count",
+        }),
+        filtersToRemove: ["quoteCountGreaterThan", "quoteCountLessThan"],
       });
 
     setChips(chips);

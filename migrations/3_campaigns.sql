@@ -116,7 +116,7 @@ where
     tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
     tweet_entity.entity_id in (select * from campaign_entities)) and
 
-  -- Filters
+  -- Profile filters
   ((select filters->'followersCountLessThan' from campaign) is null or
     twitter_profile.followers_count <
       (select(filters->'followersCountLessThan')::integer from campaign)) and
@@ -149,9 +149,54 @@ where
     twitter_profile.user_created_at >
       (select(filters->>'userCreatedAfter')::timestamptz from campaign)) and
 
-  ((select filters->'searchText' from campaign) is null or
+  ((select filters->'userSearchText' from campaign) is null or
     concat(twitter_profile.name, twitter_profile.description) ~*
-      (select(filters->'searchText')::text from campaign))
+      (select(filters->'userSearchText')::text from campaign)) and
+
+  -- Tweet filters
+  ((select filters->'retweetCountLessThan' from campaign) is null or
+    tweet.retweet_count <
+      (select(filters->'retweetCountLessThan')::integer from campaign)) and
+
+  ((select filters->'retweetCountGreaterThan' from campaign) is null or
+    tweet.retweet_count >
+      (select(filters->'retweetCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'likeCountLessThan' from campaign) is null or
+    tweet.like_count <
+      (select(filters->'likeCountLessThan')::integer from campaign)) and
+
+  ((select filters->'likeCountGreaterThan' from campaign) is null or
+    tweet.like_count >
+      (select(filters->'likeCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'quoteCountLessThan' from campaign) is null or
+    tweet.quote_count <
+      (select(filters->'quoteCountLessThan')::integer from campaign)) and
+
+  ((select filters->'quoteCountGreaterThan' from campaign) is null or
+    tweet.quote_count >
+      (select(filters->'quoteCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'replyCountLessThan' from campaign) is null or
+    tweet.reply_count <
+      (select(filters->'replyCountLessThan')::integer from campaign)) and
+
+  ((select filters->'replyCountGreaterThan' from campaign) is null or
+    tweet.reply_count >
+      (select(filters->'replyCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'tweetCreatedBefore' from campaign) is null or
+    tweet.tweet_created_at <
+      (select(filters->>'tweetCreatedBefore')::timestamptz from campaign)) and
+
+  ((select filters->'tweetCreatedAfter' from campaign) is null or
+    tweet.tweet_created_at >
+      (select(filters->>'tweetCreatedAfter')::timestamptz from campaign)) and
+
+  ((select filters->'tweetSearchText' from campaign) is null or
+    tweet.text ~*
+      (select(filters->'tweetSearchText')::text from campaign))
 ;
 
 $$ language sql;
@@ -204,7 +249,7 @@ where
     tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
     tweet_entity.entity_id in (select * from campaign_entities)) and
 
-  -- Filters
+  -- Profile filters
   ((select filters->'followersCountLessThan' from campaign) is null or
     twitter_profile.followers_count <
       (select(filters->'followersCountLessThan')::integer from campaign)) and
@@ -237,9 +282,54 @@ where
     twitter_profile.user_created_at >
       (select(filters->>'userCreatedAfter')::timestamptz from campaign)) and
 
-  ((select filters->'searchText' from campaign) is null or
+  ((select filters->'userSearchText' from campaign) is null or
     concat(twitter_profile.name, twitter_profile.description) ~*
-      (select(filters->'searchText')::text from campaign))
+      (select(filters->'userSearchText')::text from campaign)) and
+
+  -- Tweet filters
+  ((select filters->'retweetCountLessThan' from campaign) is null or
+    tweet.retweet_count <
+      (select(filters->'retweetCountLessThan')::integer from campaign)) and
+
+  ((select filters->'retweetCountGreaterThan' from campaign) is null or
+    tweet.retweet_count >
+      (select(filters->'retweetCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'likeCountLessThan' from campaign) is null or
+    tweet.like_count <
+      (select(filters->'likeCountLessThan')::integer from campaign)) and
+
+  ((select filters->'likeCountGreaterThan' from campaign) is null or
+    tweet.like_count >
+      (select(filters->'likeCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'quoteCountLessThan' from campaign) is null or
+    tweet.quote_count <
+      (select(filters->'quoteCountLessThan')::integer from campaign)) and
+
+  ((select filters->'quoteCountGreaterThan' from campaign) is null or
+    tweet.quote_count >
+      (select(filters->'quoteCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'replyCountLessThan' from campaign) is null or
+    tweet.reply_count <
+      (select(filters->'replyCountLessThan')::integer from campaign)) and
+
+  ((select filters->'replyCountGreaterThan' from campaign) is null or
+    tweet.reply_count >
+      (select(filters->'replyCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'tweetCreatedBefore' from campaign) is null or
+    tweet.tweet_created_at <
+      (select(filters->>'tweetCreatedBefore')::timestamptz from campaign)) and
+
+  ((select filters->'tweetCreatedAfter' from campaign) is null or
+    tweet.tweet_created_at >
+      (select(filters->>'tweetCreatedAfter')::timestamptz from campaign)) and
+
+  ((select filters->'tweetSearchText' from campaign) is null or
+    tweet.text ~*
+      (select(filters->'tweetSearchText')::text from campaign))
 ;
 
 $$ language sql;
