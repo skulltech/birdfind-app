@@ -76,7 +76,7 @@ const Home = ({ width }) => {
             <Button
               variant="outline"
               radius="md"
-              leftIcon={<IconCirclePlus />}
+              leftIcon={<IconCirclePlus size={18} />}
               onClick={() => setCreateCampaignModalOpened(true)}
             >
               Create a new campaign

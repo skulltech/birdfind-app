@@ -161,7 +161,7 @@ const Campaign = ({ width }) => {
                       color={theme.primaryColor}
                       onClick={() => router.push("/")}
                     >
-                      <IconChevronLeft />
+                      <IconChevronLeft size={18} />
                     </ActionIcon>
                     <Title order={3}>Campaign: {campaign.name}</Title>
                     <Badge
@@ -187,7 +187,7 @@ const Campaign = ({ width }) => {
                         loading={refreshLoading}
                         onClick={fetchCampaign}
                       >
-                        <IconRefresh />
+                        <IconRefresh size={18} />
                       </ActionIcon>
                     </Tooltip>
                     <Tooltip label="Pause campaign">
@@ -199,9 +199,9 @@ const Campaign = ({ width }) => {
                         onClick={pauseCampaign}
                       >
                         {campaign.paused ? (
-                          <IconPlayerPlay />
+                          <IconPlayerPlay size={18} />
                         ) : (
-                          <IconPlayerPause />
+                          <IconPlayerPause size={18} />
                         )}
                       </ActionIcon>
                     </Tooltip>
@@ -212,12 +212,12 @@ const Campaign = ({ width }) => {
                         variant="outline"
                         size="lg"
                       >
-                        <IconTrash />
+                        <IconTrash size={18} />
                       </ActionIcon>
                     </Tooltip>
                     <Button
                       variant="outline"
-                      leftIcon={<IconSettings size={16} />}
+                      leftIcon={<IconSettings size={18} />}
                       onClick={() => setEditCampaignModalOpened(true)}
                     >
                       Edit campaign
