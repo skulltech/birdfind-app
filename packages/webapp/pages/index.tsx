@@ -96,11 +96,12 @@ const Home = ({ width }) => {
         <Stack align="stretch" mt="md" w={width}>
           <Group position="apart">
             <Text>
-              You have created {campaigns.length}
+              You have {campaigns.length}
               {campaigns.length == 1 ? " campaign" : " campaigns"}
             </Text>
             <Button
               variant="outline"
+              radius="md"
               leftIcon={<IconCirclePlus />}
               onClick={() => setCreateCampaignModalOpened(true)}
             >

@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
-  IconDeviceLaptop,
+  IconAdjustments,
   IconLogout,
   IconMoonStars,
   IconSettings,
@@ -45,8 +45,8 @@ export const AccountMenu = ({
       </Menu.Target>
 
       <Menu.Dropdown>
-        <Menu.Label>Color Theme</Menu.Label>
-        <Menu.Label>
+        <Menu.Label pb={0}>Color Theme</Menu.Label>
+        <Menu.Label pt={0}>
           <SegmentedControl
             value={colorScheme}
             onChange={changeColorScheme}
@@ -72,7 +72,7 @@ export const AccountMenu = ({
               {
                 label: (
                   <Center>
-                    <IconDeviceLaptop size={18} />
+                    <IconAdjustments size={18} />
                     <Text ml={6}>System</Text>
                   </Center>
                 ),
