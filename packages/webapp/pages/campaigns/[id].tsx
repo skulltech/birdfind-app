@@ -1,4 +1,13 @@
-import { Badge, Button, Group, Stack, Tabs, Text, Title } from "@mantine/core";
+import {
+  Badge,
+  Button,
+  Group,
+  Modal,
+  Stack,
+  Tabs,
+  Text,
+  Title,
+} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
   IconPlayerPause,
@@ -16,6 +25,8 @@ import { openConfirmModal } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { Profiles } from "../../components/CampaignResults/Profiles";
 import { Tweets } from "../../components/CampaignResults/Tweets";
+import { ParamChipGroup } from "../../components/CampaignForm/ParamChipGroup";
+import { CampaignForm } from "../../components/CampaignForm/CampaignForm";
 
 dayjs.extend(RelativeTime);
 
@@ -24,8 +35,11 @@ const Campaign = () => {
   const { id } = router.query;
   const supabase = useSupabaseClient();
 
+  const [editCampaignModalOpened, setEditCampaignModalOpened] = useState(false);
+
   // Campaign and filters
   const [campaign, setCampaign] = useState(null);
+  const [entities, setEntities] = useState([]);
   const [activeTab, setActiveTab] = useState<"profiles" | "tweets">("profiles");
 
   // Campaign actions
@@ -58,18 +72,34 @@ const Campaign = () => {
       },
     });
 
+  const fetchCampaign = async () => {
+    const { data: campaign } = await supabase
+      .from("campaign")
+      .select(campaignColumns)
+      .eq("id", id)
+      .throwOnError()
+      .maybeSingle();
+    const { data: entityIds } = await supabase
+      .from("campaign_entity")
+      .select("entity_id::text")
+      .eq("campaign_id", campaign.id)
+      .throwOnError();
+    const { data: entities } = await supabase
+      .from("entity")
+      .select("id::text,name")
+      .in(
+        "id",
+        // @ts-ignore
+        entityIds.map((e) => e.entity_id)
+      )
+      .throwOnError();
+
+    setCampaign(campaign);
+    setEntities(entities);
+  };
+
   // Fetch campaign on first load
   useEffect(() => {
-    const fetchCampaign = async () => {
-      const { data } = await supabase
-        .from("campaign")
-        .select(campaignColumns)
-        .eq("id", id)
-        .throwOnError()
-        .maybeSingle();
-      setCampaign(data);
-    };
-
     fetchCampaign();
   }, []);
 
@@ -109,78 +139,102 @@ const Campaign = () => {
       <Head>
         <title>Campaign | Birdfind</title>
       </Head>
+
       {campaign && (
-        <Stack spacing={0}>
-          <Stack>
-            <Group>
-              <Title order={3}>Campaign: {campaign.name}</Title>
-              <Badge>{campaign.paused ? "Paused" : "Active"}</Badge>
-              <Stack>
-                <Button
-                  leftIcon={
-                    campaign.paused ? (
-                      <IconPlayerPlay size={16} />
-                    ) : (
-                      <IconPlayerPause size={16} />
-                    )
-                  }
-                  color={campaign.paused ? "green" : "yellow"}
-                  loading={pauseLoading}
-                  onClick={pauseCampaign}
-                >
-                  {campaign.paused ? "Resume" : "Pause"} campaign
-                </Button>
-                <Button
-                  leftIcon={<IconTrash size={16} />}
-                  onClick={deleteCampaign}
-                  color="red"
-                >
-                  Delete campaign
-                </Button>
-                <Button leftIcon={<IconSettings size={16} />}>
-                  Edit campaign
-                </Button>
-              </Stack>
-            </Group>
-            <FilterForm
-              filters={campaign.filters}
-              setFilters={async (setFiltersAction) => {
-                // It's a reducer function
-                if (typeof setFiltersAction == "function") {
-                  await updateFilters(setFiltersAction(campaign.filters));
-                  setCampaign((prev) => ({
-                    ...prev,
-                    filters: setFiltersAction(prev.filters),
-                  }));
-                  // It's a new filters object
-                } else {
-                  await updateFilters(setFiltersAction);
-                  setCampaign((prev) => ({
-                    ...prev,
-                    filters: setFiltersAction,
-                  }));
-                }
+        <>
+          <Modal
+            opened={editCampaignModalOpened}
+            size="xl"
+            onClose={() => setEditCampaignModalOpened(false)}
+            title="Edit campaign"
+          >
+            <CampaignForm
+              campaign={{ ...campaign, entities }}
+              onSubmit={async () => {
+                setEditCampaignModalOpened(false);
+                await fetchCampaign();
               }}
             />
-          </Stack>
-          <Tabs
-            value={activeTab}
-            // @ts-ignore
-            onTabChange={setActiveTab}
-          >
-            <Tabs.List grow>
-              <Tabs.Tab value="profiles">Profiles</Tabs.Tab>
-              <Tabs.Tab value="tweets">Tweets</Tabs.Tab>
-            </Tabs.List>
+          </Modal>
+          <Stack spacing={0}>
+            <Stack>
+              <Group>
+                <Title order={3}>Campaign: {campaign.name}</Title>
+                <Badge>{campaign.paused ? "Paused" : "Active"}</Badge>
+                <ParamChipGroup
+                  keywords={campaign.keywords}
+                  entities={entities}
+                />
+                <Stack>
+                  <Button
+                    leftIcon={
+                      campaign.paused ? (
+                        <IconPlayerPlay size={16} />
+                      ) : (
+                        <IconPlayerPause size={16} />
+                      )
+                    }
+                    color={campaign.paused ? "green" : "yellow"}
+                    loading={pauseLoading}
+                    onClick={pauseCampaign}
+                  >
+                    {campaign.paused ? "Resume" : "Pause"} campaign
+                  </Button>
+                  <Button
+                    leftIcon={<IconTrash size={16} />}
+                    onClick={deleteCampaign}
+                    color="red"
+                  >
+                    Delete campaign
+                  </Button>
+                  <Button
+                    leftIcon={<IconSettings size={16} />}
+                    onClick={() => setEditCampaignModalOpened(true)}
+                  >
+                    Edit campaign
+                  </Button>
+                </Stack>
+              </Group>
+              <FilterForm
+                filters={campaign.filters}
+                setFilters={async (setFiltersAction) => {
+                  // It's a reducer function
+                  if (typeof setFiltersAction == "function") {
+                    await updateFilters(setFiltersAction(campaign.filters));
+                    setCampaign((prev) => ({
+                      ...prev,
+                      filters: setFiltersAction(prev.filters),
+                    }));
+                    // It's a new filters object
+                  } else {
+                    await updateFilters(setFiltersAction);
+                    setCampaign((prev) => ({
+                      ...prev,
+                      filters: setFiltersAction,
+                    }));
+                  }
+                }}
+              />
+            </Stack>
+            <Tabs
+              value={activeTab}
+              // @ts-ignore
+              onTabChange={setActiveTab}
+            >
+              <Tabs.List grow>
+                <Tabs.Tab value="profiles">Profiles</Tabs.Tab>
+                <Tabs.Tab value="tweets">Tweets</Tabs.Tab>
+              </Tabs.List>
 
-            <Tabs.Panel value="profiles">
-              <Profiles campaign={campaign} filters={campaign.filters} />
-            </Tabs.Panel>
-            <Tabs.Panel value="tweets">
-              <Tweets campaign={campaign} filters={campaign.filters} />
-            </Tabs.Panel>
-          </Tabs>
-        </Stack>
+              <Tabs.Panel value="profiles">
+                <Profiles campaign={campaign} filters={campaign.filters} />
+              </Tabs.Panel>
+              <Tabs.Panel value="tweets">
+                <Tweets campaign={campaign} filters={campaign.filters} />
+              </Tabs.Panel>
+            </Tabs>
+          </Stack>
+        </>
       )}
     </>
   );

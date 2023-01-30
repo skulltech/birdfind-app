@@ -1,57 +1,81 @@
-import {
-  Button,
-  Divider,
-  Group,
-  Space,
-  Stack,
-  Text,
-  TextInput,
-} from "@mantine/core";
+import { Button, Space, Stack, Text, TextInput } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useUser } from "../../providers/UserProvider";
-import { Chip } from "../Chip";
 import { Entity, EntityInput } from "./EntityInput";
 import { KeywordInput } from "./KeywordInput";
+import { ParamChipGroup } from "./ParamChipGroup";
 
-export const CampaignForm = () => {
+type CampaignFormProps = {
+  campaign?: {
+    id: number;
+    name: string;
+    keywords: string[];
+    entities: Entity[];
+  };
+  onSubmit?: () => void;
+};
+
+export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
   const supabase = useSupabaseClient();
   const { user } = useUser();
   const router = useRouter();
 
   // Campaign inputs
-  const [keywords, setKeywords] = useState<string[]>([]);
-  const [entities, setEntities] = useState<Entity[]>([]);
-  const [name, setName] = useState<string>("");
+  const [keywords, setKeywords] = useState<string[]>(campaign?.keywords || []);
+  const [entities, setEntities] = useState<Entity[]>(campaign?.entities || []);
+  const [name, setName] = useState<string>(campaign?.name || "");
 
   // Loader on submit
   const [loading, setLoading] = useState(false);
 
-  const handleCreateCampaign = async () => {
+  const handleSubmit = async () => {
     setLoading(true);
 
     try {
-      // Create campaign
-      const { data } = await supabase
-        .from("campaign")
-        .insert({
-          keywords: keywords,
-          user_id: user.id,
-          name,
-        })
-        .select("id")
-        .throwOnError()
-        .single();
-      await supabase
-        .from("campaign_entity")
-        .insert(
-          entities.map((x) => ({ campaign_id: data.id, entity_id: x.id }))
-        )
-        .throwOnError();
+      if (!campaign) {
+        // Create campaign
+        const { data } = await supabase
+          .from("campaign")
+          .insert({
+            keywords: keywords,
+            user_id: user.id,
+            name,
+          })
+          .select("id")
+          .throwOnError()
+          .single();
+        await supabase
+          .from("campaign_entity")
+          .insert(
+            entities.map((x) => ({ campaign_id: data.id, entity_id: x.id }))
+          )
+          .throwOnError();
 
-      // Redirect to campaign page
-      await router.push(`/campaigns/${data.id}`);
+        if (onSubmit) onSubmit();
+        // Redirect to campaign page
+        await router.push(`/campaigns/${data.id}`);
+      } else {
+        // Update campaign
+        await supabase
+          .from("campaign")
+          .update({ keywords, name })
+          .eq("id", campaign.id)
+          .throwOnError();
+        await supabase
+          .from("campaign_entity")
+          .delete()
+          .eq("campaign_id", campaign.id)
+          .throwOnError();
+        await supabase
+          .from("campaign_entity")
+          .insert(
+            entities.map((x) => ({ campaign_id: campaign.id, entity_id: x.id }))
+          )
+          .throwOnError();
+        if (onSubmit) onSubmit();
+      }
     } catch (error) {
       console.log(error);
     }
@@ -74,26 +98,12 @@ export const CampaignForm = () => {
       {(keywords.length > 0 || entities.length > 0) && (
         <>
           <Space h="md" />
-          <Group>
-            {keywords.map((keyword) => (
-              <Chip
-                label={`Keyword: "${keyword}"`}
-                key={keyword}
-                onClose={() =>
-                  setKeywords(keywords.filter((x) => x !== keyword))
-                }
-              />
-            ))}
-            {entities.map((entity) => (
-              <Chip
-                label={"Niche: " + entity.name}
-                key={entity.id.toString()}
-                onClose={() =>
-                  setEntities(entities.filter((x) => x.id !== entity.id))
-                }
-              />
-            ))}
-          </Group>
+          <ParamChipGroup
+            keywords={keywords}
+            entities={entities}
+            setKeywords={setKeywords}
+            setEntities={setEntities}
+          />
         </>
       )}
 
@@ -119,10 +129,10 @@ export const CampaignForm = () => {
       <Space h="md" />
       <Button
         disabled={(keywords.length == 0 && entities.length == 0) || name == ""}
-        onClick={handleCreateCampaign}
+        onClick={handleSubmit}
         loading={loading}
       >
-        Create campaign
+        {campaign ? "Update campaign" : "Create campaign"}
       </Button>
     </Stack>
   );

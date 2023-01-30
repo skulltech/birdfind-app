@@ -77,6 +77,14 @@ create policy "Users can update entities of their own campaigns."
       where campaign_entity.campaign_id = campaign.id
   ));
 
+create policy "Users can delete entities of their own campaigns."
+  on campaign_entity for delete
+  using (
+      auth.uid() in (
+      select campaign.user_id from campaign
+      where campaign_entity.campaign_id = campaign.id
+  ));
+
 -- Rate limit information
 
 drop table if exists twitter_api_rate_limit cascade;
