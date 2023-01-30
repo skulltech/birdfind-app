@@ -16,6 +16,7 @@ import {
   IconChevronLeft,
   IconPlayerPause,
   IconPlayerPlay,
+  IconRefresh,
   IconSettings,
   IconTrash,
 } from "@tabler/icons";
@@ -49,6 +50,7 @@ const Campaign = ({ width }) => {
   // Campaign actions
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [pauseLoading, setPauseLoading] = useState(false);
+  const [refreshLoading, setRefreshLoading] = useState(false);
 
   const deleteCampaign = () =>
     openConfirmModal({
@@ -77,8 +79,17 @@ const Campaign = ({ width }) => {
     });
 
   const fetchCampaign = async () => {
-    const campaign = await getCampaign({ supabase, id: BigInt(id as string) });
-    setCampaign(campaign);
+    setRefreshLoading(true);
+    try {
+      const campaign = await getCampaign({
+        supabase,
+        id: BigInt(id as string),
+      });
+      setCampaign(campaign);
+    } catch (error) {
+      console.log(error);
+    }
+    setRefreshLoading(false);
   };
 
   // Fetch campaign on first load
@@ -168,7 +179,18 @@ const Campaign = ({ width }) => {
                 </Stack>
                 <Stack align="flex-end" spacing="xs">
                   <Group spacing="xs">
-                    <Tooltip label="Pause campaign" position="bottom">
+                    <Tooltip label="Refresh campaign">
+                      <ActionIcon
+                        variant="outline"
+                        color={theme.primaryColor}
+                        size="lg"
+                        loading={refreshLoading}
+                        onClick={fetchCampaign}
+                      >
+                        <IconRefresh />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Pause campaign">
                       <ActionIcon
                         variant="outline"
                         color={campaign.paused ? "green" : "yellow"}
@@ -183,7 +205,7 @@ const Campaign = ({ width }) => {
                         )}
                       </ActionIcon>
                     </Tooltip>
-                    <Tooltip label="Delete campaign" position="bottom">
+                    <Tooltip label="Delete campaign">
                       <ActionIcon
                         onClick={deleteCampaign}
                         color="red"
