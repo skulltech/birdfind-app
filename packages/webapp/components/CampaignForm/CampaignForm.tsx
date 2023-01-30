@@ -7,13 +7,16 @@ import { Entity, EntityInput } from "./EntityInput";
 import { KeywordInput } from "./KeywordInput";
 import { ParamChipGroup } from "./ParamChipGroup";
 
+export type Campaign = {
+  id: number;
+  name: string;
+  keywords: string[];
+  entities: Entity[];
+  paused: boolean;
+};
+
 type CampaignFormProps = {
-  campaign?: {
-    id: number;
-    name: string;
-    keywords: string[];
-    entities: Entity[];
-  };
+  campaign?: Campaign;
   onSubmit?: () => void;
 };
 

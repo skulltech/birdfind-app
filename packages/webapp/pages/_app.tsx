@@ -107,7 +107,22 @@ export default function App({
         // initialSession={pageProps.initialSession}
       >
         <MantineProvider
-          theme={{ colorScheme }}
+          theme={{
+            colorScheme,
+            globalStyles: (theme) => ({
+              body: {
+                minHeight: "100vh",
+              },
+              ".hover": {
+                "&:hover": {
+                  backgroundColor:
+                    theme.colorScheme === "dark"
+                      ? theme.colors.dark[4]
+                      : theme.colors.gray[0],
+                },
+              },
+            }),
+          }}
           withGlobalStyles
           withNormalizeCSS
         >
@@ -126,13 +141,11 @@ export default function App({
                       paddingLeft: theme.spacing.sm,
                       paddingRight: theme.spacing.sm,
                       display: "flex",
-                      overflow: "scroll",
-                      // maxWidth: theme.breakpoints.md,
-                      marginLeft: "auto",
-                      marginRight: "auto",
+                      justifyContent: "center",
+                      minHeight: "100vh",
                     }}
                   >
-                    <Component {...pageProps} />
+                    <Component {...pageProps} width={theme.breakpoints.md} />
                   </main>
                 </Stack>
               </UserProvider>

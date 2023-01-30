@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Badge,
   Button,
   Group,
@@ -7,9 +8,12 @@ import {
   Tabs,
   Text,
   Title,
+  Tooltip,
+  useMantineTheme,
 } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
+  IconChevronLeft,
   IconPlayerPause,
   IconPlayerPlay,
   IconSettings,
@@ -30,10 +34,11 @@ import { CampaignForm } from "../../components/CampaignForm/CampaignForm";
 
 dayjs.extend(RelativeTime);
 
-const Campaign = () => {
+const Campaign = ({ width }) => {
   const router = useRouter();
   const { id } = router.query;
   const supabase = useSupabaseClient();
+  const theme = useMantineTheme();
 
   const [editCampaignModalOpened, setEditCampaignModalOpened] = useState(false);
 
@@ -156,44 +161,69 @@ const Campaign = () => {
               }}
             />
           </Modal>
-          <Stack spacing={0}>
+          <Stack spacing="sm" mt="sm" w={width}>
             <Stack>
-              <Group>
-                <Title order={3}>Campaign: {campaign.name}</Title>
-                <Badge>{campaign.paused ? "Paused" : "Active"}</Badge>
-                <ParamChipGroup
-                  keywords={campaign.keywords}
-                  entities={entities}
-                />
+              <Group position="apart" align="flex-start">
                 <Stack>
-                  <Button
-                    leftIcon={
-                      campaign.paused ? (
-                        <IconPlayerPlay size={16} />
+                  <Group align="center">
+                    <ActionIcon
+                      variant="outline"
+                      size="md"
+                      color={theme.primaryColor}
+                      onClick={() => router.push("/")}
+                    >
+                      <IconChevronLeft />
+                    </ActionIcon>
+                    <Title order={3}>Campaign: {campaign.name}</Title>
+                    <Badge
+                      size="lg"
+                      color={campaign.paused ? "yellow" : "green"}
+                      variant="outline"
+                    >
+                      {campaign.paused ? "Paused" : "Active"}
+                    </Badge>
+                  </Group>
+                  <ParamChipGroup
+                    keywords={campaign.keywords}
+                    entities={entities}
+                  />
+                </Stack>
+
+                <Group>
+                  <Tooltip label="Pause campaign" position="bottom">
+                    <ActionIcon
+                      variant="outline"
+                      color={campaign.paused ? "green" : "yellow"}
+                      size="lg"
+                      loading={pauseLoading}
+                      onClick={pauseCampaign}
+                    >
+                      {campaign.paused ? (
+                        <IconPlayerPlay />
                       ) : (
-                        <IconPlayerPause size={16} />
-                      )
-                    }
-                    color={campaign.paused ? "green" : "yellow"}
-                    loading={pauseLoading}
-                    onClick={pauseCampaign}
-                  >
-                    {campaign.paused ? "Resume" : "Pause"} campaign
-                  </Button>
+                        <IconPlayerPause />
+                      )}
+                    </ActionIcon>
+                  </Tooltip>
+                  <Tooltip label="Delete campaign" position="bottom">
+                    <ActionIcon
+                      onClick={deleteCampaign}
+                      color="red"
+                      variant="outline"
+                      size="lg"
+                    >
+                      <IconTrash />
+                    </ActionIcon>
+                  </Tooltip>
+
                   <Button
-                    leftIcon={<IconTrash size={16} />}
-                    onClick={deleteCampaign}
-                    color="red"
-                  >
-                    Delete campaign
-                  </Button>
-                  <Button
+                    variant="outline"
                     leftIcon={<IconSettings size={16} />}
                     onClick={() => setEditCampaignModalOpened(true)}
                   >
                     Edit campaign
                   </Button>
-                </Stack>
+                </Group>
               </Group>
               <FilterForm
                 filters={campaign.filters}
@@ -216,10 +246,13 @@ const Campaign = () => {
                 }}
               />
             </Stack>
+
             <Tabs
+              mt="md"
               value={activeTab}
               // @ts-ignore
               onTabChange={setActiveTab}
+              variant="outline"
             >
               <Tabs.List grow>
                 <Tabs.Tab value="profiles">Profiles</Tabs.Tab>
@@ -227,10 +260,14 @@ const Campaign = () => {
               </Tabs.List>
 
               <Tabs.Panel value="profiles">
-                <Profiles campaign={campaign} filters={campaign.filters} />
+                <Stack pt="md">
+                  <Profiles campaign={campaign} filters={campaign.filters} />
+                </Stack>
               </Tabs.Panel>
               <Tabs.Panel value="tweets">
-                <Tweets campaign={campaign} filters={campaign.filters} />
+                <Stack pt="md">
+                  <Tweets campaign={campaign} filters={campaign.filters} />
+                </Stack>
               </Tabs.Panel>
             </Tabs>
           </Stack>

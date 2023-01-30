@@ -1,11 +1,3 @@
-import {
-  Group,
-  Loader,
-  Pagination,
-  ScrollArea,
-  Select,
-  Text,
-} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import dayjs from "dayjs";
 import RelativeTime from "dayjs/plugin/relativeTime";
@@ -16,6 +8,7 @@ import {
   ProfileSort,
 } from "../../utils/profiles";
 import { TwitterProfileCard } from "../TwitterProfileCard";
+import { ResultsTable } from "./ResultsTable";
 import { CampaignResultsProps, largeNumberFormatter } from "./utils";
 
 dayjs.extend(RelativeTime);
@@ -63,117 +56,89 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
   }, [pageIndex]);
 
   return (
-    <>
-      <Group position="apart">
-        <Group spacing={6}>
-          <Text weight="bold" size="sm">
-            Sort by
-          </Text>
-          <Select
-            // @ts-ignore
-            onChange={setSort}
-            data={[
-              {
-                value: "relevance",
-                label: "Relevance",
-                group: "Smart sorting",
-              },
-              {
-                value: "followersAscending",
-                label: "Followers: Low to high",
-                group: "Followers",
-              },
-              {
-                value: "followersDescending",
-                label: "Followers: High to low",
-                group: "Followers",
-              },
-              {
-                value: "followingAscending",
-                label: "Following: Low to high",
-                group: "Following",
-              },
-              {
-                value: "followingDescending",
-                label: "Following: High to low",
-                group: "Following",
-              },
-              {
-                value: "tweetsAscending",
-                label: "Tweets: Low to high",
-                group: "Tweets",
-              },
-              {
-                value: "tweetsDescending",
-                label: "Tweets: High to low",
-                group: "Tweets",
-              },
-            ]}
-            value={sort}
-            size="sm"
-            radius="xl"
-            styles={{
-              input: {
-                lineHeight: "24px",
-                minHeight: "26px",
-                height: "26px",
-              },
-            }}
-          />
-        </Group>
-        <Group>
-          <Text size={14}>
-            Showing {Math.min(pageIndex * 100 + 1, count)} -{" "}
-            {Math.min((pageIndex + 1) * 100, count)} of {count} results
-          </Text>
-          <Pagination
-            size="sm"
-            page={pageIndex + 1}
-            onChange={(page) => setPageIndex(page - 1)}
-            total={Math.ceil(count / 100)}
-          />
-        </Group>
-
-        {loading && <Loader variant="dots" />}
-      </Group>
-
-      <ScrollArea style={{ width: "100%" }}>
-        <table>
-          <tbody>
-            {results.map((result) => (
-              <tr key={result.id.toString()}>
-                <td>
-                  <TwitterProfileCard profile={result} />
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.followersCount)}
-                  </span>{" "}
-                  followers
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.followingCount)}
-                  </span>{" "}
-                  following
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.tweetCount)}
-                  </span>{" "}
-                  tweets
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  Joined{" "}
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {dayjs().to(dayjs(result.userCreatedAt))}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </ScrollArea>
-    </>
+    <ResultsTable
+      {...{
+        count,
+        loading,
+        pageIndex,
+        setPageIndex,
+        sort,
+        setSort,
+        sortItems: [
+          {
+            value: "relevance",
+            label: "Relevance",
+            group: "Smart sorting",
+          },
+          {
+            value: "followersDescending",
+            label: "Followers: High to low",
+            group: "Followers",
+          },
+          {
+            value: "followersAscending",
+            label: "Followers: Low to high",
+            group: "Followers",
+          },
+          {
+            value: "followingDescending",
+            label: "Following: High to low",
+            group: "Following",
+          },
+          {
+            value: "followingAscending",
+            label: "Following: Low to high",
+            group: "Following",
+          },
+          {
+            value: "tweetsDescending",
+            label: "Tweets: High to low",
+            group: "Tweets",
+          },
+          {
+            value: "tweetsAscending",
+            label: "Tweets: Low to high",
+            group: "Tweets",
+          },
+        ],
+        rows: results.map(
+          (result) =>
+            function Row({ ...props }) {
+              return (
+                <tr {...props}>
+                  <td>
+                    <TwitterProfileCard profile={result} />
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.followersCount)}
+                    </span>{" "}
+                    followers
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.followingCount)}
+                    </span>{" "}
+                    following
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.tweetCount)}
+                    </span>{" "}
+                    tweets
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    Joined{" "}
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {dayjs().to(dayjs(result.userCreatedAt), true)}
+                    </span>{" "}
+                    ago
+                  </td>
+                </tr>
+              );
+            }
+        ),
+      }}
+    />
   );
 };

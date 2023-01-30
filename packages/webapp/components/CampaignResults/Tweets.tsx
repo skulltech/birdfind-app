@@ -1,11 +1,3 @@
-import {
-  Group,
-  Loader,
-  Pagination,
-  ScrollArea,
-  Select,
-  Text,
-} from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import dayjs from "dayjs";
 import RelativeTime from "dayjs/plugin/relativeTime";
@@ -16,6 +8,7 @@ import {
   TweetSort,
 } from "../../utils/tweets";
 import { TweetCard } from "../TweetCard";
+import { ResultsTable } from "./ResultsTable";
 import { CampaignResultsProps, largeNumberFormatter } from "./utils";
 
 dayjs.extend(RelativeTime);
@@ -63,139 +56,110 @@ export const Tweets = ({ campaign, filters }: CampaignResultsProps) => {
   }, [pageIndex]);
 
   return (
-    <>
-      <Group position="apart">
-        <Group spacing={6}>
-          <Text weight="bold" size="sm">
-            Sort by
-          </Text>
-          <Select
-            // @ts-ignore
-            onChange={setSort}
-            data={[
-              {
-                value: "ageDescending",
-                label: "Age: New to old",
-                group: "Age",
-              },
-              {
-                value: "ageAscending",
-                label: "Age: Old to new",
-                group: "Age",
-              },
-              {
-                value: "likesDescending",
-                label: "Likes: High to low",
-                group: "Likes",
-              },
-              {
-                value: "likesAscending",
-                label: "Likes: Low to high",
-                group: "Likes",
-              },
-              {
-                value: "retweetsDescending",
-                label: "Retweets: High to low",
-                group: "Retweets",
-              },
-              {
-                value: "retweetsAscending",
-                label: "Retweets: Low to high",
-                group: "Retweets",
-              },
-              {
-                value: "repliesDescending",
-                label: "Replies: High to low",
-                group: "Replies",
-              },
-              {
-                value: "repliesAscending",
-                label: "Replies: Low to high",
-                group: "Replies",
-              },
-              {
-                value: "quotesDescending",
-                label: "Quotes: High to low",
-                group: "Quotes",
-              },
-              {
-                value: "quotesAscending",
-                label: "Quotes: Low to high",
-                group: "Quotes",
-              },
-            ]}
-            value={sort}
-            size="sm"
-            radius="xl"
-            styles={{
-              input: {
-                lineHeight: "24px",
-                minHeight: "26px",
-                height: "26px",
-              },
-            }}
-          />
-        </Group>
-        <Group>
-          <Text size={14}>
-            Showing {Math.min(pageIndex * 100 + 1, count)} -{" "}
-            {Math.min((pageIndex + 1) * 100, count)} of {count} results
-          </Text>
-          <Pagination
-            size="sm"
-            page={pageIndex + 1}
-            onChange={(page) => setPageIndex(page - 1)}
-            total={Math.ceil(count / 100)}
-          />
-        </Group>
-
-        {loading && <Loader variant="dots" />}
-      </Group>
-
-      <ScrollArea style={{ width: "100%" }}>
-        <table>
-          <tbody>
-            {results.map((result) => (
-              <tr key={result.id.toString()}>
-                <td>
-                  <TweetCard campaignTweet={result} />
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.likeCount)}
-                  </span>{" "}
-                  likes
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.replyCount)}
-                  </span>{" "}
-                  replies
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.quoteCount)}
-                  </span>{" "}
-                  quotes
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.retweetCount)}
-                  </span>{" "}
-                  retweets
-                </td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  Posted{" "}
-                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {dayjs().to(dayjs(result.tweetCreatedAt), true)}
-                  </span>{" "}
-                  ago
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </ScrollArea>
-    </>
+    <ResultsTable
+      {...{
+        loading,
+        count,
+        sort,
+        setSort,
+        pageIndex,
+        setPageIndex,
+        sortItems: [
+          {
+            value: "likesDescending",
+            label: "Likes: High to low",
+            group: "Likes",
+          },
+          {
+            value: "likesAscending",
+            label: "Likes: Low to high",
+            group: "Likes",
+          },
+          {
+            value: "ageDescending",
+            label: "Age: New to old",
+            group: "Age",
+          },
+          {
+            value: "ageAscending",
+            label: "Age: Old to new",
+            group: "Age",
+          },
+          {
+            value: "retweetsDescending",
+            label: "Retweets: High to low",
+            group: "Retweets",
+          },
+          {
+            value: "retweetsAscending",
+            label: "Retweets: Low to high",
+            group: "Retweets",
+          },
+          {
+            value: "repliesDescending",
+            label: "Replies: High to low",
+            group: "Replies",
+          },
+          {
+            value: "repliesAscending",
+            label: "Replies: Low to high",
+            group: "Replies",
+          },
+          {
+            value: "quotesDescending",
+            label: "Quotes: High to low",
+            group: "Quotes",
+          },
+          {
+            value: "quotesAscending",
+            label: "Quotes: Low to high",
+            group: "Quotes",
+          },
+        ],
+        rows: results.map(
+          (result) =>
+            function Row() {
+              return (
+                <tr key={result.id.toString()}>
+                  <td>
+                    <TweetCard campaignTweet={result} />
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.likeCount)}
+                    </span>{" "}
+                    likes
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.replyCount)}
+                    </span>{" "}
+                    replies
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.quoteCount)}
+                    </span>{" "}
+                    quotes
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.retweetCount)}
+                    </span>{" "}
+                    retweets
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    Posted{" "}
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {dayjs().to(dayjs(result.tweetCreatedAt), true)}
+                    </span>{" "}
+                    ago
+                  </td>
+                </tr>
+              );
+            }
+        ),
+      }}
+    />
   );
 };

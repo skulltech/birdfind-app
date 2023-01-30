@@ -1,4 +1,4 @@
-import { CloseButton, createStyles, Group, Paper, Text } from "@mantine/core";
+import { CloseButton, Group, Paper, Text } from "@mantine/core";
 import { useState } from "react";
 
 export type FilterChipProps = {
@@ -7,25 +7,11 @@ export type FilterChipProps = {
   useLoader?: boolean;
 };
 
-const useStyles = createStyles((theme) => ({
-  filterChip: {
-    height: 30,
-    display: "flex",
-    "&:hover": {
-      backgroundColor:
-        theme.colorScheme === "dark"
-          ? theme.colors.dark[6]
-          : theme.colors.gray[0],
-    },
-  },
-}));
-
 export const Chip = ({
   label,
   onClose,
   useLoader = false,
 }: FilterChipProps) => {
-  const { classes } = useStyles();
   const [loading, setLoading] = useState(false);
 
   return (
@@ -34,7 +20,9 @@ export const Chip = ({
       withBorder
       radius="lg"
       px="xs"
-      className={classes.filterChip}
+      h={30}
+      style={{ display: "flex" }}
+      className="hover"
     >
       <Group position="apart" grow={false} noWrap spacing="xs">
         <Text>{label}</Text>

@@ -3,34 +3,65 @@ import {
   Badge,
   Button,
   Group,
+  Loader,
   Modal,
   Paper,
   Stack,
   Text,
   Title,
-  useMantineTheme,
+  UnstyledButton,
 } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { IconCirclePlus } from "@tabler/icons";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { CampaignForm } from "../components/CampaignForm/CampaignForm";
+import {
+  Campaign,
+  CampaignForm,
+} from "../components/CampaignForm/CampaignForm";
+import { ParamChipGroup } from "../components/CampaignForm/ParamChipGroup";
 
-const Home = () => {
-  const [campaigns, setCampaigns] = useState([]);
+const Home = ({ width }) => {
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const supabase = useSupabaseClient();
-  const theme = useMantineTheme();
   const [createCampaignModalOpened, setCreateCampaignModalOpened] =
     useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Fetch campaigns on first load
   useEffect(() => {
     const fetchCampaigns = async () => {
-      const { data } = await supabase
-        .from("campaign")
-        .select(campaignColumns)
-        .eq("deleted", false)
-        .throwOnError();
-      setCampaigns(data);
+      setLoading(true);
+      try {
+        const campaigns: Campaign[] = [];
+
+        const { data } = await supabase
+          .from("campaign")
+          .select(campaignColumns)
+          .eq("deleted", false)
+          .throwOnError();
+        for (const campaign of data) {
+          const { data: entityIds } = await supabase
+            .from("campaign_entity")
+            .select("entity_id")
+            .eq("campaign_id", campaign.id)
+            .throwOnError();
+          const { data: entities } = await supabase
+            .from("entity")
+            .select("id,name")
+            .in(
+              "id",
+              entityIds.map((x) => x.entity_id)
+            )
+            .throwOnError();
+          campaigns.push({ ...campaign, entities });
+        }
+
+        setCampaigns(campaigns);
+      } catch (error) {
+        console.log(error);
+      }
+      setLoading(false);
     };
 
     fetchCampaigns();
@@ -49,16 +80,10 @@ const Home = () => {
       >
         <CampaignForm />
       </Modal>
-      {campaigns.length == 0 ? (
-        <Stack
-          align="stretch"
-          w={theme.breakpoints.md}
-          p="md"
-          pt="xs"
-          mx="auto"
-          mt="xl"
-          style={{ border: "1px solid black", borderRadius: theme.radius.md }}
-        >
+      {loading ? (
+        <Loader mt="xl" />
+      ) : campaigns.length == 0 ? (
+        <Stack mt="xl" w={width}>
           <Stack spacing={2}>
             <Title order={3}>Create a campaign</Title>
             <Text size="sm" color="gray">
@@ -68,34 +93,54 @@ const Home = () => {
           <CampaignForm />
         </Stack>
       ) : (
-        <Stack align="stretch" mt="md">
+        <Stack align="stretch" mt="md" w={width}>
           <Group position="apart">
             <Text>
               You have created {campaigns.length}
               {campaigns.length == 1 ? " campaign" : " campaigns"}
             </Text>
-            <Button onClick={() => setCreateCampaignModalOpened(true)}>
+            <Button
+              variant="outline"
+              leftIcon={<IconCirclePlus />}
+              onClick={() => setCreateCampaignModalOpened(true)}
+            >
               Create a new campaign
             </Button>
           </Group>
 
           <Stack style={{ flex: 1 }}>
             {campaigns.map((campaign) => (
-              <Paper withBorder p="xs" shadow="md" key={campaign.id}>
-                <Group position="apart">
-                  <Stack pr="md" spacing="sm">
-                    <Group position="apart">
-                      <Group spacing={2}>
-                        <Text size="md">{campaign.name}</Text>
-                        <Badge>{campaign.paused ? "Paused" : "Active"}</Badge>
+              <UnstyledButton
+                key={campaign.id}
+                component="a"
+                href={"/campaigns/" + campaign.id}
+              >
+                <Paper
+                  withBorder
+                  radius="md"
+                  p="xs"
+                  shadow="md"
+                  className="hover"
+                >
+                  <Group position="apart">
+                    <Stack>
+                      <Group spacing="md" align="center">
+                        <Text size="lg">Campaign: {campaign.name}</Text>
+                        <Badge
+                          variant="outline"
+                          color={campaign.paused ? "yellow" : "green"}
+                        >
+                          {campaign.paused ? "Paused" : "Active"}
+                        </Badge>
                       </Group>
-                    </Group>
-                  </Stack>
-                  <Button component="a" href={"/campaigns/" + campaign.id}>
-                    Open campaign
-                  </Button>
-                </Group>
-              </Paper>
+                      <ParamChipGroup
+                        keywords={campaign.keywords}
+                        entities={campaign.entities}
+                      />
+                    </Stack>
+                  </Group>
+                </Paper>
+              </UnstyledButton>
             ))}
           </Stack>
         </Stack>
