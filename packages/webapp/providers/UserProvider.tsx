@@ -1,6 +1,6 @@
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { createContext, useContext, useEffect, useState } from "react";
-import { getUserDetails, UserDetails } from "../utils/supabase";
+import { getUserDetails, UserDetails } from "../utils/users";
 
 const UserContext = createContext<{
   user: UserDetails;

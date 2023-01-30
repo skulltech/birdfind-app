@@ -4,7 +4,7 @@ import {
   TwitterParams,
   TwitterResponse,
 } from "twitter-api-sdk/dist/types";
-import { join } from "./utils";
+import { joinStrings } from "./utils";
 
 export const twitterUserFields: TwitterParams<findUserByUsername>["user.fields"] =
   [
@@ -18,7 +18,7 @@ export const twitterUserFields: TwitterParams<findUserByUsername>["user.fields"]
     "verified",
   ];
 
-export const twitterProfileColumns = join(
+export const twitterProfileColumns = joinStrings(
   [
     "id::text",
     "created_at",
@@ -68,7 +68,7 @@ export const tweetFields: TwitterParams<findTweetById>["tweet.fields"] = [
   "public_metrics",
 ];
 
-export const tweetColumns = join(
+export const tweetColumns = joinStrings(
   [
     "id::text",
     "created_at",
@@ -101,7 +101,7 @@ export const serializeTweet = (tweet: TwitterResponse<findTweetById>["data"]) =>
 
 export const searchTwitterProfilesColumns = [...twitterProfileColumns];
 
-export const campaignColumns = join(
+export const campaignColumns = joinStrings(
   [
     "id",
     "name",

@@ -1,4 +1,4 @@
-import camelcase from "camelcase";
+import { createClient } from "@supabase/supabase-js";
 import { NextApiRequest } from "next";
 import { z } from "zod";
 
@@ -12,73 +12,11 @@ export const zodBigint = z.string().refine((x) => {
   }
 });
 
-export type TwitterProfile = {
-  id: BigInt;
-  username: string;
-  name: string;
-  userCreatedAt: Date;
-  description: string;
-  location?: string;
-  profileImageUrl: string;
-  protected: boolean;
-  followersCount: number;
-  followingCount: number;
-  tweetCount: number;
-  listedCount: number;
-  verified: boolean;
-};
-
-export const parseTwitterProfile = (row: any): TwitterProfile => {
-  const x: any = Object.entries(row).reduce((prev, [key, value]) => {
-    prev[camelcase(key)] = value;
-    return prev;
-  }, {});
-
-  return {
-    id: BigInt(x.id),
-    userCreatedAt: new Date(x.userCreatedAt),
-    username: x.username,
-    name: x.name,
-    description: x.description,
-    location: x.location,
-    profileImageUrl: x.profileImageUrl,
-    protected: x.protected,
-    followersCount: x.followersCount,
-    followingCount: x.followingCount,
-    tweetCount: x.tweetCount,
-    listedCount: x.listedCount,
-    verified: x.verified,
-  };
-};
-
-export type Tweet = {
-  id: BigInt;
-  authorId: BigInt;
-  text: string;
-  tweetCreatedAt: Date;
-  retweetCount: number;
-  replyCount: number;
-  likeCount: number;
-  quoteCount: number;
-};
-
-export const parseTweet = (row: any): Tweet => {
-  const x: any = Object.entries(row).reduce((prev, [key, value]) => {
-    prev[camelcase(key)] = value;
-    return prev;
-  }, {});
-
-  return {
-    id: BigInt(x.id),
-    authorId: BigInt(x.authorId),
-    tweetCreatedAt: new Date(x.tweetCreatedAt),
-    text: x.text,
-    retweetCount: x.retweetCount,
-    replyCount: x.replyCount,
-    likeCount: x.likeCount,
-    quoteCount: x.quoteCount,
-  };
-};
+export const getServiceRoleSupabase = () =>
+  createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
 
 function isLocalNetwork(hostname = window.location.host) {
   return (

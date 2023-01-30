@@ -1,6 +1,6 @@
-import { Button, Kbd, Stack, Text, TextInput } from "@mantine/core";
+import { Button, Stack, Text, TextInput } from "@mantine/core";
 import { getHotkeyHandler } from "@mantine/hooks";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 type SearchTextInputProps = {
   onSubmit: (arg: string) => Promise<void>;

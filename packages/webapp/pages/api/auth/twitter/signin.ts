@@ -3,7 +3,7 @@ import { getTwitterAuthClient } from "@birdfind/common";
 import { randomBytes } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getOrigin } from "../../../../utils/helpers";
-import { startOauthFlow } from "../../../../utils/supabase";
+import { startOauthFlow } from "../../../../utils/users";
 import { twitterSecrets } from "../../../../utils/twitter";
 
 export default async function handler(

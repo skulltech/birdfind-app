@@ -1,14 +1,11 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getTwitterClient } from "@birdfind/common";
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  getServiceRoleSupabase,
-  getUserDetails,
-  upsertTwitterProfile,
-} from "../../../utils/supabase";
 import { getTwitterUser, twitterSecrets } from "../../../utils/twitter";
 import { z } from "zod";
-import { getOrigin, TwitterProfile } from "../../../utils/helpers";
+import { getOrigin, getServiceRoleSupabase } from "../../../utils/helpers";
+import { TwitterProfile, upsertTwitterProfile } from "../../../utils/profiles";
+import { getUserDetails } from "../../../utils/users";
 
 const schema = z.object({
   username: z.string(),

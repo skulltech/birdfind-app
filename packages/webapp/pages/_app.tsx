@@ -1,6 +1,5 @@
 import {
   ColorScheme,
-  Group,
   MantineProvider,
   Stack,
   useMantineTheme,
@@ -21,6 +20,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { GetServerSidePropsContext } from "next";
 import { getCookie, setCookie } from "cookies-next";
+import Script from "next/script";
 
 // Monkeypatching types for JSON serialization
 BigInt.prototype["toJSON"] = function () {
@@ -99,6 +99,7 @@ export default function App({
         <link rel="shortcut icon" href="/images/icons8-twitter-64.png" />
         <title>Birdfind</title>
       </Head>
+      <Script src="https://platform.twitter.com/widgets.js" />
       <GoogleAnalytics trackPageViews />
       <SessionContextProvider
         supabaseClient={supabase}

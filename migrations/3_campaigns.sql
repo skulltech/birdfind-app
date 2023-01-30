@@ -156,22 +156,90 @@ where
 
 $$ language sql;
 
+
 -- Get campaign tweets
 
 drop function if exists get_campaign_tweets(bigint) cascade;
-create function get_campaign_tweets(campaign_id bigint) returns setof tweet as $$
-with
-  campaign_keywords as (select keywords from campaign where id = campaign_id),
-  campaign_entities as (select entity_id from campaign_entity where campaign_entity.campaign_id = get_campaign_tweets.campaign_id)
+create function get_campaign_tweets(campaign_id bigint)
+  returns table(
+    id bigint,
+    text text,
+    tweet_created_at timestamp with time zone,
+    like_count integer,
+    retweet_count integer,
+    quote_count integer,
+    reply_count integer,
+    author_id bigint,
+    author_username text,
+    author_name text,
+    author_profile_image_url text
+  ) as $$
 
-select distinct tweet.* from
-tweet
+with 
+  campaign as (select keywords,filters from campaign where id = campaign_id),
+  campaign_entities as (
+    select entity_id from campaign_entity
+      where campaign_entity.campaign_id = get_campaign_tweets.campaign_id
+  )
+
+select
+  distinct tweet.id,
+    tweet.text,
+    tweet.tweet_created_at,
+    tweet.like_count,
+    tweet.retweet_count,
+    tweet.quote_count,
+    tweet.reply_count,
+    tweet.author_id,
+    twitter_profile.username as author_username,
+    twitter_profile.name as author_name,
+    twitter_profile.profile_image_url as author_profile_image_url
+from tweet
   left join tweet_entity on tweet_entity.tweet_id = tweet.id
-where (
-  cardinality((select * from campaign_keywords)) > 0 and
-    tweet.text ~* array_to_string((select * from campaign_keywords), '|'
-  )) or
-  tweet_entity.entity_id in (select * from campaign_entities)
+  left join twitter_profile on tweet.author_id = twitter_profile.id
+
+where 
+  -- Campaign keywords and niches
+  ((cardinality((select keywords from campaign)) > 0 and
+    tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
+    tweet_entity.entity_id in (select * from campaign_entities)) and
+
+  -- Filters
+  ((select filters->'followersCountLessThan' from campaign) is null or
+    twitter_profile.followers_count <
+      (select(filters->'followersCountLessThan')::integer from campaign)) and
+
+  ((select filters->'followersCountGreaterThan' from campaign) is null or
+    twitter_profile.followers_count >
+      (select(filters->'followersCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'tweetCountLessThan' from campaign) is null or
+    twitter_profile.tweet_count <
+      (select(filters->'tweetCountLessThan')::integer from campaign)) and
+
+  ((select filters->'tweetCountGreaterThan' from campaign) is null or
+    twitter_profile.tweet_count >
+      (select(filters->'tweetCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'followingCountLessThan' from campaign) is null or
+    twitter_profile.following_count <
+      (select(filters->'followingCountLessThan')::integer from campaign)) and
+
+  ((select filters->'followingCountGreaterThan' from campaign) is null or
+    twitter_profile.following_count >
+      (select(filters->'followingCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'userCreatedBefore' from campaign) is null or
+    twitter_profile.user_created_at <
+      (select(filters->>'userCreatedBefore')::timestamptz from campaign)) and
+
+  ((select filters->'userCreatedAfter' from campaign) is null or
+    twitter_profile.user_created_at >
+      (select(filters->>'userCreatedAfter')::timestamptz from campaign)) and
+
+  ((select filters->'searchText' from campaign) is null or
+    concat(twitter_profile.name, twitter_profile.description) ~*
+      (select(filters->'searchText')::text from campaign))
 ;
 
 $$ language sql;

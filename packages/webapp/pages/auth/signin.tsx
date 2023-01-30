@@ -15,7 +15,7 @@ import { IconBrandGoogle, IconCheck } from "@tabler/icons";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { getUserProfile } from "../../utils/supabase";
+import { getUserProfile } from "../../utils/users";
 
 const SignIn = () => {
   const [loading, setLoading] = useState(false);

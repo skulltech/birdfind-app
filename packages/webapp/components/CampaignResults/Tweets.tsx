@@ -10,17 +10,21 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import dayjs from "dayjs";
 import RelativeTime from "dayjs/plugin/relativeTime";
 import { useEffect, useState } from "react";
-import { getCampaignTweets, ProfileSort } from "../../utils/supabase";
-import { UserProfileCard } from "../UserProfileCard";
+import {
+  CampaignTweet,
+  getCampaignTweets,
+  TweetSort,
+} from "../../utils/tweets";
+import { TweetCard } from "../TweetCard";
 import { CampaignResultsProps, largeNumberFormatter } from "./utils";
 
 dayjs.extend(RelativeTime);
 
-export const Tweeets = ({ campaign, filters }: CampaignResultsProps) => {
+export const Tweets = ({ campaign, filters }: CampaignResultsProps) => {
   const supabase = useSupabaseClient();
 
   const [pageIndex, setPageIndex] = useState(0);
-  const [sort, setSort] = useState<ProfileSort>("relevance");
+  const [sort, setSort] = useState<TweetSort>("likesDescending");
 
   // Search results
   const [loading, setLoading] = useState(false);
@@ -39,7 +43,6 @@ export const Tweeets = ({ campaign, filters }: CampaignResultsProps) => {
     const { results, count } = await getCampaignTweets({
       supabase,
       campaignId: campaign.id,
-      filters,
       pageIndex,
       sort,
     });
@@ -72,39 +75,54 @@ export const Tweeets = ({ campaign, filters }: CampaignResultsProps) => {
               onChange={setSort}
               data={[
                 {
-                  value: "relevance",
-                  label: "Relevance",
-                  group: "Smart sorting",
+                  value: "ageDescending",
+                  label: "Age: New to old",
+                  group: "Age",
                 },
                 {
-                  value: "followersAscending",
-                  label: "Followers: Low to high",
-                  group: "Followers",
+                  value: "ageAscending",
+                  label: "Age: Old to new",
+                  group: "Age",
                 },
                 {
-                  value: "followersDescending",
-                  label: "Followers: High to low",
-                  group: "Followers",
+                  value: "likesDescending",
+                  label: "Likes: High to low",
+                  group: "Likes",
                 },
                 {
-                  value: "followingAscending",
-                  label: "Following: Low to high",
-                  group: "Following",
+                  value: "likesAscending",
+                  label: "Likes: Low to high",
+                  group: "Likes",
                 },
                 {
-                  value: "followingDescending",
-                  label: "Following: High to low",
-                  group: "Following",
+                  value: "retweetsDescending",
+                  label: "Retweets: High to low",
+                  group: "Retweets",
                 },
                 {
-                  value: "tweetsAscending",
-                  label: "Tweets: Low to high",
-                  group: "Tweets",
+                  value: "retweetsAscending",
+                  label: "Retweets: Low to high",
+                  group: "Retweets",
                 },
                 {
-                  value: "tweetsDescending",
-                  label: "Tweets: High to low",
-                  group: "Tweets",
+                  value: "repliesDescending",
+                  label: "Replies: High to low",
+                  group: "Replies",
+                },
+                {
+                  value: "repliesAscending",
+                  label: "Replies: Low to high",
+                  group: "Replies",
+                },
+                {
+                  value: "quotesDescending",
+                  label: "Quotes: High to low",
+                  group: "Quotes",
+                },
+                {
+                  value: "quotesAscending",
+                  label: "Quotes: Low to high",
+                  group: "Quotes",
                 },
               ]}
               value={sort}
@@ -138,31 +156,38 @@ export const Tweeets = ({ campaign, filters }: CampaignResultsProps) => {
             {results.map((result) => (
               <tr key={result.id.toString()}>
                 <td>
-                  <UserProfileCard profile={result} />
+                  <TweetCard campaignTweet={result} />
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
                   <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.followersCount)}
+                    {largeNumberFormatter(result.likeCount)}
                   </span>{" "}
-                  followers
+                  likes
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
                   <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.followingCount)}
+                    {largeNumberFormatter(result.replyCount)}
                   </span>{" "}
-                  following
+                  replies
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
                   <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {largeNumberFormatter(result.tweetCount)}
+                    {largeNumberFormatter(result.quoteCount)}
                   </span>{" "}
-                  tweets
+                  quotes
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
-                  Joined{" "}
                   <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
-                    {dayjs().to(dayjs(result.userCreatedAt))}
-                  </span>
+                    {largeNumberFormatter(result.retweetCount)}
+                  </span>{" "}
+                  retweets
+                </td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  Posted{" "}
+                  <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                    {dayjs().to(dayjs(result.tweetCreatedAt), true)}
+                  </span>{" "}
+                  ago
                 </td>
               </tr>
             ))}

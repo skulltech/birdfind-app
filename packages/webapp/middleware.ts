@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createMiddlewareSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { getUserDetails } from "./utils/supabase";
+import { getUserDetails } from "./utils/users";
 
 const unauthorized = () =>
   new NextResponse(JSON.stringify({ message: "You are not authorized" }), {

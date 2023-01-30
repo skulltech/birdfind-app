@@ -2,18 +2,14 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getTwitterAuthClient } from "@birdfind/common";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { Client } from "twitter-api-sdk";
-import {
-  completeOauthFlow,
-  getServiceRoleSupabase,
-  getUserProfile,
-  upsertTwitterProfile,
-} from "../../../../utils/supabase";
+import { completeOauthFlow, getUserProfile } from "../../../../utils/users";
 import {
   getSignedInTwitterUser,
   twitterSecrets,
 } from "../../../../utils/twitter";
 import { z } from "zod";
-import { getOrigin } from "../../../../utils/helpers";
+import { getOrigin, getServiceRoleSupabase } from "../../../../utils/helpers";
+import { upsertTwitterProfile } from "../../../../utils/profiles";
 
 const schema = z.object({
   code: z.string(),

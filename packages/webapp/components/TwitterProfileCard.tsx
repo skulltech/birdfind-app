@@ -1,13 +1,13 @@
 import { Avatar, Group, Stack, Text, UnstyledButton } from "@mantine/core";
-import { TwitterProfile } from "../utils/helpers";
+import { TwitterProfile } from "../utils/profiles";
 
-export type UserProfileCardProps = {
+export type TwitterProfileCardProps = {
   profile: TwitterProfile;
 };
 
-export const UserProfileCard = ({
+export const TwitterProfileCard = ({
   profile: { username, name, description, profileImageUrl },
-}: UserProfileCardProps) => {
+}: TwitterProfileCardProps) => {
   return (
     <Group position="apart" noWrap>
       <UnstyledButton

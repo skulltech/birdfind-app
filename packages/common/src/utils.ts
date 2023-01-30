@@ -9,13 +9,13 @@ type ConcatStringArray<
     : Acc
   : Acc;
 
-type Join<
+type JoinStrings<
   Strings extends readonly string[],
   Joiner extends string = ",",
   Acc extends string = ""
 > = Strings extends readonly [infer Head, ...infer Rest]
   ? Rest extends readonly string[]
-    ? Join<
+    ? JoinStrings<
         Rest,
         Joiner,
         Head extends string
@@ -27,12 +27,12 @@ type Join<
     : never
   : Acc;
 
-export const join = <
+export const joinStrings = <
   StrArr extends readonly string[],
   Sep extends string = ","
 >(
   strings: StrArr,
   separator: Sep = "," as Sep
-): Join<StrArr, Sep> => {
-  return strings.join(separator) as Join<StrArr, Sep>;
+): JoinStrings<StrArr, Sep> => {
+  return strings.join(separator) as JoinStrings<StrArr, Sep>;
 };

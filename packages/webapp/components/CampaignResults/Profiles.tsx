@@ -14,8 +14,8 @@ import {
   CampaignProfile,
   getCampaignProfiles,
   ProfileSort,
-} from "../../utils/supabase";
-import { UserProfileCard } from "../UserProfileCard";
+} from "../../utils/profiles";
+import { TwitterProfileCard } from "../TwitterProfileCard";
 import { CampaignResultsProps, largeNumberFormatter } from "./utils";
 
 dayjs.extend(RelativeTime);
@@ -141,7 +141,7 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
             {results.map((result) => (
               <tr key={result.id.toString()}>
                 <td>
-                  <UserProfileCard profile={result} />
+                  <TwitterProfileCard profile={result} />
                 </td>
                 <td style={{ whiteSpace: "nowrap" }}>
                   <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
