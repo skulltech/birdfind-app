@@ -50,7 +50,7 @@ export default function App({
   );
   const theme = useMantineTheme();
   const [useSystemColorScheme, setUseSystemColorScheme] = useState<boolean>(
-    props.useSystemColorScheme || true
+    props.useSystemColorScheme == null ? true : props.useSystemColorScheme
   );
 
   const changeColorScheme = (value: ColorScheme | "system") => {
