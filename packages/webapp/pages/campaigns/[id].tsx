@@ -195,10 +195,6 @@ const Campaign = ({ width }) => {
                       </Badge>
                     )}
                   </Group>
-                  <ParamChipGroup
-                    keywords={campaign.keywords}
-                    entities={campaign.entities}
-                  />
                 </Stack>
                 <Stack align="flex-end" spacing="xs">
                   <Group spacing="xs">

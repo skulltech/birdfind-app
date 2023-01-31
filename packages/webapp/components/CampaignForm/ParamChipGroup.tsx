@@ -5,8 +5,8 @@ import { Chip } from "../Chip";
 type ParamChipGroupProps = {
   keywords: Keyword[];
   entities: Entity[];
-  setKeywords?: (keywords: Keyword[]) => void;
-  setEntities?: (entities: Entity[]) => void;
+  setKeywords: (keywords: Keyword[]) => void;
+  setEntities: (entities: Entity[]) => void;
 };
 
 export const ParamChipGroup = ({
@@ -23,17 +23,16 @@ export const ParamChipGroup = ({
             keyword.isPositive ? "Include" : "Do not include"
           } keyword: "${keyword.keyword}"`}
           key={keyword.keyword + keyword.isPositive}
-          onClose={
-            setKeywords
-              ? () =>
-                  setKeywords(
-                    keywords.filter(
-                      (x) =>
-                        x.isPositive !== keyword.isPositive &&
-                        x.keyword !== keyword.keyword
-                    )
+          onClose={() =>
+            setKeywords(
+              keywords.filter(
+                (x) =>
+                  !(
+                    x.keyword === keyword.keyword &&
+                    x.isPositive === keyword.isPositive
                   )
-              : null
+              )
+            )
           }
         />
       ))}
@@ -43,10 +42,8 @@ export const ParamChipGroup = ({
             entity.name
           }`}
           key={entity.id.toString()}
-          onClose={
-            setEntities
-              ? () => setEntities(entities.filter((x) => x.id !== entity.id))
-              : null
+          onClose={() =>
+            setEntities(entities.filter((x) => x.id !== entity.id))
           }
         />
       ))}

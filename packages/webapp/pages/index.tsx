@@ -15,7 +15,6 @@ import { IconCirclePlus } from "@tabler/icons";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { CampaignForm } from "../components/CampaignForm/CampaignForm";
-import { ParamChipGroup } from "../components/CampaignForm/ParamChipGroup";
 import { Campaign, getAllCampaigns } from "../utils/campaigns";
 
 const Home = ({ width }) => {
@@ -122,10 +121,6 @@ const Home = ({ width }) => {
                         tweets found so far
                       </Text>
                     </Group>
-                    <ParamChipGroup
-                      keywords={campaign.keywords}
-                      entities={campaign.entities}
-                    />
                   </Stack>
                 </Paper>
               </UnstyledButton>

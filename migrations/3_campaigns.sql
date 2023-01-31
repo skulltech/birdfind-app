@@ -4,19 +4,14 @@ create table campaign (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
-    -- Campaign details
     name text not null,
     user_id uuid references auth.users not null,
-    
-    -- Campaign filters
     filters jsonb not null default '{}',
 
     -- Status
     latest_tweet_id bigint references tweet,
     paused boolean not null default false,
     deleted boolean not null default false,
-
-    -- For quotas and rate limits
     last_run_at timestamp with time zone,
     tweets_fetched_today integer not null default 0
 );
@@ -162,6 +157,7 @@ where
   ((exists (select keyword from keywords where is_positive = true) and
       tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = true), '|')) or
     tweet_entity.entity_id in (select entity_id from entities where is_positive = true)) and
+
   -- Negative keywords and entities
   not (exists (select keyword from keywords where is_positive = false) and
     tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = false), '|')) and
@@ -303,6 +299,7 @@ where
   ((exists (select keyword from keywords where is_positive = true) and
       tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = true), '|')) or
     tweet_entity.entity_id in (select entity_id from entities where is_positive = true)) and
+
   -- Negative keywords and entities
   not (exists (select keyword from keywords where is_positive = false) and
     tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = false), '|')) and
@@ -411,7 +408,7 @@ with
       where campaign_keyword.campaign_id = get_campaign_counts.campaign_id
   )
 select
-  count(distinct tweet.id) as tweet_count, count(distinct twitter_profile.id) as profile_count
+  count(distinct twitter_profile.id) as profile_count, count(distinct tweet.id) as tweet_count
 from tweet
   left join tweet_entity on tweet_entity.tweet_id = tweet.id
   left join twitter_profile on tweet.author_id = twitter_profile.id
@@ -420,6 +417,7 @@ where
   ((exists (select keyword from keywords where is_positive = true) and
       tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = true), '|')) or
     tweet_entity.entity_id in (select entity_id from entities where is_positive = true)) and
+
   -- Negative keywords and entities
   not (exists (select keyword from keywords where is_positive = false) and
     tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = false), '|')) and
