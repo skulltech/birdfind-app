@@ -1,10 +1,12 @@
 import {
   Button,
+  Chip,
   Group,
   Loader,
   Select,
   SelectItem,
   Stack,
+  Text,
 } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconAsteriskSimple } from "@tabler/icons";
@@ -18,15 +20,15 @@ type EntityInputProps = {
 export const EntityInput = ({ onSubmit }: EntityInputProps) => {
   const supabase = useSupabaseClient();
 
-  // Domain
-  const [domainId, setDomainId] = useState<string>(null);
-  const [domainOptions, setDomainOptions] = useState<SelectItem[]>([]);
-
   // Entity
   const [entityId, setEntityId] = useState<string>(null);
   const [entityOptions, setEntityOptions] = useState<SelectItem[]>([]);
   const [entitySearchValue, setEntitySearchValue] = useState("");
   const [entityLoading, setEntityLoading] = useState(false);
+
+  // Whether the input is positive or negative
+  const [chipValue, setChipValue] = useState<"true" | "false">("true");
+  const isPositive = chipValue === "true";
 
   // Get entity options from Supabase
   const getEntityOptions = async () => {
@@ -34,10 +36,7 @@ export const EntityInput = ({ onSubmit }: EntityInputProps) => {
 
     try {
       const { data } = await supabase
-        .rpc("get_entities", {
-          domain_id: domainId,
-          search: entitySearchValue,
-        })
+        .rpc("get_entities", { search: entitySearchValue })
         .select("id::text,name")
         .limit(30)
         .throwOnError();
@@ -56,15 +55,12 @@ export const EntityInput = ({ onSubmit }: EntityInputProps) => {
     getEntityOptions();
   }, [entitySearchValue]);
 
-  // On domain change, reset entity select
-  useEffect(() => {
-    setEntityId(null);
-    setEntitySearchValue("");
-    getEntityOptions();
-  }, [domainId]);
-
   // Submit entity
   const handleSubmit = async () => {
+    if (entityId === null) {
+      return;
+    }
+
     const { data } = await supabase
       .from("entity")
       .select("name")
@@ -72,55 +68,24 @@ export const EntityInput = ({ onSubmit }: EntityInputProps) => {
       .throwOnError()
       .single();
 
-    onSubmit({ name: data.name, id: BigInt(entityId) });
+    onSubmit({ name: data.name, id: BigInt(entityId), isPositive });
     setEntityId(null);
-    setDomainId(null);
     setEntitySearchValue("");
+    setChipValue("true");
   };
 
-  // Get domain select options from Supabase on first load
-  useEffect(() => {
-    const getDomainOptions = async () => {
-      try {
-        const { data } = await supabase
-          .rpc("get_domains")
-          .select("id::text,name,description")
-          .throwOnError();
-
-        setDomainOptions(
-          data.map((x: any) => ({
-            value: x.id,
-            label: x.name,
-            description: x.description,
-          }))
-        );
-      } catch (error) {
-        console.log(error);
-        setDomainOptions([]);
-      }
-    };
-
-    getDomainOptions();
-  }, []);
-
   return (
-    <Stack>
-      <Group grow>
+    <Stack spacing={0}>
+      <Text weight={500} size="sm">
+        Add a niche constraint
+      </Text>
+      <Text size="xs">{`Tweets matching ${
+        entityId == null ? "this niche" : `the niche "${entitySearchValue}"`
+      } will ${isPositive ? "be" : "not be"} included in the campaign.`}</Text>
+      <Group mt="xs">
         <Select
-          label="Select a domain"
           clearable
-          description="Domains are broad categories of content. Start typing to search. Leave it blank to search niches across all domains."
-          placeholder="All domains"
-          data={domainOptions}
-          icon={<IconAsteriskSimple size={14} />}
-          value={domainId}
-          onChange={setDomainId}
-          searchable
-          nothingFound="No options"
-        />
-        <Select
-          label="Select a niche"
-          description="There are many niches within each domain. Start typing to search."
+          style={{ flex: 1 }}
           placeholder="Select a niche"
           data={entityOptions}
           rightSection={entityLoading && <Loader size={16} />}
@@ -128,18 +93,27 @@ export const EntityInput = ({ onSubmit }: EntityInputProps) => {
           value={entityId}
           onChange={setEntityId}
           searchable
-          nothingFound="No options"
+          nothingFound="Nothing found"
           onSearchChange={setEntitySearchValue}
           searchValue={entitySearchValue}
         />
+        <Chip.Group
+          multiple={false}
+          value={chipValue}
+          // @ts-ignore
+          onChange={setChipValue}
+        >
+          <Chip value="true">Include</Chip>
+          <Chip value="false">Do not include</Chip>
+        </Chip.Group>
+        <Button
+          variant="light"
+          onClick={handleSubmit}
+          disabled={entityId === null}
+        >
+          Add constraint
+        </Button>
       </Group>
-      <Button
-        variant="light"
-        onClick={handleSubmit}
-        disabled={entityId === null}
-      >
-        Add niche
-      </Button>
     </Stack>
   );
 };

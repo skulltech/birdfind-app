@@ -38,34 +38,15 @@ create policy "Authenticated users can view all domain entity mappings."
     to authenticated
     using (true);
 
--- Get all domains which have at least one entity, order by associated entity count
-drop function if exists get_domains cascade;
-create function get_domains ()
-    returns setof domain as $$
-
-select domain.*
-  from domain
-  left join domain_entity on domain_entity.domain_id = domain.id
-where domain_entity.entity_id is not null
-group by domain.id
-order by count(domain_entity.entity_id) desc
-;
-
-$$ language sql;
-
--- Get all entities in a domain, sorted by associated tweet count
+-- Get all entities sorted by associated tweet count
 drop function if exists get_entities cascade;
-create function get_entities (search text default '', domain_id bigint default null)
+create function get_entities (search text default '')
     returns setof entity as $$
 
 select entity.*
   from entity
   left join tweet_entity on tweet_entity.entity_id = entity.id
-where entity.name ~* search and (
-  get_entities.domain_id is null or (
-    entity.id in (
-      select domain_entity.entity_id from domain_entity where domain_entity.domain_id = get_entities.domain_id
-)))
+where entity.name ~* search or entity.description ~* search
 group by entity.id
 order by count(tweet_entity.tweet_id) desc
 ;

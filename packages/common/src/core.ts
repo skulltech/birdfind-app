@@ -108,7 +108,6 @@ export const campaignColumns = joinStrings(
     "created_at",
     "updated_at",
     "user_id",
-    "keywords",
     "paused",
     "deleted",
     "filters",

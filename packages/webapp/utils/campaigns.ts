@@ -27,12 +27,18 @@ const getCampaignCounts = async ({
 export type Entity = {
   name: string;
   id: bigint;
+  isPositive: boolean;
+};
+
+export type Keyword = {
+  keyword: string;
+  isPositive: boolean;
 };
 
 export type Campaign = {
   id: number;
   name: string;
-  keywords: string[];
+  keywords: Keyword[];
   entities: Entity[];
   paused: boolean;
   profileCount: number;
@@ -55,28 +61,49 @@ export const getAllCampaigns = async ({
     .throwOnError();
 
   for (const campaign of data) {
-    const { data: entityIds } = await supabase
+    // Get all entities
+    const { data: campaignEntities } = await supabase
       .from("campaign_entity")
-      .select("entity_id::text")
+      .select("entity_id::text,is_positive")
       .eq("campaign_id", campaign.id)
       .throwOnError();
-    const { data: entities } = await supabase
+    const { data: entityInfos } = await supabase
       .from("entity")
       .select("id::text,name")
       .in(
         "id",
         // @ts-ignore
-        entityIds.map((x) => x.entity_id)
+        campaignEntities.map((x) => x.entity_id)
       )
       .throwOnError();
+    const entities = entityInfos.map((entityInfo, i) => ({
+      // @ts-ignore
+      ...entityInfo,
+      // @ts-ignore
+      isPositive: campaignEntities[i].is_positive,
+    }));
+
+    // Get all keywords
+    const { data: keywords } = await supabase
+      .from("campaign_keyword")
+      .select("keyword,is_positive")
+      .eq("campaign_id", campaign.id)
+      .throwOnError();
+
+    // Get campaign counts
     const { profileCount, tweetCount } = await getCampaignCounts({
       supabase,
       campaignId: campaign.id,
     });
+
+    // Add to campaigns
     campaigns.push({
       ...campaign,
-      // @ts-ignore
       entities,
+      keywords: keywords.map((x) => ({
+        isPositive: x.is_positive,
+        keyword: x.keyword,
+      })),
       profileCount,
       tweetCount,
     });
@@ -101,20 +128,36 @@ export const getCampaign = async ({
     .throwOnError()
     .maybeSingle();
 
-  const { data: entityIds } = await supabase
+  // Get all entities
+  const { data: campaignEntities } = await supabase
     .from("campaign_entity")
-    .select("entity_id::text")
+    .select("entity_id::text,is_positive")
     .eq("campaign_id", campaign.id)
     .throwOnError();
-  const { data: entities } = await supabase
+  const { data: entityInfos } = await supabase
     .from("entity")
     .select("id::text,name")
     .in(
       "id",
       // @ts-ignore
-      entityIds.map((x) => x.entity_id)
+      campaignEntities.map((x) => x.entity_id)
     )
     .throwOnError();
+  const entities = entityInfos.map((entityInfo, i) => ({
+    // @ts-ignore
+    ...entityInfo,
+    // @ts-ignore
+    isPositive: campaignEntities[i].is_positive,
+  }));
+
+  // Get all keywords
+  const { data: keywords } = await supabase
+    .from("campaign_keyword")
+    .select("keyword,is_positive")
+    .eq("campaign_id", campaign.id)
+    .throwOnError();
+
+  // Get campaign counts
   const { profileCount, tweetCount } = await getCampaignCounts({
     supabase,
     campaignId: campaign.id,
@@ -122,7 +165,10 @@ export const getCampaign = async ({
 
   return {
     ...campaign,
-    // @ts-ignore
+    keywords: keywords.map((x) => ({
+      isPositive: x.is_positive,
+      keyword: x.keyword,
+    })),
     entities,
     profileCount,
     tweetCount,

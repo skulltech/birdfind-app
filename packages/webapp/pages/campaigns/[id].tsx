@@ -88,6 +88,7 @@ const Campaign = ({ width }) => {
         supabase,
         id: BigInt(id as string),
       });
+      console.log(campaign);
       setCampaign(campaign);
     } catch (error) {
       console.log(error);

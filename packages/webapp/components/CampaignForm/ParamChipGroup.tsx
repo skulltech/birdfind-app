@@ -1,11 +1,11 @@
 import { Group } from "@mantine/core";
-import { Entity } from "../../utils/campaigns";
+import { Entity, Keyword } from "../../utils/campaigns";
 import { Chip } from "../Chip";
 
 type ParamChipGroupProps = {
-  keywords: string[];
+  keywords: Keyword[];
   entities: Entity[];
-  setKeywords?: (keywords: string[]) => void;
+  setKeywords?: (keywords: Keyword[]) => void;
   setEntities?: (entities: Entity[]) => void;
 };
 
@@ -19,18 +19,29 @@ export const ParamChipGroup = ({
     <Group>
       {keywords.map((keyword) => (
         <Chip
-          label={`Keyword: "${keyword}"`}
-          key={keyword}
+          label={`${
+            keyword.isPositive ? "Include" : "Do not include"
+          } keyword: "${keyword.keyword}"`}
+          key={keyword.keyword + keyword.isPositive}
           onClose={
             setKeywords
-              ? () => setKeywords(keywords.filter((x) => x !== keyword))
+              ? () =>
+                  setKeywords(
+                    keywords.filter(
+                      (x) =>
+                        x.isPositive !== keyword.isPositive &&
+                        x.keyword !== keyword.keyword
+                    )
+                  )
               : null
           }
         />
       ))}
       {entities.map((entity) => (
         <Chip
-          label={"Niche: " + entity.name}
+          label={`${entity.isPositive ? "Include" : "Do not include"} niche: ${
+            entity.name
+          }`}
           key={entity.id.toString()}
           onClose={
             setEntities

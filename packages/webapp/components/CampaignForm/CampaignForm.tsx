@@ -3,7 +3,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useUser } from "../../providers/UserProvider";
-import { Campaign, Entity } from "../../utils/campaigns";
+import { Campaign, Entity, Keyword } from "../../utils/campaigns";
 import { EntityInput } from "./EntityInput";
 import { KeywordInput } from "./KeywordInput";
 import { ParamChipGroup } from "./ParamChipGroup";
@@ -19,7 +19,7 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
   const router = useRouter();
 
   // Campaign inputs
-  const [keywords, setKeywords] = useState<string[]>(campaign?.keywords || []);
+  const [keywords, setKeywords] = useState<Keyword[]>(campaign?.keywords || []);
   const [entities, setEntities] = useState<Entity[]>(campaign?.entities || []);
   const [name, setName] = useState<string>(campaign?.name || "");
 
@@ -35,7 +35,6 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
         const { data } = await supabase
           .from("campaign")
           .insert({
-            keywords: keywords,
             user_id: user.id,
             name,
           })
@@ -45,7 +44,21 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
         await supabase
           .from("campaign_entity")
           .insert(
-            entities.map((x) => ({ campaign_id: data.id, entity_id: x.id }))
+            entities.map((x) => ({
+              campaign_id: data.id,
+              entity_id: x.id,
+              is_positive: x.isPositive,
+            }))
+          )
+          .throwOnError();
+        await supabase
+          .from("campaign_keyword")
+          .insert(
+            keywords.map((x) => ({
+              campaign_id: data.id,
+              keyword: x.keyword,
+              is_positive: x.isPositive,
+            }))
           )
           .throwOnError();
 
@@ -56,9 +69,11 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
         // Update campaign
         await supabase
           .from("campaign")
-          .update({ keywords, name })
+          .update({ name })
           .eq("id", campaign.id)
           .throwOnError();
+
+        // Delete and re-insert entities
         await supabase
           .from("campaign_entity")
           .delete()
@@ -67,9 +82,31 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
         await supabase
           .from("campaign_entity")
           .insert(
-            entities.map((x) => ({ campaign_id: campaign.id, entity_id: x.id }))
+            entities.map((x) => ({
+              campaign_id: campaign.id,
+              entity_id: x.id,
+              is_positive: x.isPositive,
+            }))
           )
           .throwOnError();
+
+        // Delete and re-insert keywords
+        await supabase
+          .from("campaign_keyword")
+          .delete()
+          .eq("campaign_id", campaign.id)
+          .throwOnError();
+        await supabase
+          .from("campaign_keyword")
+          .insert(
+            keywords.map((x) => ({
+              campaign_id: campaign.id,
+              keyword: x.keyword,
+              is_positive: x.isPositive,
+            }))
+          )
+          .throwOnError();
+
         if (onSubmit) onSubmit();
       }
     } catch (error) {

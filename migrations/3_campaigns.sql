@@ -7,7 +7,6 @@ create table campaign (
     -- Campaign details
     name text not null,
     user_id uuid references auth.users not null,
-    keywords text[] not null,
     
     -- Campaign filters
     filters jsonb not null default '{}',
@@ -19,7 +18,7 @@ create table campaign (
 
     -- For quotas and rate limits
     last_run_at timestamp with time zone,
-    tweets_fetched_today integer not null default 0,
+    tweets_fetched_today integer not null default 0
 );
 
 create trigger on_campaign_updated
@@ -52,6 +51,7 @@ drop table if exists campaign_entity cascade;
 create table campaign_entity (
     campaign_id bigint references campaign on delete cascade not null,
     entity_id bigint references entity not null,
+    is_positive boolean not null,
     primary key (campaign_id, entity_id)
 );
 
@@ -90,15 +90,65 @@ create policy "Users can delete entities of their own campaigns."
       where campaign_entity.campaign_id = campaign.id
   ));
 
+-- Campaign x Keyword association table
+
+drop table if exists campaign_keyword cascade;
+create table campaign_keyword (
+    campaign_id bigint references campaign on delete cascade not null,
+    keyword text not null,
+    is_positive boolean not null,
+    primary key (campaign_id, text)
+);
+
+alter table campaign_keyword enable row level security;
+
+create policy "Users can insert keywords to their own campaigns."
+  on campaign_keyword for insert
+  to authenticated
+  with check (
+      auth.uid() in (
+      select campaign.user_id from campaign
+      where campaign_keyword.campaign_id = campaign.id
+  ));;
+
+create policy "Users can view keywords of their own campaigns."
+  on campaign_keyword for select
+  using (
+      auth.uid() in (
+      select campaign.user_id from campaign
+      where campaign_keyword.campaign_id = campaign.id
+  ));
+
+create policy "Users can update keywords of their own campaigns."
+  on campaign_keyword for update
+  using (
+      auth.uid() in (
+      select campaign.user_id from campaign
+      where campaign_keyword.campaign_id = campaign.id
+  ));
+
+create policy "Users can delete keywords of their own campaigns."
+  on campaign_keyword for delete
+  using (
+      auth.uid() in (
+      select campaign.user_id from campaign
+      where campaign_keyword.campaign_id = campaign.id
+  ));
+
+
 -- Get campaign profiles
 
 drop function if exists get_campaign_profiles(bigint) cascade;
 create function get_campaign_profiles(campaign_id bigint) returns setof twitter_profile as $$
 
 with 
-  campaign as (select keywords,filters from campaign where id = campaign_id),
-  campaign_entities as (
-    select entity_id from campaign_entity
+  campaign as (select filters from campaign where id = campaign_id),
+  keywords as (
+    select keyword, is_positive from campaign_keyword
+      where campaign_keyword.campaign_id = get_campaign_profiles.campaign_id
+  ),
+  entities as (
+    select entity_id, is_positive from campaign_entity
       where campaign_entity.campaign_id = get_campaign_profiles.campaign_id
   )
 
@@ -108,10 +158,14 @@ twitter_profile
   left join tweet_entity on tweet_entity.tweet_id = tweet.id
 
 where 
-  -- Campaign keywords and niches
-  ((cardinality((select keywords from campaign)) > 0 and
-    tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
-    tweet_entity.entity_id in (select * from campaign_entities)) and
+  -- Positive keywords and entities
+  ((exists (select keyword from keywords where is_positive = true) and
+      tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = true), '|')) or
+    tweet_entity.entity_id in (select entity_id from entities where is_positive = true)) and
+  -- Negative keywords and entities
+  not (exists (select keyword from keywords where is_positive = false) and
+    tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = false), '|')) and
+  tweet_entity.entity_id not in (select entity_id from entities where is_positive = false) and
 
   -- Profile filters
   ((select filters->'followersCountLessThan' from campaign) is null or
@@ -218,9 +272,13 @@ create function get_campaign_tweets(campaign_id bigint)
   ) as $$
 
 with 
-  campaign as (select keywords,filters from campaign where id = campaign_id),
-  campaign_entities as (
-    select entity_id from campaign_entity
+  campaign as (select filters from campaign where id = campaign_id),
+  keywords as (
+    select keyword, is_positive from campaign_keyword
+      where campaign_keyword.campaign_id = get_campaign_tweets.campaign_id
+  ),
+  entities as (
+    select entity_id, is_positive from campaign_entity
       where campaign_entity.campaign_id = get_campaign_tweets.campaign_id
   )
 
@@ -241,10 +299,14 @@ from tweet
   left join twitter_profile on tweet.author_id = twitter_profile.id
 
 where 
-  -- Campaign keywords and niches
-  ((cardinality((select keywords from campaign)) > 0 and
-    tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
-    tweet_entity.entity_id in (select * from campaign_entities)) and
+  -- Positive keywords and entities
+  ((exists (select keyword from keywords where is_positive = true) and
+      tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = true), '|')) or
+    tweet_entity.entity_id in (select entity_id from entities where is_positive = true)) and
+  -- Negative keywords and entities
+  not (exists (select keyword from keywords where is_positive = false) and
+    tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = false), '|')) and
+  tweet_entity.entity_id not in (select entity_id from entities where is_positive = false) and
 
   -- Profile filters
   ((select filters->'followersCountLessThan' from campaign) is null or
@@ -332,7 +394,6 @@ where
 $$ language sql;
 
 -- Get campaign counts
-
 drop function if exists get_campaign_counts(bigint) cascade;
 create function get_campaign_counts(campaign_id bigint)
   returns table(
@@ -341,21 +402,29 @@ create function get_campaign_counts(campaign_id bigint)
   ) as $$
 
 with 
-  campaign as (select keywords,filters from campaign where id = campaign_id),
-  campaign_entities as (
-    select entity_id from campaign_entity
-      where campaign_entity.campaign_id = get_campaign_tweets.campaign_id
+  entities as (
+    select entity_id, is_positive from campaign_entity
+      where campaign_entity.campaign_id = get_campaign_counts.campaign_id
+  ),
+  keywords as (
+    select keyword, is_positive from campaign_keyword
+      where campaign_keyword.campaign_id = get_campaign_counts.campaign_id
   )
-
 select
   count(distinct tweet.id) as tweet_count, count(distinct twitter_profile.id) as profile_count
 from tweet
   left join tweet_entity on tweet_entity.tweet_id = tweet.id
   left join twitter_profile on tweet.author_id = twitter_profile.id
-where 
-  ((cardinality((select keywords from campaign)) > 0 and
-    tweet.text ~* array_to_string((select keywords from campaign), '|')) or 
-    tweet_entity.entity_id in (select * from campaign_entities))
+where
+  -- Positive keywords and entities
+  ((exists (select keyword from keywords where is_positive = true) and
+      tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = true), '|')) or
+    tweet_entity.entity_id in (select entity_id from entities where is_positive = true)) and
+  -- Negative keywords and entities
+  not (exists (select keyword from keywords where is_positive = false) and
+    tweet.text ~* array_to_string(array(select keyword from keywords where is_positive = false), '|')) and
+  tweet_entity.entity_id not in (select entity_id from entities where is_positive = false)
 ;
 
 $$ language sql;
+
