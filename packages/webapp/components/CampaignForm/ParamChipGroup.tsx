@@ -1,6 +1,6 @@
 import { Group } from "@mantine/core";
 import { Entity, Keyword } from "../../utils/campaigns";
-import { Chip } from "../Chip";
+import { DisplayChip } from "../DisplayChip";
 
 type ParamChipGroupProps = {
   keywords: Keyword[];
@@ -18,7 +18,7 @@ export const ParamChipGroup = ({
   return (
     <Group>
       {keywords.map((keyword) => (
-        <Chip
+        <DisplayChip
           label={`${
             keyword.isPositive ? "Include" : "Do not include"
           } keyword: "${keyword.keyword}"`}
@@ -37,7 +37,7 @@ export const ParamChipGroup = ({
         />
       ))}
       {entities.map((entity) => (
-        <Chip
+        <DisplayChip
           label={`${entity.isPositive ? "Include" : "Do not include"} niche: ${
             entity.name
           }`}

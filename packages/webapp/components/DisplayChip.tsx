@@ -1,17 +1,17 @@
 import { CloseButton, Group, Paper, Text } from "@mantine/core";
 import { useState } from "react";
 
-export type FilterChipProps = {
+export type DisplayChipProps = {
   label: string;
   onClose?: () => Promise<void> | void;
   useLoader?: boolean;
 };
 
-export const Chip = ({
+export const DisplayChip = ({
   label,
   onClose,
   useLoader = false,
-}: FilterChipProps) => {
+}: DisplayChipProps) => {
   const [loading, setLoading] = useState(false);
 
   return (

@@ -1,7 +1,7 @@
 import { Group, Text } from "@mantine/core";
 import dayjs from "dayjs";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Chip } from "../Chip";
+import { DisplayChip } from "../DisplayChip";
 import { Filters } from "./FilterForm";
 
 type FilterName = keyof Filters;
@@ -198,7 +198,7 @@ export const FilterChipGroup = ({
     <Group spacing="xs">
       <Text weight="bold">Active filters:</Text>
       {chips.map(({ label, filtersToRemove }, index) => (
-        <Chip
+        <DisplayChip
           key={index}
           label={label}
           useLoader={true}
