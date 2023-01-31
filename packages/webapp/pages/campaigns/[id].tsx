@@ -41,6 +41,9 @@ const Campaign = ({ width }) => {
   const supabase = useSupabaseClient();
   const theme = useMantineTheme();
 
+  // TODO: Whether there's a new campaign run
+  const [newChanges, setNewChanges] = useState(false);
+
   const [editCampaignModalOpened, setEditCampaignModalOpened] = useState(false);
 
   // Campaign and filters
@@ -90,6 +93,7 @@ const Campaign = ({ width }) => {
       console.log(error);
     }
     setRefreshLoading(false);
+    setNewChanges(false);
   };
 
   // Fetch campaign on first load
@@ -127,6 +131,26 @@ const Campaign = ({ width }) => {
 
     setPauseLoading(false);
   };
+
+  // Event listener for listening to campaign runs
+  useEffect(() => {
+    supabase
+      .channel("campaign-new-run:" + id)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "campaign",
+          filter: "id=eq." + id,
+        },
+        (payload) => {
+          if (payload.new.last_run_at !== payload.old.last_run_at)
+            setNewChanges(true);
+        }
+      )
+      .subscribe();
+  }, []);
 
   return (
     <>
@@ -177,7 +201,12 @@ const Campaign = ({ width }) => {
                 </Stack>
                 <Stack align="flex-end" spacing="xs">
                   <Group spacing="xs">
-                    <Tooltip label="Refresh campaign">
+                    <Tooltip
+                      label={
+                        "Refresh campaign" +
+                        (newChanges ? ": New changes available" : "")
+                      }
+                    >
                       <ActionIcon
                         variant="outline"
                         color={theme.primaryColor}

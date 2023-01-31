@@ -44,6 +44,7 @@ create policy "Users can update their own campaigns."
   using ( auth.uid() = user_id );
 
 alter publication supabase_realtime add table campaign;
+alter table campaign replica identity full;
 
 -- Campaign x Entity association table
 
