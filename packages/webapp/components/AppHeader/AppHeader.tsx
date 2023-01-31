@@ -46,13 +46,13 @@ export const AppHeader = ({
         >
           <Group spacing="xs">
             <Image
-              src="/images/icons8-twitter-64.png"
+              src="/images/birdfind.png"
               alt="Twitter logo"
               width={34}
               height={34}
             />
             <Title order={2} className={abrilFatface.className}>
-              @birdfind_xyz
+              Birdfind
             </Title>
           </Group>
         </UnstyledButton>

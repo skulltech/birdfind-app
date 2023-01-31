@@ -1,11 +1,13 @@
 import {
   Button,
   Group,
+  HoverCard,
   Popover,
   Stack,
   UnstyledButton,
   useMantineTheme,
 } from "@mantine/core";
+import { IconCirclePlus } from "@tabler/icons";
 import { SetStateAction, useState } from "react";
 import { FilterChipGroup } from "./FilterChipGroup";
 import { AgeSliderInput } from "./FilterInputs/AgeSliderInput";
@@ -46,8 +48,8 @@ const FilterMenuItem = ({ label, children }: FilterItemProps) => {
   const theme = useMantineTheme();
 
   return (
-    <Popover position="right-start" withArrow>
-      <Popover.Target>
+    <HoverCard position="right-start" withArrow closeDelay={50} openDelay={0}>
+      <HoverCard.Target>
         <UnstyledButton
           style={{
             padding: theme.spacing.xs,
@@ -58,9 +60,9 @@ const FilterMenuItem = ({ label, children }: FilterItemProps) => {
         >
           {label}
         </UnstyledButton>
-      </Popover.Target>
-      <Popover.Dropdown>{children}</Popover.Dropdown>
-    </Popover>
+      </HoverCard.Target>
+      <HoverCard.Dropdown>{children}</HoverCard.Dropdown>
+    </HoverCard>
   );
 };
 
@@ -102,8 +104,9 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
             }}
             radius="lg"
             onClick={() => setOpened((o) => !o)}
+            leftIcon={<IconCirclePlus size={18} />}
           >
-            + Add filter
+            Add filter
           </Button>
         </Popover.Target>
         <Popover.Dropdown p={4}>

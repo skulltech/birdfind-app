@@ -96,7 +96,7 @@ export default function App({
   return (
     <>
       <Head>
-        <link rel="shortcut icon" href="/images/icons8-twitter-64.png" />
+        <link rel="shortcut icon" href="/images/birdfind.png" />
         <title>Birdfind</title>
       </Head>
       <Script src="https://platform.twitter.com/widgets.js" />

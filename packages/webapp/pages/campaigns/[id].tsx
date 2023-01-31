@@ -164,13 +164,11 @@ const Campaign = ({ width }) => {
                       <IconChevronLeft size={18} />
                     </ActionIcon>
                     <Title order={3}>Campaign: {campaign.name}</Title>
-                    <Badge
-                      size="lg"
-                      color={campaign.paused ? "yellow" : "green"}
-                      variant="outline"
-                    >
-                      {campaign.paused ? "Paused" : "Active"}
-                    </Badge>
+                    {campaign.paused && (
+                      <Badge variant="outline" color="yellow" size="lg">
+                        Paused
+                      </Badge>
+                    )}
                   </Group>
                   <ParamChipGroup
                     keywords={campaign.keywords}
@@ -231,7 +229,7 @@ const Campaign = ({ width }) => {
                     <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
                       {campaign.tweetCount}
                     </span>{" "}
-                    tweets before filters
+                    tweets founds so far
                   </Text>
                 </Stack>
               </Group>

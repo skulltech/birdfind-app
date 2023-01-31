@@ -22,7 +22,6 @@ export const Chip = ({
       px="xs"
       h={30}
       style={{ display: "flex" }}
-      className="hover"
     >
       <Group position="apart" grow={false} noWrap spacing="xs">
         <Text>{label}</Text>

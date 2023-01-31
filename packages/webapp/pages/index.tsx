@@ -97,41 +97,36 @@ const Home = ({ width }) => {
                   shadow="md"
                   className="hover"
                 >
-                  <Group position="apart">
-                    <Stack>
+                  <Stack>
+                    <Group position="apart">
                       <Group spacing="md" align="center">
                         <Text size="lg">Campaign: {campaign.name}</Text>
-                        <Badge
-                          variant="outline"
-                          color={campaign.paused ? "yellow" : "green"}
-                        >
-                          {campaign.paused ? "Paused" : "Active"}
-                        </Badge>
+                        {campaign.paused && (
+                          <Badge variant="outline" color="yellow">
+                            Paused
+                          </Badge>
+                        )}
                       </Group>
-                      <ParamChipGroup
-                        keywords={campaign.keywords}
-                        entities={campaign.entities}
-                      />
-                    </Stack>
-                    <Stack>
                       <Text>
                         <span
                           style={{ fontWeight: "bold", fontSize: "1.2rem" }}
                         >
                           {campaign.profileCount}
                         </span>{" "}
-                        accounts
-                      </Text>
-                      <Text>
+                        accounts,{" "}
                         <span
                           style={{ fontWeight: "bold", fontSize: "1.2rem" }}
                         >
                           {campaign.tweetCount}
                         </span>{" "}
-                        tweets
+                        tweets found so far
                       </Text>
-                    </Stack>
-                  </Group>
+                    </Group>
+                    <ParamChipGroup
+                      keywords={campaign.keywords}
+                      entities={campaign.entities}
+                    />
+                  </Stack>
                 </Paper>
               </UnstyledButton>
             ))}
