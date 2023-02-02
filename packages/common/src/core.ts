@@ -35,8 +35,6 @@ export const twitterProfileColumns = joinStrings(
     "tweet_count",
     "listed_count",
     "verified",
-    "embedding",
-    "embedding_updated_at",
   ] as const,
   ","
 );

@@ -30,12 +30,7 @@ create table twitter_profile (
     following_count integer not null,
     tweet_count integer not null,
     listed_count integer not null,
-    verified boolean not null,
-
-    -- Profile embedding
-    latest_tweet_id bigint references tweet,
-    embedding vector(1536),
-    embedding_updated_at timestamp with time zone default timestamp 'epoch' not null
+    verified boolean not null
 );
 
 create trigger on_twitter_profile_updated

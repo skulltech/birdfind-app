@@ -5,13 +5,17 @@ import {
   tweetFields,
   twitterUserFields,
   serializeTweet,
-  twitterProfileColumns,
 } from "@birdfind/common";
 import { dedupeObjects, supabase } from "../utils";
 import dayjs from "dayjs";
 import isYesterday from "dayjs/plugin/isYesterday";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { updateProfileEmbedding } from "./embedding";
+import { Configuration, OpenAIApi } from "openai";
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 dayjs.extend(isYesterday);
 
@@ -69,7 +73,8 @@ const getCampaignQuery = async (
     positiveConstraints.join(" OR ") +
     (negativeConstraints.length > 0
       ? " -(" + negativeConstraints.join(" OR ") + ")"
-      : "");
+      : "") +
+    " lang:en -is:retweet -is:reply -is:quote";
   return query;
 };
 
@@ -122,10 +127,9 @@ export const runCampaign = async (campaignId: number) => {
   users = dedupeObjects(users);
 
   // Upsert users to database
-  const { data: upsertedUsers } = await supabase
+  await supabase
     .from("twitter_profile")
     .upsert(users.map(serializeTwitterUser))
-    .select(twitterProfileColumns)
     .throwOnError();
 
   // Upsert domains and entities to database
@@ -164,11 +168,19 @@ export const runCampaign = async (campaignId: number) => {
     .throwOnError();
   await supabase.from("domain_entity").upsert(domainsEntities).throwOnError();
 
+  // Get tweet embeddings
+  const tweetsToInsert = [];
+  for (const tweet of tweets.map(serializeTweet)) {
+    const response = await openai.createEmbedding({
+      model: "text-embedding-ada-002",
+      input: tweet.text,
+    });
+    const embedding = response.data.data[0].embedding;
+    tweetsToInsert.push({ embedding, ...tweet });
+  }
+
   // Upsert tweets to database
-  await supabase
-    .from("tweet")
-    .upsert(tweets.map(serializeTweet))
-    .throwOnError();
+  await supabase.from("tweet").upsert(tweetsToInsert).throwOnError();
   const tweetsEntities = dedupeObjects(
     tweets
       .map((x) => ({
@@ -183,15 +195,6 @@ export const runCampaign = async (campaignId: number) => {
     (x) => x.tweet_id + x.entity_id
   );
   await supabase.from("tweet_entity").upsert(tweetsEntities).throwOnError();
-
-  // For each users, update profile embedding if needed
-  for (const user of upsertedUsers)
-    await updateProfileEmbedding({
-      // @ts-ignore
-      user,
-      twitter,
-      supabase,
-    });
 
   // Update campaign
   await supabase

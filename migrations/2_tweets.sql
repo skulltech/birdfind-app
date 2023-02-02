@@ -11,7 +11,9 @@ create table tweet (
     retweet_count integer not null,
     reply_count integer not null,
     like_count integer not null,
-    quote_count integer not null
+    quote_count integer not null,
+
+    embedding vector(1536) not null
 );
 
 create trigger on_tweet_updated
