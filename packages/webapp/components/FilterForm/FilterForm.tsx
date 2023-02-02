@@ -1,9 +1,11 @@
 import {
   Button,
+  Divider,
   Group,
   HoverCard,
   Popover,
   Stack,
+  Text,
   UnstyledButton,
   useMantineTheme,
 } from "@mantine/core";
@@ -22,6 +24,8 @@ export type Filters = {
   followingCountGreaterThan?: number;
   tweetCountLessThan?: number;
   tweetCountGreaterThan?: number;
+  listedCountLessThan?: number;
+  listedCountGreaterThan?: number;
   userCreatedBefore?: Date;
   userCreatedAfter?: Date;
   userSearchText?: string;
@@ -52,7 +56,10 @@ const FilterMenuItem = ({ label, children }: FilterItemProps) => {
       <HoverCard.Target>
         <UnstyledButton
           style={{
-            padding: theme.spacing.xs,
+            paddingTop: theme.spacing.xs,
+            paddingBottom: theme.spacing.xs,
+            paddingLeft: theme.spacing.sm,
+            paddingRight: theme.spacing.sm,
             borderRadius: theme.radius.sm,
             fontSize: theme.fontSizes.sm,
           }}
@@ -73,6 +80,7 @@ type FilterFormProps = {
 
 export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
   const [opened, setOpened] = useState(false);
+  const theme = useMantineTheme();
 
   // Reducer function for adding filters
   const addFilters = async (arg: Filters) => {
@@ -111,6 +119,15 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
         </Popover.Target>
         <Popover.Dropdown p={4}>
           <Stack spacing={0}>
+            <Text
+              px={theme.spacing.sm}
+              py={5}
+              weight={500}
+              size="xs"
+              c="dimmed"
+            >
+              Filter by profile
+            </Text>
             <FilterMenuItem label="Bio contains keyword">
               <SearchTextInput
                 label="Show accounts with bio containing"
@@ -150,6 +167,17 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
                 }
               />
             </FilterMenuItem>
+            <FilterMenuItem label="Listed count">
+              <NumberRangeInput
+                label="Show accounts belonging to no. of lists between"
+                onSubmit={({ minValue, maxValue }) =>
+                  addFilters({
+                    listedCountGreaterThan: minValue,
+                    listedCountLessThan: maxValue,
+                  })
+                }
+              />
+            </FilterMenuItem>
             <FilterMenuItem label="Account age">
               <AgeSliderInput
                 label="Show accounts with age between"
@@ -162,6 +190,16 @@ export const FilterForm = ({ filters, setFilters }: FilterFormProps) => {
               />
             </FilterMenuItem>
 
+            <Divider my="xs" />
+            <Text
+              px={theme.spacing.sm}
+              py={5}
+              weight={500}
+              size="xs"
+              c="dimmed"
+            >
+              Filter by tweet
+            </Text>
             <FilterMenuItem label="Tweet age">
               <AgeSliderInput
                 label="Show tweets with age between"

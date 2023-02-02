@@ -31,7 +31,7 @@ export const AgeSliderInput = ({ label, onSubmit }: RangeSliderInputProps) => {
     <Stack spacing="sm">
       <Text>{label}</Text>
       <RangeSlider
-        mt="xl"
+        mt={30}
         label={valueToAge}
         value={rangeValue}
         onChange={setRangeValue}

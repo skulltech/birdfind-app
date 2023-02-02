@@ -211,6 +211,14 @@ where
     twitter_profile.following_count >
       (select(filters->'followingCountGreaterThan')::integer from campaign)) and
 
+  ((select filters->'listedCountLessThan' from campaign) is null or
+    twitter_profile.listed_count <
+      (select(filters->'listedCountLessThan')::integer from campaign)) and
+
+  ((select filters->'listedCountGreaterThan' from campaign) is null or
+    twitter_profile.listed_count >
+      (select(filters->'listedCountGreaterThan')::integer from campaign)) and
+
   ((select filters->'userCreatedBefore' from campaign) is null or
     twitter_profile.user_created_at <
       (select(filters->>'userCreatedBefore')::timestamptz from campaign)) and
@@ -354,6 +362,14 @@ where
   ((select filters->'followingCountGreaterThan' from campaign) is null or
     twitter_profile.following_count >
       (select(filters->'followingCountGreaterThan')::integer from campaign)) and
+
+  ((select filters->'listedCountLessThan' from campaign) is null or
+    twitter_profile.listed_count <
+      (select(filters->'listedCountLessThan')::integer from campaign)) and
+
+  ((select filters->'listedCountGreaterThan' from campaign) is null or
+    twitter_profile.listed_count >
+      (select(filters->'listedCountGreaterThan')::integer from campaign)) and
 
   ((select filters->'userCreatedBefore' from campaign) is null or
     twitter_profile.user_created_at <

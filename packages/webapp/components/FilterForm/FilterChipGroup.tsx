@@ -99,6 +99,20 @@ export const FilterChipGroup = ({
         filtersToRemove: ["tweetCountGreaterThan", "tweetCountLessThan"],
       });
 
+    // Listed count
+    if (
+      filters.listedCountGreaterThan != null ||
+      filters.listedCountLessThan != null
+    )
+      chips.push({
+        label: renderRangeFilter({
+          min: filters.listedCountGreaterThan,
+          max: filters.listedCountLessThan,
+          label: "Listed count",
+        }),
+        filtersToRemove: ["listedCountGreaterThan", "listedCountLessThan"],
+      });
+
     // Joined on
     if (filters.userCreatedAfter != null || filters.userCreatedBefore != null)
       chips.push({
@@ -196,7 +210,6 @@ export const FilterChipGroup = ({
 
   return (
     <Group spacing="xs">
-      <Text weight="bold">Active filters:</Text>
       {chips.map(({ label, filtersToRemove }, index) => (
         <DisplayChip
           key={index}
