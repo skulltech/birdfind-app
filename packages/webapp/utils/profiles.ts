@@ -1,42 +1,40 @@
-import { serializeTwitterUser, twitterProfileColumns } from "@birdfind/common";
+import {
+  joinStrings,
+  serializeTwitterUser,
+  twitterProfileColumns,
+} from "@birdfind/common";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { TwitterResponse, usersIdFollowers } from "twitter-api-sdk/dist/types";
 
-export type TwitterProfile = {
+export type CampaignProfile = {
   id: BigInt;
   username: string;
   name: string;
   userCreatedAt: Date;
   description: string;
-  location?: string;
   profileImageUrl: string;
-  protected: boolean;
   followersCount: number;
   followingCount: number;
   tweetCount: number;
   listedCount: number;
-  verified: boolean;
+  relevance: number;
 };
 
-export const parseTwitterProfile = (row: any): TwitterProfile => {
+export const parseCampaignProfile = (row: any): CampaignProfile => {
   return {
     id: BigInt(row.id),
     userCreatedAt: new Date(row.user_created_at),
     username: row.username,
     name: row.name,
     description: row.description,
-    location: row.location,
     profileImageUrl: row.profile_image_url,
-    protected: row.protected,
     followersCount: row.followers_count,
     followingCount: row.following_count,
     tweetCount: row.tweet_count,
     listedCount: row.listed_count,
-    verified: row.verified,
+    relevance: row.relevance,
   };
 };
-
-export interface CampaignProfile extends TwitterProfile {}
 
 export type ProfileSort =
   | "relevance"
@@ -61,6 +59,8 @@ type GetCampaignProfilesResult = {
 
 const applySort = (query: any, sort: ProfileSort) => {
   switch (sort) {
+    case "relevance":
+      return query.order("relevance", { ascending: false });
     case "followersAscending":
       return query.order("followers_count", { ascending: true });
     case "followersDescending":
@@ -77,6 +77,22 @@ const applySort = (query: any, sort: ProfileSort) => {
       return query;
   }
 };
+
+const campaignProfileColumns = joinStrings(
+  [
+    "id::text",
+    "username",
+    "name",
+    "user_created_at",
+    "description",
+    "profile_image_url",
+    "followers_count",
+    "following_count",
+    "tweet_count",
+    "relevance",
+  ] as const,
+  ","
+);
 
 export const getCampaignProfiles = async ({
   supabase,
@@ -97,7 +113,7 @@ export const getCampaignProfiles = async ({
   // Get results
   let resultsQuery = supabase
     .rpc("get_campaign_profiles", { campaign_id: campaignId })
-    .select(twitterProfileColumns);
+    .select(campaignProfileColumns);
   resultsQuery = applySort(resultsQuery, sort);
   const { data } = await resultsQuery
     .range(100 * pageIndex, 100 * (pageIndex + 1) - 1)
@@ -105,7 +121,7 @@ export const getCampaignProfiles = async ({
 
   return {
     count,
-    results: data.map(parseTwitterProfile),
+    results: data.map(parseCampaignProfile),
   };
 };
 
@@ -113,11 +129,9 @@ export const upsertTwitterProfile = async (
   supabase: SupabaseClient,
   user: TwitterResponse<usersIdFollowers>["data"][number]
 ) => {
-  const { data } = await supabase
+  await supabase
     .from("twitter_profile")
     .upsert(serializeTwitterUser(user))
     .select(twitterProfileColumns)
     .throwOnError();
-
-  return parseTwitterProfile(data[0]);
 };

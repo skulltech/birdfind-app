@@ -173,7 +173,8 @@ export const runCampaign = async (campaignId: number) => {
   for (const tweet of tweets.map(serializeTweet)) {
     const response = await openai.createEmbedding({
       model: "text-embedding-ada-002",
-      input: tweet.text,
+      // Remove URLs from tweet before creating embedding
+      input: tweet.text.replace(/(?:https?|ftp):\/\/[\n\S]+/g, ""),
     });
     const embedding = response.data.data[0].embedding;
     tweetsToInsert.push({ embedding, ...tweet });

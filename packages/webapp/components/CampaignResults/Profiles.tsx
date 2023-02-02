@@ -68,7 +68,7 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
           {
             value: "relevance",
             label: "Relevance",
-            group: "Smart sorting",
+            group: "Recommened",
           },
           {
             value: "followersDescending",
