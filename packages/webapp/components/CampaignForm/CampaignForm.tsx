@@ -1,5 +1,6 @@
 import { Button, Space, Stack, Text, TextInput } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import axios from "axios";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useUser } from "../../providers/UserProvider";
@@ -61,6 +62,9 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
             }))
           )
           .throwOnError();
+        await axios.get("/api/birdfind/update-campaign-embeddings", {
+          params: { id: data.id },
+        });
 
         if (onSubmit) onSubmit();
         // Redirect to campaign page
@@ -106,6 +110,9 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
             }))
           )
           .throwOnError();
+        await axios.get("/api/birdfind/update-campaign-embeddings", {
+          params: { id: campaign.id },
+        });
 
         if (onSubmit) onSubmit();
       }

@@ -8,6 +8,10 @@ create table campaign (
     user_id uuid references auth.users not null,
     filters jsonb not null default '{}',
 
+    -- Embeddings
+    positive_embedding vector(1536),
+    negative_embedding vector(1536),
+
     -- Status
     latest_tweet_id bigint references tweet,
     paused boolean not null default false,

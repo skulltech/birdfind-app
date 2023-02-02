@@ -5,12 +5,73 @@ import {
   tweetFields,
   twitterUserFields,
   serializeTweet,
+  twitterProfileColumns,
 } from "@birdfind/common";
 import { dedupeObjects, supabase } from "../utils";
 import dayjs from "dayjs";
 import isYesterday from "dayjs/plugin/isYesterday";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { updateProfileEmbedding } from "./embedding";
 
 dayjs.extend(isYesterday);
+
+const getCampaignQuery = async (
+  id: number,
+  supabase: SupabaseClient
+): Promise<string> => {
+  // Get all entities
+  const { data: campaignEntities } = await supabase
+    .from("campaign_entity")
+    .select("entity_id::text,is_positive")
+    .eq("campaign_id", id)
+    .throwOnError();
+
+  const entities = [];
+  for (const campaignEntity of campaignEntities) {
+    const { data: entityDomains } = await supabase
+      .from("domain_entity")
+      .select("domain_id")
+      // @ts-ignore
+      .eq("entity_id", campaignEntity.entity_id)
+      .throwOnError();
+    entities.push(
+      ...entityDomains.map((x) => ({
+        domain_id: x.domain_id,
+        // @ts-ignore
+        entity_id: campaignEntity.entity_id,
+        // @ts-ignore
+        is_positive: campaignEntity.is_positive,
+      }))
+    );
+  }
+
+  // Get all keywords
+  const { data: keywords } = await supabase
+    .from("campaign_keyword")
+    .select("keyword,is_positive")
+    .eq("campaign_id", id)
+    .throwOnError();
+
+  const positiveConstraints = [
+    ...entities
+      .filter((x) => x.is_positive)
+      .map((x) => `domain:${x.domain_id} entity:${x.entity_id}`),
+    ...keywords.filter((x) => x.is_positive).map((x) => `"${x.keyword}"`),
+  ];
+  const negativeConstraints = [
+    ...entities
+      .filter((x) => !x.is_positive)
+      .map((x) => `domain:${x.domain_id} entity:${x.entity_id}`),
+    ...keywords.filter((x) => !x.is_positive).map((x) => `"${x.keyword}"`),
+  ];
+
+  const query =
+    positiveConstraints.join(" OR ") +
+    (negativeConstraints.length > 0
+      ? " -(" + negativeConstraints.join(" OR ") + ")"
+      : "");
+  return query;
+};
 
 export const runCampaign = async (campaignId: number) => {
   // Get campaign from Supabase
@@ -38,31 +99,8 @@ export const runCampaign = async (campaignId: number) => {
     origin: "https://app.birdfind.xyz",
   });
 
-  // Prepare query
-  const queryElements = [...campaign.keywords.map((x: string) => `"${x}"`)];
-
-  const { data: campaignEntities } = await supabase
-    .from("campaign_entity")
-    .select("entity_id::text")
-    .eq("campaign_id", campaignId)
-    .throwOnError();
-
-  for (const campaignEntity of campaignEntities) {
-    const { data: entityDomains } = await supabase
-      .from("domain_entity")
-      .select("domain_id")
-      // @ts-ignore
-      .eq("entity_id", campaignEntity.entity_id)
-      .throwOnError();
-    queryElements.push(
-      ...entityDomains.map(
-        // @ts-ignore
-        (x) => `context:${x.domain_id}.${campaignEntity.entity_id}`
-      )
-    );
-  }
-
-  const query = `${queryElements.join(" OR ")} lang:en -is:retweet -is:reply`;
+  // Create query from constraints
+  const query = await getCampaignQuery(campaign.id, supabase);
 
   const page = await twitter.tweets.tweetsRecentSearch({
     query,
@@ -84,9 +122,10 @@ export const runCampaign = async (campaignId: number) => {
   users = dedupeObjects(users);
 
   // Upsert users to database
-  await supabase
+  const { data: upsertedUsers } = await supabase
     .from("twitter_profile")
     .upsert(users.map(serializeTwitterUser))
+    .select(twitterProfileColumns)
     .throwOnError();
 
   // Upsert domains and entities to database
@@ -144,6 +183,15 @@ export const runCampaign = async (campaignId: number) => {
     (x) => x.tweet_id + x.entity_id
   );
   await supabase.from("tweet_entity").upsert(tweetsEntities).throwOnError();
+
+  // For each users, update profile embedding if needed
+  for (const user of upsertedUsers)
+    await updateProfileEmbedding({
+      // @ts-ignore
+      user,
+      twitter,
+      supabase,
+    });
 
   // Update campaign
   await supabase

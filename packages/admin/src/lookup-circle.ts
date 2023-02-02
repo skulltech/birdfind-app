@@ -149,7 +149,6 @@ export const createEmbedding = async (input: string) => {
     model: "text-embedding-ada-002",
     input,
   });
-  //   console.log(response.data);
   return response.data.data[0].embedding;
 };
 

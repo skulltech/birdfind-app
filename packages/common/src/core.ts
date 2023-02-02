@@ -35,6 +35,8 @@ export const twitterProfileColumns = joinStrings(
     "tweet_count",
     "listed_count",
     "verified",
+    "embedding",
+    "embedding_updated_at",
   ] as const,
   ","
 );
@@ -114,6 +116,8 @@ export const campaignColumns = joinStrings(
     "latest_tweet_id",
     "last_run_at",
     "tweets_fetched_today",
+    "positive_embedding",
+    "negative_embedding",
   ] as const,
   ","
 );
