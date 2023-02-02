@@ -14,5 +14,7 @@ declare namespace NodeJS {
 
     TELEGRAM_API_KEY: string;
     TELEGRAM_CHAT_ID: string;
+
+    OPENAI_API_KEY: string;
   }
 }
