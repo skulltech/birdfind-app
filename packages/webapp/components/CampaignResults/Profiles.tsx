@@ -95,6 +95,26 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
             label: "Tweets: Low to high",
             group: "Tweets",
           },
+          {
+            value: "listedDescending",
+            label: "Listed: High to low",
+            group: "Listed",
+          },
+          {
+            value: "listedAscending",
+            label: "Listed: Low to high",
+            group: "Listed",
+          },
+          {
+            value: "ageDescending",
+            label: "Age: New to old",
+            group: "Age",
+          },
+          {
+            value: "ageAscending",
+            label: "Age: Old to new",
+            group: "Age",
+          },
         ],
         rows: results.map(
           (result) =>
@@ -121,6 +141,12 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
                       {largeNumberFormatter(result.tweetCount)}
                     </span>{" "}
                     tweets
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1.2rem" }}>
+                      {largeNumberFormatter(result.listedCount)}
+                    </span>{" "}
+                    listed
                   </td>
                   <td style={{ whiteSpace: "nowrap" }}>
                     Joined{" "}

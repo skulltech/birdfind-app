@@ -40,7 +40,11 @@ export type ProfileSort =
   | "tweetsAscending"
   | "tweetsDescending"
   | "followingAscending"
-  | "followingDescending";
+  | "followingDescending"
+  | "listedAscending"
+  | "listedDescending"
+  | "ageAscending"
+  | "ageDescending";
 
 type GetCampaignProfilesArgs = {
   supabase: SupabaseClient;
@@ -68,6 +72,14 @@ const applySort = (query: any, sort: ProfileSort) => {
       return query.order("following_count", { ascending: true });
     case "followingDescending":
       return query.order("following_count", { ascending: false });
+    case "listedAscending":
+      return query.order("listed_count", { ascending: true });
+    case "listedDescending":
+      return query.order("listed_count", { ascending: false });
+    case "ageAscending":
+      return query.order("user_created_at", { ascending: true });
+    case "ageDescending":
+      return query.order("user_created_at", { ascending: false });
     default:
       return query;
   }
@@ -84,6 +96,7 @@ const campaignProfileColumns = joinStrings(
     "followers_count",
     "following_count",
     "tweet_count",
+    "listed_count",
   ] as const,
   ","
 );

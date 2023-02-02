@@ -144,6 +144,7 @@ create function get_campaign_profiles(campaign_id bigint)
     followers_count integer,
     following_count integer,
     tweet_count integer,
+    listed_count integer,
     user_created_at timestamp with time zone
   ) as $$
 
@@ -167,6 +168,7 @@ select
   twitter_profile.followers_count,
   twitter_profile.following_count,
   twitter_profile.tweet_count,
+  twitter_profile.listed_count,
   twitter_profile.user_created_at
 
 from twitter_profile
