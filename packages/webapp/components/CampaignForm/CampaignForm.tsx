@@ -62,9 +62,6 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
             }))
           )
           .throwOnError();
-        await axios.get("/api/birdfind/update-campaign-embeddings", {
-          params: { id: data.id },
-        });
 
         if (onSubmit) onSubmit();
         // Redirect to campaign page
@@ -110,9 +107,6 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
             }))
           )
           .throwOnError();
-        await axios.get("/api/birdfind/update-campaign-embeddings", {
-          params: { id: campaign.id },
-        });
 
         if (onSubmit) onSubmit();
       }

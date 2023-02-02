@@ -17,7 +17,6 @@ export type CampaignProfile = {
   followingCount: number;
   tweetCount: number;
   listedCount: number;
-  relevance: number;
 };
 
 export const parseCampaignProfile = (row: any): CampaignProfile => {
@@ -32,12 +31,10 @@ export const parseCampaignProfile = (row: any): CampaignProfile => {
     followingCount: row.following_count,
     tweetCount: row.tweet_count,
     listedCount: row.listed_count,
-    relevance: row.relevance,
   };
 };
 
 export type ProfileSort =
-  | "relevance"
   | "followersAscending"
   | "followersDescending"
   | "tweetsAscending"
@@ -59,8 +56,6 @@ type GetCampaignProfilesResult = {
 
 const applySort = (query: any, sort: ProfileSort) => {
   switch (sort) {
-    case "relevance":
-      return query.order("relevance", { ascending: false });
     case "followersAscending":
       return query.order("followers_count", { ascending: true });
     case "followersDescending":
@@ -89,7 +84,6 @@ const campaignProfileColumns = joinStrings(
     "followers_count",
     "following_count",
     "tweet_count",
-    "relevance",
   ] as const,
   ","
 );

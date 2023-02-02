@@ -1,6 +1,5 @@
 import { campaignColumns } from "@birdfind/common";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Configuration, OpenAIApi } from "openai";
 
 type GetCampaignCountsArgs = {
   campaignId: string;
@@ -174,87 +173,4 @@ export const getCampaign = async ({
     profileCount,
     tweetCount,
   };
-};
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
-
-const createEmbedding = async (input: string) => {
-  const response = await openai.createEmbedding({
-    model: "text-embedding-ada-002",
-    input,
-  });
-  return response.data.data[0].embedding;
-};
-
-type UpdateCampaignEmbeddingArgs = {
-  id: number;
-  supabase: SupabaseClient;
-};
-
-export const updateCampaignEmbeddings = async ({
-  id,
-  supabase,
-}: UpdateCampaignEmbeddingArgs) => {
-  const { data: campaign } = await supabase
-    .from("campaign")
-    .select(campaignColumns)
-    .eq("id", id)
-    .throwOnError()
-    .maybeSingle();
-
-  // Get all entities
-  const { data: campaignEntities } = await supabase
-    .from("campaign_entity")
-    .select("entity_id::text,is_positive")
-    .eq("campaign_id", campaign.id)
-    .throwOnError();
-  const { data: entityInfos } = await supabase
-    .from("entity")
-    .select("id::text,name")
-    .in(
-      "id",
-      // @ts-ignore
-      campaignEntities.map((x) => x.entity_id)
-    )
-    .throwOnError();
-  const entities = entityInfos.map((entityInfo, i) => ({
-    // @ts-ignore
-    ...entityInfo,
-    // @ts-ignore
-    is_positive: campaignEntities[i].is_positive,
-  }));
-
-  // Get all keywords
-  const { data: keywords } = await supabase
-    .from("campaign_keyword")
-    .select("keyword,is_positive")
-    .eq("campaign_id", campaign.id)
-    .throwOnError();
-
-  // Create positive and negative embeddings
-  const positiveEmbedding = await createEmbedding(
-    [
-      ...entities.filter((x) => x.is_positive).map((x) => x.name),
-      ...keywords.filter((x) => x.is_positive).map((x) => x.keyword),
-    ].join("\n")
-  );
-  const negativeEmbedding = await createEmbedding(
-    [
-      ...entities.filter((x) => !x.is_positive).map((x) => x.name),
-      ...keywords.filter((x) => !x.is_positive).map((x) => x.keyword),
-    ].join("\n")
-  );
-
-  // Insert embeddings into database
-  await supabase
-    .from("campaign")
-    .update({
-      positive_embedding: positiveEmbedding,
-      negative_embedding: negativeEmbedding,
-    })
-    .eq("id", campaign.id)
-    .throwOnError();
 };

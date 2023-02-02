@@ -7,8 +7,6 @@ declare namespace NodeJS {
     TWITTER_CLIENT_ID: string;
     TWITTER_CLIENT_SECRET: string;
 
-    OPENAI_API_KEY: string;
-
     NEXT_PUBLIC_GA_MEASUREMENT_ID: string;
   }
 }

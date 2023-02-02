@@ -2,7 +2,6 @@ import { joinStrings } from "@birdfind/common";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 export type TweetSort =
-  | "relevance"
   | "ageAscending"
   | "ageDescending"
   | "likesAscending"
@@ -28,7 +27,6 @@ export type CampaignTweet = {
     username: string;
     profileImageUrl: string;
   };
-  relevance: number;
 };
 
 export const parseCampaignTweet = (row: any): CampaignTweet => {
@@ -46,7 +44,6 @@ export const parseCampaignTweet = (row: any): CampaignTweet => {
       username: row.author_username,
       profileImageUrl: row.author_profile_image_url,
     },
-    relevance: row.relevance,
   };
 };
 
@@ -77,15 +74,12 @@ const campaignTweetColumns = joinStrings(
     "author_name",
     "author_username",
     "author_profile_image_url",
-    "relevance",
   ] as const,
   ","
 );
 
 const applySort = (query: any, sort: TweetSort) => {
   switch (sort) {
-    case "relevance":
-      return query.order("relevance", { ascending: false });
     case "ageAscending":
       return query.order("tweet_created_at", { ascending: true });
     case "ageDescending":

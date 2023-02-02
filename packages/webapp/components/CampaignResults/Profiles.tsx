@@ -17,7 +17,7 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
   const supabase = useSupabaseClient();
 
   const [pageIndex, setPageIndex] = useState(0);
-  const [sort, setSort] = useState<ProfileSort>("relevance");
+  const [sort, setSort] = useState<ProfileSort>("followersDescending");
 
   // Search results
   const [loading, setLoading] = useState(false);
@@ -65,11 +65,6 @@ export const Profiles = ({ campaign, filters }: CampaignResultsProps) => {
         sort,
         setSort,
         sortItems: [
-          {
-            value: "relevance",
-            label: "Relevance",
-            group: "Recommened",
-          },
           {
             value: "followersDescending",
             label: "Followers: High to low",

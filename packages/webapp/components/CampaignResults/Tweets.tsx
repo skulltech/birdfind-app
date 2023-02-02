@@ -66,11 +66,6 @@ export const Tweets = ({ campaign, filters }: CampaignResultsProps) => {
         setPageIndex,
         sortItems: [
           {
-            value: "relevance",
-            label: "Relevance",
-            group: "Recommened",
-          },
-          {
             value: "likesDescending",
             label: "Likes: High to low",
             group: "Likes",

@@ -8,10 +8,6 @@ create table campaign (
     user_id uuid references auth.users not null,
     filters jsonb not null default '{}',
 
-    -- Embeddings
-    positive_embedding vector(1536),
-    negative_embedding vector(1536),
-
     -- Status
     latest_tweet_id bigint references tweet,
     paused boolean not null default false,
@@ -148,15 +144,11 @@ create function get_campaign_profiles(campaign_id bigint)
     followers_count integer,
     following_count integer,
     tweet_count integer,
-    user_created_at timestamp with time zone,
-    relevance double precision
+    user_created_at timestamp with time zone
   ) as $$
 
 with 
-  campaign as (
-    select filters, positive_embedding, negative_embedding from campaign
-      where id = campaign_id
-  ),
+  campaign as (select filters from campaign where id = campaign_id),
   keywords as (
     select keyword, is_positive from campaign_keyword
       where campaign_keyword.campaign_id = get_campaign_profiles.campaign_id
@@ -175,13 +167,7 @@ select
   twitter_profile.followers_count,
   twitter_profile.following_count,
   twitter_profile.tweet_count,
-  twitter_profile.user_created_at,
-  -- Relevance
-  sum(((tweet.embedding <=> (select negative_embedding from campaign)) -
-    (tweet.embedding <=> (select positive_embedding from campaign))) *
-    (case when tweet.like_count > 0 then tweet.like_count else 1 end)) /
-  sum(case when tweet.like_count > 0 then tweet.like_count else 1 end)
-  as relevance
+  twitter_profile.user_created_at
 
 from twitter_profile
   left join tweet on tweet.author_id = twitter_profile.id
@@ -301,15 +287,11 @@ create function get_campaign_tweets(campaign_id bigint)
     author_id bigint,
     author_username text,
     author_name text,
-    author_profile_image_url text,
-    relevance double precision
+    author_profile_image_url text
   ) as $$
 
 with 
-  campaign as (
-    select filters, positive_embedding, negative_embedding from campaign
-      where id = campaign_id
-  ),
+  campaign as (select filters from campaign where id = campaign_id),
   keywords as (
     select keyword, is_positive from campaign_keyword
       where campaign_keyword.campaign_id = get_campaign_tweets.campaign_id
@@ -330,10 +312,7 @@ select
     tweet.author_id,
     twitter_profile.username as author_username,
     twitter_profile.name as author_name,
-    twitter_profile.profile_image_url as author_profile_image_url,
-    -- Relevance
-    ((tweet.embedding <=> (select negative_embedding from campaign)) - 
-      (tweet.embedding <=> (select positive_embedding from campaign))) as relevance
+    twitter_profile.profile_image_url as author_profile_image_url
 from tweet
   left join tweet_entity on tweet_entity.tweet_id = tweet.id
   left join twitter_profile on tweet.author_id = twitter_profile.id

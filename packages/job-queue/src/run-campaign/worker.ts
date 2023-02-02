@@ -10,12 +10,6 @@ import { dedupeObjects, supabase } from "../utils";
 import dayjs from "dayjs";
 import isYesterday from "dayjs/plugin/isYesterday";
 import { SupabaseClient } from "@supabase/supabase-js";
-import { Configuration, OpenAIApi } from "openai";
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 dayjs.extend(isYesterday);
 
@@ -168,20 +162,11 @@ export const runCampaign = async (campaignId: number) => {
     .throwOnError();
   await supabase.from("domain_entity").upsert(domainsEntities).throwOnError();
 
-  // Get tweet embeddings
-  const tweetsToInsert = [];
-  for (const tweet of tweets.map(serializeTweet)) {
-    const response = await openai.createEmbedding({
-      model: "text-embedding-ada-002",
-      // Remove URLs from tweet before creating embedding
-      input: tweet.text.replace(/(?:https?|ftp):\/\/[\n\S]+/g, ""),
-    });
-    const embedding = response.data.data[0].embedding;
-    tweetsToInsert.push({ embedding, ...tweet });
-  }
-
   // Upsert tweets to database
-  await supabase.from("tweet").upsert(tweetsToInsert).throwOnError();
+  await supabase
+    .from("tweet")
+    .upsert(tweets.map(serializeTweet))
+    .throwOnError();
   const tweetsEntities = dedupeObjects(
     tweets
       .map((x) => ({
