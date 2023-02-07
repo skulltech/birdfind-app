@@ -4,14 +4,18 @@ create table campaign (
     created_at timestamp with time zone not null default now(),
     updated_at timestamp with time zone not null default now(),
 
+    -- User modifiable fields
     name text not null,
     user_id uuid references auth.users not null,
     filters jsonb not null default '{}',
-
-    -- Status
-    latest_tweet_id bigint references tweet,
     paused boolean not null default false,
-    deleted boolean not null default false,
+
+    -- Pagination fields
+    pagination_token text,
+    pagination_started_at timestamp with time zone,
+    latest_tweet_id bigint references tweet,
+    
+    -- For rate limiting
     last_run_at timestamp with time zone,
     tweets_fetched_today integer not null default 0
 );
@@ -34,6 +38,11 @@ create policy "Users can view their own campaigns."
 
 create policy "Users can update their own campaigns."
   on campaign for update
+  to authenticated
+  using ( auth.uid() = user_id );
+
+create policy "Users can delete their own campaigns."
+  on campaign for delete
   to authenticated
   using ( auth.uid() = user_id );
 
@@ -92,7 +101,7 @@ create table campaign_keyword (
     campaign_id bigint references campaign on delete cascade not null,
     keyword text not null,
     is_positive boolean not null,
-    primary key (campaign_id, text)
+    primary key (campaign_id, keyword)
 );
 
 alter table campaign_keyword enable row level security;

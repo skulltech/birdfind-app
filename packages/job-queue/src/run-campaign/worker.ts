@@ -74,12 +74,13 @@ const getCampaignQuery = async (
 
 export const runCampaign = async (campaignId: number) => {
   // Get campaign from Supabase
-  const { data: campaign } = await supabase
+  const { data: campaignData } = await supabase
     .from("campaign")
     .select(campaignColumns)
     .eq("id", campaignId)
     .throwOnError()
     .single();
+  const campaign = campaignData as any;
 
   // Get twitter client of user
   const { data: userProfile } = await supabase
@@ -101,14 +102,25 @@ export const runCampaign = async (campaignId: number) => {
   // Create query from constraints
   const query = await getCampaignQuery(campaign.id, supabase);
 
+  // Whether to start new pagination or continue the last one
+  const startNewPagination =
+    // Pagination started over a day ago
+    dayjs().diff(campaign.pagination_started_at, "hour") > 24 ||
+    // First run
+    campaign.pagination_started_at == null;
+  console.log("startNewPagination", startNewPagination, {
+    pagination_token: startNewPagination ? null : campaign.pagination_token,
+    since_id: startNewPagination ? campaign.latest_tweet_id : null,
+  });
+
   const page = await twitter.tweets.tweetsRecentSearch({
     query,
     max_results: 100,
     "tweet.fields": tweetFields,
     "user.fields": twitterUserFields,
     expansions: ["author_id"],
-    sort_order: "relevancy",
-    since_id: campaign.latest_tweet_id,
+    pagination_token: startNewPagination ? null : campaign.pagination_token,
+    since_id: startNewPagination ? campaign.latest_tweet_id : null,
   });
   let tweets = page.data ?? [];
   let users = page.includes?.users ?? [];
@@ -182,15 +194,23 @@ export const runCampaign = async (campaignId: number) => {
   );
   await supabase.from("tweet_entity").upsert(tweetsEntities).throwOnError();
 
+  console.log("Updating campaign", {
+    pagination_token: page.meta.next_token,
+    latest_tweet_id: page.meta.newest_id,
+  });
+
   // Update campaign
   await supabase
     .from("campaign")
     .update({
-      latest_tweet_id: tweets.sort(
-        (a, b) =>
-          // Sort by created at descending
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      )[0].id,
+      // Pagination fields
+      pagination_token: page.meta.next_token,
+      latest_tweet_id: page.meta.newest_id,
+      pagination_started_at: startNewPagination
+        ? new Date().toISOString()
+        : campaign.pagination_started_at,
+
+      // Rate limiting fields
       last_run_at: new Date().toISOString(),
       tweets_fetched_today: dayjs(campaign.last_run_at).isYesterday()
         ? tweets.length

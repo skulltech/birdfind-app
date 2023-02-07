@@ -57,7 +57,6 @@ export const getAllCampaigns = async ({
   const { data } = await supabase
     .from("campaign")
     .select(campaignColumns)
-    .eq("deleted", false)
     .throwOnError();
 
   for (const campaign of data) {

@@ -69,7 +69,7 @@ const Campaign = ({ width }) => {
         try {
           await supabase
             .from("campaign")
-            .update({ deleted: true })
+            .delete()
             .eq("id", campaign.id)
             .throwOnError();
           router.push("/");

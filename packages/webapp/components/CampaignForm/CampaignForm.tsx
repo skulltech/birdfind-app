@@ -1,6 +1,5 @@
 import { Button, Space, Stack, Text, TextInput } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import axios from "axios";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useUser } from "../../providers/UserProvider";
@@ -70,7 +69,14 @@ export const CampaignForm = ({ campaign, onSubmit }: CampaignFormProps) => {
         // Update campaign
         await supabase
           .from("campaign")
-          .update({ name })
+          .update({
+            name,
+            // Reset progress, TODO: do this only if keywords or entities changed
+            pagination_token: null,
+            pagination_started_at: null,
+            latest_tweet_id: null,
+            last_run_at: null,
+          })
           .eq("id", campaign.id)
           .throwOnError();
 

@@ -106,14 +106,14 @@ export const addRunCampaignJobs = async () => {
 
       // Get jobs which can be added
       const result = await pgClient.query({
-        text: "select * from campaign where paused=false and deleted=false and not (id = any($1))",
+        text: "select * from campaign where paused=false and not (id = any($1))",
         values: [jobsinQueue],
       });
 
       // Filter by quota and rate limit constraints
       const campaigns = result.rows.filter(
         (x) =>
-          // First run
+          // First run or just updated
           x.last_run_at == null ||
           // Not over daily quota
           ((dayjs(x.last_run_at).isYesterday() ||

@@ -109,9 +109,12 @@ export const campaignColumns = joinStrings(
     "updated_at",
     "user_id",
     "paused",
-    "deleted",
     "filters",
-    "latest_tweet_id",
+    // Pagination fields
+    "pagination_started_at",
+    "pagination_token",
+    "latest_tweet_id::text",
+    // Rate limit fields
     "last_run_at",
     "tweets_fetched_today",
   ] as const,
