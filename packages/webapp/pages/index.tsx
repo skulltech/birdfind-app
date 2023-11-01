@@ -9,6 +9,7 @@ import {
   Text,
   Title,
   UnstyledButton,
+  useMantineTheme,
 } from "@mantine/core";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IconCirclePlus } from "@tabler/icons";
@@ -17,12 +18,13 @@ import { useEffect, useState } from "react";
 import { CampaignForm } from "../components/CampaignForm/CampaignForm";
 import { Campaign, getAllCampaigns } from "../utils/campaigns";
 
-const Home = ({ width }) => {
+const Home = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const supabase = useSupabaseClient();
   const [createCampaignModalOpened, setCreateCampaignModalOpened] =
     useState(false);
   const [loading, setLoading] = useState(true);
+  const theme = useMantineTheme();
 
   // Fetch campaigns on first load
   useEffect(() => {
@@ -53,10 +55,11 @@ const Home = ({ width }) => {
       >
         <CampaignForm />
       </Modal>
+
       {loading ? (
-        <Loader mt="xl" />
+        <Loader mt="xl" mx="auto" />
       ) : campaigns.length == 0 ? (
-        <Stack mt="xl" w={width}>
+        <Stack mt="xl" sx={{ maxWidth: theme.breakpoints.md }} mx="auto">
           <Stack spacing={2}>
             <Title order={3}>Create a campaign</Title>
             <Text size="sm" color="gray">
@@ -66,7 +69,7 @@ const Home = ({ width }) => {
           <CampaignForm />
         </Stack>
       ) : (
-        <Stack align="stretch" mt="md" w={width}>
+        <Stack mt="md" mx="auto">
           <Group position="apart">
             <Text>
               You have {campaigns.length}

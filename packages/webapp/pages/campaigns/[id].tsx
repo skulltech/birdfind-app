@@ -29,13 +29,12 @@ import { openConfirmModal } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { Profiles } from "../../components/CampaignResults/Profiles";
 import { Tweets } from "../../components/CampaignResults/Tweets";
-import { ParamChipGroup } from "../../components/CampaignForm/ParamChipGroup";
 import { CampaignForm } from "../../components/CampaignForm/CampaignForm";
 import { getCampaign } from "../../utils/campaigns";
 
 dayjs.extend(RelativeTime);
 
-const Campaign = ({ width }) => {
+const Campaign = () => {
   const router = useRouter();
   const { id } = router.query;
   const supabase = useSupabaseClient();
@@ -174,7 +173,7 @@ const Campaign = ({ width }) => {
               }}
             />
           </Modal>
-          <Stack spacing="sm" mt="sm" w={width}>
+          <Stack spacing="sm" mt="sm">
             <Stack>
               <Group position="apart" align="flex-start">
                 <Stack>
@@ -292,15 +291,11 @@ const Campaign = ({ width }) => {
                 <Tabs.Tab value="tweets">Tweets</Tabs.Tab>
               </Tabs.List>
 
-              <Tabs.Panel value="profiles">
-                <Stack pt="md">
-                  <Profiles campaign={campaign} filters={campaign.filters} />
-                </Stack>
+              <Tabs.Panel value="profiles" pt="md">
+                <Profiles campaign={campaign} filters={campaign.filters} />
               </Tabs.Panel>
-              <Tabs.Panel value="tweets">
-                <Stack pt="md">
-                  <Tweets campaign={campaign} filters={campaign.filters} />
-                </Stack>
+              <Tabs.Panel value="tweets" pt="md">
+                <Tweets campaign={campaign} filters={campaign.filters} />
               </Tabs.Panel>
             </Tabs>
           </Stack>

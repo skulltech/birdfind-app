@@ -53,6 +53,9 @@ export default function App({
     props.useSystemColorScheme == null ? true : props.useSystemColorScheme
   );
 
+  // Padding
+  const [px, setPx] = useState(theme.spacing.xl);
+
   const changeColorScheme = (value: ColorScheme | "system") => {
     if (value !== "system") {
       setUseSystemColorScheme(false);
@@ -132,20 +135,20 @@ export default function App({
                 <Stack spacing={0}>
                   <RouterTransition />
                   <AppHeader
-                    width={theme.breakpoints.md}
+                    px={px}
                     colorScheme={useSystemColorScheme ? "system" : colorScheme}
                     changeColorScheme={changeColorScheme}
                   />
                   <main
                     style={{
-                      paddingLeft: theme.spacing.sm,
-                      paddingRight: theme.spacing.sm,
+                      paddingLeft: px,
+                      paddingRight: px,
                       display: "flex",
-                      justifyContent: "center",
+                      flexDirection: "column",
                       minHeight: "100vh",
                     }}
                   >
-                    <Component {...pageProps} width={theme.breakpoints.md} />
+                    <Component {...pageProps} />
                   </main>
                 </Stack>
               </UserProvider>

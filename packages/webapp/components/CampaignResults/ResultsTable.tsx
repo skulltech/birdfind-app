@@ -72,7 +72,7 @@ export const ResultsTable = ({
           />
         </Group>
       </Group>
-      <ScrollArea style={{ width: "100%" }}>
+      <ScrollArea>
         <Table verticalSpacing="md" highlightOnHover>
           <tbody>
             {rows.map((Row, index) => (
